@@ -119,3 +119,44 @@ a {
 a:hover {
     color: var(--brand-green);
 }
+
+/* Bootstrap re-declares --bs-toast-spacing on .toast itself, which overrides
+   any value set on the container - has to be overridden here instead. */
+.toast {
+    --bs-toast-spacing: 0.5rem;
+    transition: opacity .3s ease, transform .3s ease;
+    transform: translateX(0);
+}
+
+/* Bootstrap toggles .showing during both the show and hide transition (it's
+   the "off" state in both directions) - sliding it here gives a fly-in from
+   the right on show and fly-out to the right on hide, instead of a plain fade. */
+.toast.showing {
+    opacity: 0;
+    transform: translateX(100%);
+}
+
+.toast-pastel-success {
+    background-color: #E6F4EA;
+    color: #1E7E42;
+}
+
+.toast-pastel-danger {
+    background-color: #FBEAEA;
+    color: #B3261E;
+}
+
+.toast-pastel-warning {
+    background-color: #FFF6DC;
+    color: #8A6D00;
+}
+
+.toast-pastel-info {
+    background-color: #E5F1FB;
+    color: #2464A3;
+}
+
+.toast-pastel-secondary {
+    background-color: #EEEEEE;
+    color: #555555;
+}
