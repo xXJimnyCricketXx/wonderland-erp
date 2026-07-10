@@ -14,24 +14,55 @@ body {
     flex-direction: column;
     min-height: 100vh;
     background-color: var(--brand-white);
+    font-family: 'Roboto', sans-serif;
 }
 
-main {
+.app-shell {
     flex: 1 0 auto;
 }
 
-footer {
-    flex-shrink: 0;
-}
-
-.site-header {
+.bg-brand {
     background-color: var(--brand-green);
+}
+
+/* Matches the sidebar's width so the search bar in the navbar lines up
+   flush with the sidebar's right edge, and the brand text can center
+   over the same width as the sidebar logo. */
+@media (min-width: 992px) {
+    .navbar-brand-slot {
+        width: 280px;
+    }
+}
+
+/* Bootstrap forces the offcanvas (and its body) to a transparent background
+   above the responsive breakpoint so it can sit inline as a static sidebar
+   there; that !important rule otherwise wipes out our brand-green fill. */
+.sidebar.offcanvas-lg,
+.sidebar.offcanvas-lg .offcanvas-body {
+    background-color: var(--brand-green) !important;
+}
+
+.sidebar .nav-link.active,
+.sidebar .nav-link:hover {
+    background-color: var(--brand-gold);
+    color: var(--brand-green);
+}
+
+.navbar .nav-link {
     color: var(--brand-white);
 }
 
-.site-header strong,
-.site-header span {
-    color: var(--brand-white);
+.navbar .nav-link:hover,
+.navbar .nav-link:focus,
+.navbar .nav-link.show {
+    color: var(--brand-gold);
+}
+
+/* Bootstrap forces .navbar-nav .dropdown-menu to position:static (meant for
+   the mobile navbar-collapse accordion behavior), which we don't use here -
+   without this it drops into normal flow and pushes the navbar taller when opened. */
+.navbar-nav .dropdown-menu {
+    position: absolute;
 }
 
 /* Bootstrap ships hardcoded blue in .btn-primary/.form-control focus rings
