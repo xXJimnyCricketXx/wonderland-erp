@@ -3,6 +3,7 @@
     --brand-white: #FEFEFE;
     --brand-rust: #CF6C36;
     --brand-green: #013925;
+    --rail-size: 4.5rem;
 }
 
 html, body {
@@ -25,12 +26,21 @@ body {
     background-color: var(--brand-green);
 }
 
-/* Matches the sidebar's width so the search bar in the navbar lines up
-   flush with the sidebar's right edge, and the brand text can center
-   over the same width as the sidebar logo. */
+/* Navbar height and the desktop icon-rail sidebar width both key off the
+   same size, so the rail lines up as a square under the navbar. */
+.navbar {
+    min-height: var(--rail-size);
+}
+
+/* Sidebar is a roomy labeled drawer under 992px, and shrinks to a narrow
+   icon-only rail (tooltips instead of labels) at lg and up. */
+.sidebar-rail {
+    width: 280px;
+}
+
 @media (min-width: 992px) {
-    .navbar-brand-slot {
-        width: 280px;
+    .sidebar-rail {
+        width: var(--rail-size);
     }
 }
 
@@ -42,10 +52,24 @@ body {
     background-color: var(--brand-green) !important;
 }
 
-.sidebar .nav-link.active,
-.sidebar .nav-link:hover {
-    background-color: var(--brand-gold);
-    color: var(--brand-green);
+.sidebar .nav-link {
+    border-bottom: 1px solid rgba(255, 255, 255, .1);
+}
+
+.sidebar .nav-link i {
+    font-size: 24px;
+}
+
+/* nav-pills ships a blue active background via --bs-nav-pills-link-active-bg;
+   we only want the icon to change color, same as on hover. */
+.sidebar .nav-link.active {
+    background-color: transparent;
+    color: var(--brand-white);
+}
+
+.sidebar .nav-link.active i,
+.sidebar .nav-link:hover i {
+    color: var(--brand-gold);
 }
 
 .navbar .nav-link {
