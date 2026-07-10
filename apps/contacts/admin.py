@@ -1,3 +1,23 @@
 from django.contrib import admin
 
-# Register your models here.
+from .models import Customer, Supplier, SupplierDiscountTier
+
+
+class SupplierDiscountTierInline(admin.TabularInline):
+    model = SupplierDiscountTier
+    extra = 1
+
+
+@admin.register(Customer)
+class CustomerAdmin(admin.ModelAdmin):
+    list_display = ["id", "full_name", "email", "status", "is_returning_customer", "is_archived"]
+    list_filter = ["status", "is_returning_customer", "is_archived"]
+    search_fields = ["full_name", "email", "etsy_buyer_user_id"]
+
+
+@admin.register(Supplier)
+class SupplierAdmin(admin.ModelAdmin):
+    list_display = ["id", "full_name", "company_name", "platform", "status", "is_archived"]
+    list_filter = ["status", "is_archived"]
+    search_fields = ["full_name", "company_name", "account_number"]
+    inlines = [SupplierDiscountTierInline]

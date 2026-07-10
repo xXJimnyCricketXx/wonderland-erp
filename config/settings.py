@@ -30,6 +30,7 @@ INSTALLED_APPS = [
     "import_export",
     "django_htmx",
     # local apps
+    "core",
     "accounts",
     "catalog",
     "wishlist",
@@ -39,6 +40,7 @@ INSTALLED_APPS = [
     "dashboard",
     "knowledge",
     "tasks",
+    "settings_hub",
 ]
 
 MIDDLEWARE = [

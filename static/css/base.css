@@ -26,6 +26,18 @@ body {
     background-color: var(--brand-green);
 }
 
+/* General nav-pills (e.g. modal tabs) - brand green instead of Bootstrap
+   blue (Bootstrap's .nav-link defaults to --bs-link-color, its blue, even
+   when inactive). The sidebar overrides this further down for its icon-only look. */
+.nav-pills .nav-link {
+    color: var(--brand-green);
+}
+
+.nav-pills .nav-link.active {
+    background-color: var(--brand-green);
+    color: var(--brand-white);
+}
+
 /* Navbar height and the desktop icon-rail sidebar width both key off the
    same size, so the rail lines up as a square under the navbar. */
 .navbar {
@@ -73,6 +85,14 @@ body {
 }
 
 .navbar .nav-link {
+    color: var(--brand-white);
+}
+
+/* Bootstrap's dropdown-item :active state (i.e. while clicking) defaults to
+   its blue, separate from the hover state which was already fine. */
+.dropdown-item.active,
+.dropdown-item:active {
+    background-color: var(--brand-green);
     color: var(--brand-white);
 }
 
@@ -159,4 +179,16 @@ a:hover {
 .toast-pastel-secondary {
     background-color: #EEEEEE;
     color: #555555;
+}
+
+/* Shared list-page table style (Artikel, Bestellungen, Finanzen, ...) - brand
+   green header instead of Bootstrap's plain .table-dark gray. */
+.table-brand-header thead {
+    background-color: var(--brand-green);
+    color: var(--brand-white);
+}
+
+.table-brand-header thead th {
+    border-color: var(--brand-green);
+    vertical-align: middle;
 }

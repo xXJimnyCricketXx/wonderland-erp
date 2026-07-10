@@ -1,0 +1,129 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Artikel{% endblock %}
+{% block extra_css %}
+    <link rel="stylesheet" href="{% static 'css/catalog.css' %}">
+{% endblock %}
+{% block content %}
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h1 class="mb-0">Artikel</h1>
+        <div class="d-flex gap-2">
+            <a href="{% url 'settings_hub:index' %}?tab=papierkorb&modul=artikel" class="btn btn-outline-secondary">
+                <i class="bi bi-trash me-1"></i>Papierkorb{% if trash_count %} ({{ trash_count }}){% endif %}
+            </a>
+            <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#articleModal"
+                    hx-get="{% url 'catalog:create' %}" hx-target="#articleModalContent">
+                <i class="bi bi-plus-lg me-1"></i>Neu
+            </button>
+        </div>
+    </div>
+
+    <form method="get" class="row g-2 mb-3 align-items-end">
+        <div class="col-md-4">
+            {% include "components/search_box.html" with query=query placeholder="Titel oder SKU suchen" %}
+        </div>
+        <div class="col-md-2">
+            <label class="form-label small mb-1">Status</label>
+            <select name="is_active" class="form-select" onchange="this.form.submit()">
+                <option value="">Alle</option>
+                <option value="1" {% if selected_is_active == "1" %}selected{% endif %}>Aktiv</option>
+                <option value="0" {% if selected_is_active == "0" %}selected{% endif %}>Inaktiv</option>
+            </select>
+        </div>
+        <div class="col-md-3">
+            <label class="form-label small mb-1">Lieferant</label>
+            <select name="supplier" class="form-select" onchange="this.form.submit()">
+                <option value="">Alle</option>
+                {% for supplier in suppliers %}
+                    <option value="{{ supplier.id }}" {% if selected_supplier == supplier.id|stringformat:"s" %}selected{% endif %}>{{ supplier.full_name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-md-3">
+            <label class="form-label small mb-1">Kategorie</label>
+            <select name="category" class="form-select" onchange="this.form.submit()">
+                <option value="">Alle</option>
+                {% for cat in categories %}
+                    <option value="{{ cat.value }}" {% if selected_category == cat.value %}selected{% endif %}>{{ cat.value }}</option>
+                {% endfor %}
+            </select>
+        </div>
+    </form>
+
+    {% if articles %}
+        <div class="table-responsive">
+            <table class="table table-striped table-hover align-middle table-brand-header">
+                <thead>
+                    <tr>
+                        <th></th>
+                        <th>SKU</th>
+                        <th>Titel</th>
+                        <th>Kategorie</th>
+                        <th>Preis</th>
+                        <th>Bestand</th>
+                        <th>Lieferant</th>
+                        <th>Status</th>
+                        <th class="text-nowrap">Aktionen</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for article in articles %}
+                        <tr>
+                            <td>
+                                {% if article.thumbnail_url %}
+                                    <img src="{{ article.thumbnail_url }}" alt="" width="40" height="40" class="rounded" style="object-fit: cover;">
+                                {% endif %}
+                            </td>
+                            <td>{{ article.sku|default:"–" }}</td>
+                            <td class="text-truncate" style="max-width: 260px;" title="{{ article.title }}">{{ article.title }}</td>
+                            <td>{{ article.category|default:"–" }}</td>
+                            <td>{{ article.price }} {{ article.currency_code }}</td>
+                            <td>
+                                {{ article.stock_quantity }}
+                                {% if article.needs_restock %}
+                                    <i class="bi bi-exclamation-triangle-fill text-warning ms-1" title="Nachbestellung nötig"></i>
+                                {% endif %}
+                            </td>
+                            <td>{{ article.supplier.full_name|default:"–" }}</td>
+                            <td>
+                                {% if article.is_active %}
+                                    <span class="badge text-bg-success">Aktiv</span>
+                                {% else %}
+                                    <span class="badge text-bg-secondary">Inaktiv</span>
+                                {% endif %}
+                            </td>
+                            <td class="text-nowrap">
+                                <div class="btn-group">
+                                    <button type="button" class="btn btn-sm btn-outline-secondary" title="Ansehen" data-bs-toggle="modal" data-bs-target="#articleModal"
+                                            hx-get="{% url 'catalog:detail' article.pk %}" hx-target="#articleModalContent">
+                                        <i class="bi bi-eye"></i>
+                                    </button>
+                                    <button type="button" class="btn btn-sm btn-outline-secondary" title="Bearbeiten" data-bs-toggle="modal" data-bs-target="#articleModal"
+                                            hx-get="{% url 'catalog:update' article.pk %}" hx-target="#articleModalContent">
+                                        <i class="bi bi-pencil"></i>
+                                    </button>
+                                    <button type="button" class="btn btn-sm btn-outline-danger" title="Löschen"
+                                            hx-post="{% url 'catalog:archive' article.pk %}"
+                                            hx-confirm="„{{ article.title }}“ wirklich löschen?">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% include "components/pagination.html" %}
+    {% else %}
+        {% include "components/empty_state.html" %}
+    {% endif %}
+
+    <div class="modal fade" id="articleModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
+        <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-lg">
+            <div class="modal-content" id="articleModalContent">
+                <!-- HTMX swaps the create/edit form in here -->
+            </div>
+        </div>
+    </div>
+{% endblock %}

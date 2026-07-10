@@ -1,0 +1,170 @@
+<div class="modal-header bg-brand text-white">
+    <h5 class="modal-title">{{ article.title }}</h5>
+    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Schließen"></button>
+</div>
+<div class="modal-body">
+    <div class="row mb-3">
+        <div class="col-md-5">
+            {% if article.thumbnail_url %}
+                <img src="{{ article.thumbnail_url }}" class="img-fluid rounded" alt="{{ article.title }}">
+            {% else %}
+                <div class="bg-light rounded d-flex align-items-center justify-content-center" style="aspect-ratio: 1;">
+                    <i class="bi bi-image text-muted fs-1"></i>
+                </div>
+            {% endif %}
+        </div>
+        <div class="col-md-7">
+            <p class="text-muted mb-1">SKU: <span id="detail-sku">{{ article.sku|default:"–" }}</span></p>
+            <div class="d-flex flex-wrap gap-2 mb-3">
+                {% if article.category %}<span class="badge text-bg-light border">{{ article.category }}</span>{% endif %}
+                {% if article.is_active %}
+                    <span class="badge text-bg-success">Aktiv</span>
+                {% else %}
+                    <span class="badge text-bg-secondary">Inaktiv</span>
+                {% endif %}
+                {% if article.needs_restock %}
+                    <span class="badge text-bg-warning">Nachbestellung nötig</span>
+                {% endif %}
+            </div>
+            <h2 class="mb-3" id="detail-price">{{ article.price }} {{ article.currency_code }}</h2>
+
+            {% if article.variants.exists %}
+                <label class="form-label small text-muted" for="variant-select">Variante</label>
+                <select class="form-select" id="variant-select" onchange="wonderlandUpdateVariant(this)">
+                    <option value="{{ article.price }}"
+                            data-currency="{{ article.currency_code }}"
+                            data-sku="{{ article.sku|default:'–' }}"
+                            data-stock="{{ article.stock_quantity }}"
+                            data-min-stock="{{ article.minimum_stock_quantity|default:'–' }}"
+                            data-unit-price="{% if article.purchase_price_per_unit %}{{ article.purchase_price_per_unit }} € / {{ article.purchase_price_unit_label }}{% else %}–{% endif %}"
+                            data-piece-price="{{ article.purchase_price_per_piece|default:'–' }}"
+                            data-value-current="{{ article.purchase_value_current_stock|default:'–' }}"
+                            data-value-target="{{ article.purchase_value_target_stock|default:'–' }}"
+                            selected>
+                        Standard
+                    </option>
+                    {% for variant in article.variants.all %}
+                        <option value="{{ variant.price }}"
+                                data-currency="{{ variant.currency_code }}"
+                                data-sku="{{ variant.sku|default:'–' }}"
+                                data-stock="{{ variant.stock_quantity }}"
+                                data-min-stock="{{ variant.minimum_stock_quantity|default:'–' }}"
+                                data-unit-price="{% if variant.purchase_price_per_unit %}{{ variant.purchase_price_per_unit }} € / {{ variant.purchase_price_unit_label }}{% else %}–{% endif %}"
+                                data-piece-price="{{ variant.purchase_price_per_piece|default:'–' }}"
+                                data-value-current="{{ variant.purchase_value_current_stock|default:'–' }}"
+                                data-value-target="{{ variant.purchase_value_target_stock|default:'–' }}">
+                            {{ variant.variant_label }}
+                        </option>
+                    {% endfor %}
+                </select>
+            {% endif %}
+        </div>
+    </div>
+
+    <ul class="nav nav-pills mb-3" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active" data-bs-toggle="pill" data-bs-target="#pill-beschreibung" type="button" role="tab">
+                <i class="bi bi-file-text me-1"></i>Beschreibung
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" data-bs-toggle="pill" data-bs-target="#pill-lager" type="button" role="tab">
+                <i class="bi bi-box-seam me-1"></i>Lager &amp; Einkauf
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" data-bs-toggle="pill" data-bs-target="#pill-bewertung" type="button" role="tab">
+                <i class="bi bi-star me-1"></i>Bewertungen
+            </button>
+        </li>
+    </ul>
+
+    <div class="tab-content">
+        <div class="tab-pane fade show active" id="pill-beschreibung" role="tabpanel">
+            {% if article.description %}
+                {{ article.description|linebreaks }}
+            {% else %}
+                <p class="text-muted mb-0">Keine Beschreibung hinterlegt.</p>
+            {% endif %}
+            {% if article.shop_url %}
+                <a href="{{ article.shop_url }}" target="_blank" rel="noopener" class="btn btn-sm btn-outline-secondary mt-2">
+                    <i class="bi bi-box-arrow-up-right me-1"></i>Im Shop ansehen
+                </a>
+            {% endif %}
+        </div>
+
+        <div class="tab-pane fade" id="pill-lager" role="tabpanel">
+            <div class="row">
+                <div class="col-md-6">
+                    <h6 class="text-muted text-uppercase small">Lager</h6>
+                    <dl class="row mb-0">
+                        <dt class="col-6">Lagerbestand</dt>
+                        <dd class="col-6" id="detail-stock">{{ article.stock_quantity }}</dd>
+                        <dt class="col-6">Soll-Bestand</dt>
+                        <dd class="col-6" id="detail-min-stock">{{ article.minimum_stock_quantity|default:"–" }}</dd>
+                    </dl>
+                </div>
+                <div class="col-md-6">
+                    <h6 class="text-muted text-uppercase small">Einkauf</h6>
+                    <dl class="row mb-0">
+                        <dt class="col-6">Lieferant</dt>
+                        <dd class="col-6">{{ article.supplier.full_name|default:"–" }}</dd>
+                        <dt class="col-6">Grundpreis</dt>
+                        <dd class="col-6" id="detail-unit-price">
+                            {% if article.purchase_price_per_unit %}
+                                {{ article.purchase_price_per_unit }} € / {{ article.purchase_price_unit_label }}
+                            {% else %}
+                                –
+                            {% endif %}
+                        </dd>
+                        <dt class="col-6">Einkaufspreis / Stück</dt>
+                        <dd class="col-6" id="detail-piece-price">{{ article.purchase_price_per_piece|default:"–" }}</dd>
+                        <dt class="col-6">Gesamt (aktueller Bestand)</dt>
+                        <dd class="col-6" id="detail-value-current">{{ article.purchase_value_current_stock|default:"–" }}</dd>
+                        <dt class="col-6">Gesamt (Soll-Bestand)</dt>
+                        <dd class="col-6" id="detail-value-target">{{ article.purchase_value_target_stock|default:"–" }}</dd>
+                    </dl>
+                </div>
+            </div>
+        </div>
+
+        <div class="tab-pane fade" id="pill-bewertung" role="tabpanel">
+            {% if reviews %}
+                {% for review in reviews %}
+                    <div class="mb-3 pb-3 border-bottom">
+                        <div class="d-flex justify-content-between">
+                            <strong>{{ review.reviewer_name }}</strong>
+                            <span class="text-warning">
+                                {% for i in "12345" %}{% if forloop.counter <= review.star_rating %}★{% else %}☆{% endif %}{% endfor %}
+                            </span>
+                        </div>
+                        <div class="text-muted small">{{ review.date_reviewed|date:"d.m.Y" }}</div>
+                        <p class="mb-0">{{ review.message }}</p>
+                    </div>
+                {% endfor %}
+            {% else %}
+                <p class="text-muted mb-0">Keine Bewertungen vorhanden.</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+<div class="modal-footer">
+    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Schließen</button>
+    <button type="button" class="btn btn-primary"
+            hx-get="{% url 'catalog:update' article.pk %}" hx-target="#articleModalContent">
+        <i class="bi bi-pencil me-1"></i>Bearbeiten
+    </button>
+</div>
+<script>
+    function wonderlandUpdateVariant(select) {
+        var opt = select.options[select.selectedIndex];
+        document.getElementById('detail-price').textContent = opt.value + ' ' + opt.dataset.currency;
+        document.getElementById('detail-sku').textContent = opt.dataset.sku;
+        document.getElementById('detail-stock').textContent = opt.dataset.stock;
+        document.getElementById('detail-min-stock').textContent = opt.dataset.minStock;
+        document.getElementById('detail-unit-price').textContent = opt.dataset.unitPrice;
+        document.getElementById('detail-piece-price').textContent = opt.dataset.piecePrice;
+        document.getElementById('detail-value-current').textContent = opt.dataset.valueCurrent;
+        document.getElementById('detail-value-target').textContent = opt.dataset.valueTarget;
+    }
+</script>

@@ -1,0 +1,394 @@
+{% extends "base.html" %}
+{% load static %}
+{% load dynamic_attrs %}
+{% block title %}Einstellungen{% endblock %}
+{% block content %}
+    <h1 class="mb-4">Einstellungen</h1>
+
+    <ul class="nav nav-pills mb-4" id="settings-pills" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active" data-bs-toggle="pill" data-bs-target="#pill-stammdaten" type="button" role="tab">
+                <i class="bi bi-building me-1"></i>Stammdaten
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" data-bs-toggle="pill" data-bs-target="#pill-referenzdaten" type="button" role="tab">
+                <i class="bi bi-list-check me-1"></i>Referenzdaten
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" data-bs-toggle="pill" data-bs-target="#pill-benutzer" type="button" role="tab">
+                <i class="bi bi-people me-1"></i>Benutzer
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" data-bs-toggle="pill" data-bs-target="#pill-papierkorb" type="button" role="tab">
+                <i class="bi bi-trash me-1"></i>Papierkorb
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" data-bs-toggle="pill" data-bs-target="#pill-backups" type="button" role="tab">
+                <i class="bi bi-hdd-stack me-1"></i>Backups
+            </button>
+        </li>
+    </ul>
+
+    <div class="tab-content">
+        <div class="tab-pane fade show active" id="pill-stammdaten" role="tabpanel">
+            <form method="post">
+                {% csrf_token %}
+                <div class="card mb-3">
+                    <div class="card-body">
+                        <h6 class="text-uppercase text-muted small mb-3">Firma</h6>
+                        <div class="row g-2">
+                            <div class="col-12">
+                                <label class="form-label">Firmenname</label>
+                                {{ form.company_name }}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card mb-3">
+                    <div class="card-body">
+                        <h6 class="text-uppercase text-muted small mb-3">Anschrift</h6>
+                        <div class="row g-2">
+                            <div class="col-md-8">
+                                <label class="form-label">Straße &amp; Hausnummer</label>
+                                {{ form.street1 }}
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Adresszusatz</label>
+                                {{ form.street2 }}
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">PLZ</label>
+                                {{ form.zipcode }}
+                            </div>
+                            <div class="col-md-5">
+                                <label class="form-label">Ort</label>
+                                {{ form.city }}
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Land</label>
+                                {{ form.country }}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card mb-3">
+                    <div class="card-body">
+                        <h6 class="text-uppercase text-muted small mb-3">Steuerliche Angaben</h6>
+                        <div class="row g-2">
+                            <div class="col-md-6">
+                                <label class="form-label">Steuernummer</label>
+                                {{ form.tax_number }}
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">USt-ID</label>
+                                {{ form.vat_id }}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card mb-3">
+                    <div class="card-body">
+                        <h6 class="text-uppercase text-muted small mb-3">Kontakt &amp; Kanäle</h6>
+                        <div class="row g-2">
+                            <div class="col-md-6">
+                                <label class="form-label">E-Mail</label>
+                                {{ form.email }}
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Website</label>
+                                {{ form.website }}
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Etsy-Shop</label>
+                                {{ form.etsy_shop_url }}
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Instagram</label>
+                                {{ form.instagram_url }}
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Facebook</label>
+                                {{ form.facebook_url }}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn btn-primary">Speichern</button>
+            </form>
+        </div>
+
+        <div class="tab-pane fade" id="pill-referenzdaten" role="tabpanel">
+            {% for group in reference_groups %}
+                <div class="card mb-3">
+                    <div class="card-body">
+                        <h6 class="text-uppercase text-muted small">{{ group.label }}</h6>
+                        <div class="d-flex flex-wrap gap-2 mb-3">
+                            {% for opt in group.options %}
+                                <form method="post" action="{% url 'settings_hub:reference_delete' opt.pk %}" class="d-inline">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-sm btn-outline-secondary">
+                                        {{ opt.value }} <i class="bi bi-x ms-1"></i>
+                                    </button>
+                                </form>
+                            {% empty %}
+                                <span class="text-muted small">Noch keine Werte.</span>
+                            {% endfor %}
+                        </div>
+                        <form method="post" action="{% url 'settings_hub:reference_add' %}" class="d-flex gap-2">
+                            {% csrf_token %}
+                            <input type="hidden" name="category" value="{{ group.slug }}">
+                            <input type="text" name="value" class="form-control form-control-sm" placeholder="Neuer Wert...">
+                            <button type="submit" class="btn btn-sm btn-primary text-nowrap">+ Hinzufügen</button>
+                        </form>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+
+        <div class="tab-pane fade" id="pill-benutzer" role="tabpanel">
+            <div class="d-flex justify-content-end gap-2 mb-3">
+                <a href="{% url 'admin:auth_group_add' %}" class="btn btn-outline-secondary">Rolle erstellen</a>
+                <a href="{% url 'admin:auth_user_add' %}" class="btn btn-primary">Benutzer hinzufügen</a>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-striped table-hover align-middle table-brand-header">
+                    <thead>
+                        <tr>
+                            <th>Benutzername</th>
+                            <th>E-Mail</th>
+                            <th>Rollen</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for u in users %}
+                            <tr>
+                                <td>{{ u.username }}</td>
+                                <td>{{ u.email|default:"–" }}</td>
+                                <td>
+                                    {% for g in u.groups.all %}
+                                        <span class="badge text-bg-light border">{{ g.name }}</span>
+                                    {% empty %}
+                                        –
+                                    {% endfor %}
+                                </td>
+                                <td>
+                                    {% if u.is_active %}
+                                        <span class="badge text-bg-success">Aktiv</span>
+                                    {% else %}
+                                        <span class="badge text-bg-secondary">Inaktiv</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="tab-pane fade" id="pill-papierkorb" role="tabpanel">
+            <ul class="nav nav-pills mb-3" id="trash-subpills">
+                {% for entry in trash_data %}
+                    <li class="nav-item">
+                        <button class="nav-link{% if forloop.first %} active{% endif %}" data-bs-toggle="pill" data-bs-target="#subpill-{{ entry.slug }}" type="button">
+                            {{ entry.label }}
+                            {% if entry.objects %}<span class="badge text-bg-secondary ms-1">{{ entry.objects|length }}</span>{% endif %}
+                        </button>
+                    </li>
+                {% endfor %}
+            </ul>
+            <div class="tab-content">
+                {% for entry in trash_data %}
+                    <div class="tab-pane fade{% if forloop.first %} show active{% endif %}" id="subpill-{{ entry.slug }}">
+                        {% if entry.objects %}
+                            <div class="d-flex justify-content-end mb-2">
+                                <form method="post" action="{% url 'settings_hub:trash_empty' entry.slug %}"
+                                      onsubmit="return confirm('Papierkorb ({{ entry.label }}) wirklich vollständig leeren? Das kann nicht rückgängig gemacht werden.');">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-outline-danger btn-sm">
+                                        <i class="bi bi-trash3-fill me-1"></i>Papierkorb leeren
+                                    </button>
+                                </form>
+                            </div>
+                            <div class="table-responsive">
+                                <table class="table table-striped table-hover align-middle table-brand-header">
+                                    <thead>
+                                        <tr>
+                                            {% for label, attr in entry.fields %}<th>{{ label }}</th>{% endfor %}
+                                            <th>Archiviert am</th>
+                                            <th class="text-nowrap">Aktionen</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for obj in entry.objects %}
+                                            <tr>
+                                                {% for label, attr in entry.fields %}<td>{{ obj|get_attr:attr }}</td>{% endfor %}
+                                                <td>{{ obj.archived_at|date:"d.m.Y H:i" }}</td>
+                                                <td class="text-nowrap">
+                                                    <div class="btn-group">
+                                                        <form method="post" action="{% url 'settings_hub:trash_restore' entry.slug obj.pk %}">
+                                                            {% csrf_token %}
+                                                            <button type="submit" class="btn btn-sm btn-outline-secondary" title="Wiederherstellen">
+                                                                <i class="bi bi-arrow-counterclockwise"></i>
+                                                            </button>
+                                                        </form>
+                                                        <form method="post" action="{% url 'settings_hub:trash_hard_delete' entry.slug obj.pk %}"
+                                                              onsubmit="return confirm('Endgültig löschen? Das kann nicht rückgängig gemacht werden.');">
+                                                            {% csrf_token %}
+                                                            <button type="submit" class="btn btn-sm btn-outline-danger" title="Endgültig löschen">
+                                                                <i class="bi bi-trash3-fill"></i>
+                                                            </button>
+                                                        </form>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        {% else %}
+                            {% include "components/empty_state.html" with message="Papierkorb ist leer." %}
+                        {% endif %}
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <div class="tab-pane fade" id="pill-backups" role="tabpanel">
+            <div class="card mb-3">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h6 class="text-uppercase text-muted small mb-0">Backups</h6>
+                        <form method="post" action="{% url 'settings_hub:backup_create' %}">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-primary btn-sm">
+                                <i class="bi bi-plus-lg me-1"></i>Backup jetzt erstellen
+                            </button>
+                        </form>
+                    </div>
+
+                    {% if backups %}
+                        <div class="table-responsive">
+                            <table class="table table-striped table-hover align-middle table-brand-header">
+                                <thead>
+                                    <tr>
+                                        <th>Datei</th>
+                                        <th>Erstellt am</th>
+                                        <th>Größe</th>
+                                        <th class="text-nowrap">Aktionen</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for backup in backups %}
+                                        <tr>
+                                            <td>{{ backup.name }}</td>
+                                            <td>{{ backup.created_at|date:"d.m.Y H:i" }}</td>
+                                            <td>{{ backup.size|filesizeformat }}</td>
+                                            <td class="text-nowrap">
+                                                <div class="btn-group">
+                                                    <a href="{% url 'settings_hub:backup_download' backup.name %}" class="btn btn-sm btn-outline-secondary" title="Herunterladen">
+                                                        <i class="bi bi-download"></i>
+                                                    </a>
+                                                    <form method="post" action="{% url 'settings_hub:backup_delete' backup.name %}" onsubmit="return confirm('Backup löschen?');">
+                                                        {% csrf_token %}
+                                                        <button type="submit" class="btn btn-sm btn-outline-danger" title="Löschen">
+                                                            <i class="bi bi-trash3-fill"></i>
+                                                        </button>
+                                                    </form>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        {% include "components/empty_state.html" with message="Noch keine Backups vorhanden." %}
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="card mb-4">
+                <div class="card-body">
+                    <h6 class="text-uppercase text-muted small mb-3">Aufbewahrung</h6>
+                    <form method="post" action="{% url 'settings_hub:backup_settings' %}" class="row g-2 align-items-end">
+                        {% csrf_token %}
+                        <div class="col-md-4">
+                            <label class="form-label">Anzahl aufzubewahrender Backups</label>
+                            <input type="number" name="keep_count" class="form-control" min="1" value="{{ backup_settings.keep_count }}">
+                        </div>
+                        <div class="col-md-4">
+                            <button type="submit" class="btn btn-outline-secondary">Speichern</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            {% if user.is_superuser %}
+                <div class="card border-danger">
+                    <div class="card-body">
+                        <h6 class="text-uppercase text-danger small mb-2">
+                            <i class="bi bi-exclamation-triangle-fill me-1"></i>Danger Zone
+                        </h6>
+                        <p class="text-muted small">
+                            Setzt die gesamte Datenbank zurück (Artikel, Bestellungen, Kunden, Lieferanten, Finanzbuchungen,
+                            Aufgaben, Referenzdaten, ...). Benutzerkonten bleiben erhalten. Direkt davor wird automatisch
+                            ein Sicherungs-Backup erstellt.
+                        </p>
+                        <form method="post" action="{% url 'settings_hub:database_reset' %}"
+                              onsubmit="return confirm('Wirklich ALLE Daten unwiderruflich zurücksetzen? Ein Backup wird vorher automatisch erstellt.');">
+                            {% csrf_token %}
+                            <div class="mb-2">
+                                <label class="form-label small">Zum Bestätigen "{{ reset_confirm_phrase }}" eingeben:</label>
+                                <input type="text" id="reset-confirm-input" class="form-control" style="max-width: 300px;" autocomplete="off">
+                            </div>
+                            <input type="hidden" name="confirm_text" id="reset-confirm-hidden">
+                            <button type="submit" id="reset-confirm-btn" class="btn btn-danger" disabled>
+                                <i class="bi bi-radioactive me-1"></i>Datenbank zurücksetzen
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            var params = new URLSearchParams(window.location.search);
+            var tab = params.get('tab');
+            if (tab) {
+                var target = document.querySelector('[data-bs-target="#pill-' + tab + '"]');
+                if (target) {
+                    new bootstrap.Tab(target).show();
+                }
+            }
+            var modul = params.get('modul');
+            if (modul) {
+                var subtarget = document.querySelector('[data-bs-target="#subpill-' + modul + '"]');
+                if (subtarget) {
+                    new bootstrap.Tab(subtarget).show();
+                }
+            }
+
+            var resetInput = document.getElementById('reset-confirm-input');
+            var resetBtn = document.getElementById('reset-confirm-btn');
+            var resetHidden = document.getElementById('reset-confirm-hidden');
+            if (resetInput) {
+                resetInput.addEventListener('input', function () {
+                    var matches = resetInput.value === '{{ reset_confirm_phrase }}';
+                    resetBtn.disabled = !matches;
+                    resetHidden.value = resetInput.value;
+                });
+            }
+        });
+    </script>
+{% endblock %}

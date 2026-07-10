@@ -44,7 +44,11 @@
                 </a>
                 <ul class="dropdown-menu dropdown-menu-end shadow" aria-labelledby="dropdownUser1">
                     <li><a class="dropdown-item" href="#">Profil</a></li>
-                    <li><a class="dropdown-item" href="#">Einstellungen</a></li>
+                    <li><a class="dropdown-item" href="{% url 'settings_hub:index' %}">Einstellungen</a></li>
+                    {% if user.is_staff %}
+                        <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item" href="{% url 'admin:index' %}">Adminbereich</a></li>
+                    {% endif %}
                     <li><hr class="dropdown-divider"></li>
                     <li>
                         <form method="post" action="{% url 'logout' %}" class="m-0">
@@ -78,7 +82,13 @@
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a href="#" class="nav-link d-flex align-items-center justify-content-lg-center text-white" title="Artikel" data-bs-toggle="tooltip" data-bs-placement="right">
+                        <a href="#" class="nav-link d-flex align-items-center justify-content-lg-center text-white" title="Bewertungen" data-bs-toggle="tooltip" data-bs-placement="right">
+                            <i class="bi bi-star"></i><span class="ms-2 d-lg-none">Bewertungen</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        {% url 'catalog:list' as catalog_url %}
+                        <a href="{{ catalog_url }}" class="nav-link d-flex align-items-center justify-content-lg-center text-white{% if request.path == catalog_url %} active{% endif %}" title="Artikel" data-bs-toggle="tooltip" data-bs-placement="right">
                             <i class="bi bi-box-seam"></i><span class="ms-2 d-lg-none">Artikel</span>
                         </a>
                     </li>
@@ -142,6 +152,17 @@
             document.querySelectorAll('.toast').forEach(function (el) {
                 new bootstrap.Toast(el).show();
             });
+        });
+
+        // HTMX requests outside a <form> (e.g. plain hx-post buttons) don't
+        // carry Django's CSRF token by default - attach it globally instead
+        // of repeating hx-headers on every button.
+        function getCookie(name) {
+            const match = document.cookie.match('(^|;\\s*)' + name + '=([^;]*)');
+            return match ? decodeURIComponent(match[2]) : null;
+        }
+        document.body.addEventListener('htmx:configRequest', function (event) {
+            event.detail.headers['X-CSRFToken'] = getCookie('csrftoken');
         });
     </script>
 </body>
