@@ -1,0 +1,15 @@
+.gradient-form {
+    background-color: var(--brand-white);
+    height: 100%;
+}
+
+.bg-brand {
+    background-color: var(--brand-green);
+}
+
+@media (min-width: 769px) {
+    .bg-brand {
+        border-top-right-radius: .3rem;
+        border-bottom-right-radius: .3rem;
+    }
+}

@@ -1,0 +1,66 @@
+:root {
+    --brand-gold: #F4AA1B;
+    --brand-white: #FEFEFE;
+    --brand-rust: #CF6C36;
+    --brand-green: #013925;
+}
+
+html, body {
+    height: 100%;
+}
+
+body {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    background-color: var(--brand-white);
+}
+
+main {
+    flex: 1 0 auto;
+}
+
+footer {
+    flex-shrink: 0;
+}
+
+.site-header {
+    background-color: var(--brand-green);
+    color: var(--brand-white);
+}
+
+.site-header strong,
+.site-header span {
+    color: var(--brand-white);
+}
+
+/* Bootstrap ships hardcoded blue in .btn-primary/.form-control focus rings
+   rather than referencing --bs-primary, so we retheme the component-level
+   custom properties directly instead of hand-rolling parallel button classes. */
+.btn-primary {
+    --bs-btn-color: var(--brand-white);
+    --bs-btn-bg: var(--brand-green);
+    --bs-btn-border-color: var(--brand-green);
+    --bs-btn-hover-color: var(--brand-green);
+    --bs-btn-hover-bg: var(--brand-gold);
+    --bs-btn-hover-border-color: var(--brand-gold);
+    --bs-btn-active-color: var(--brand-green);
+    --bs-btn-active-bg: color-mix(in srgb, var(--brand-gold) 85%, black);
+    --bs-btn-active-border-color: color-mix(in srgb, var(--brand-gold) 85%, black);
+    --bs-btn-disabled-bg: var(--brand-green);
+    --bs-btn-disabled-border-color: var(--brand-green);
+    --bs-btn-focus-shadow-rgb: 244, 170, 27;
+}
+
+.form-control:focus {
+    border-color: var(--brand-gold);
+    box-shadow: 0 0 0 .25rem rgba(244, 170, 27, .25);
+}
+
+a {
+    color: var(--brand-rust);
+}
+
+a:hover {
+    color: var(--brand-green);
+}

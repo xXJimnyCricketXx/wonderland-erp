@@ -1,10 +1,64 @@
 {% extends "base.html" %}
+{% load static %}
 {% block title %}Anmelden{% endblock %}
+{% block header %}{% endblock %}
+{% block extra_css %}
+    <link rel="stylesheet" href="{% static 'css/login.css' %}">
+{% endblock %}
 {% block content %}
-    <h1>Anmelden</h1>
-    <form method="post">
-        {% csrf_token %}
-        {{ form.as_p }}
-        <button type="submit">Anmelden</button>
-    </form>
+<section class="gradient-form">
+    <div class="container py-5 h-100">
+        <div class="row d-flex justify-content-center align-items-center h-100">
+            <div class="col-xl-10">
+                <div class="card rounded-3 text-black shadow-lg">
+                    <div class="row g-0">
+                        <div class="col-lg-6">
+                            <div class="card-body p-md-5 mx-md-4">
+
+                                <div class="text-center">
+                                    <img src="{% static 'img/wd-logo-dark.png' %}" style="width: 185px;" alt="Wonderland ERP Logo">
+                                    <h4 class="mt-1 mb-5 pb-1">Wonderland ERP</h4>
+                                </div>
+
+                                {% if form.errors %}
+                                    <div class="alert alert-danger">Benutzername oder Passwort ist falsch.</div>
+                                {% endif %}
+
+                                <form method="post" action="{% url 'login' %}">
+                                    {% csrf_token %}
+                                    <p>Bitte melde dich an.</p>
+
+                                    <div class="form-outline mb-4">
+                                        <input type="text" name="username" id="id_username" class="form-control"
+                                            placeholder="Benutzername" autofocus required>
+                                        <label class="form-label" for="id_username">Benutzername</label>
+                                    </div>
+
+                                    <div class="form-outline mb-4">
+                                        <input type="password" name="password" id="id_password" class="form-control"
+                                            placeholder="Passwort" required>
+                                        <label class="form-label" for="id_password">Passwort</label>
+                                    </div>
+
+                                    <input type="hidden" name="next" value="{{ next }}">
+
+                                    <div class="text-center pt-1 mb-5 pb-1">
+                                        <button class="btn btn-primary w-100 mb-3" type="submit">Anmelden</button>
+                                    </div>
+                                </form>
+
+                            </div>
+                        </div>
+                        <div class="col-lg-6 d-flex align-items-center bg-brand">
+                            <div class="text-white px-3 py-4 p-md-5 mx-md-4">
+                                <h4 class="mb-4">Wonderland ERP</h4>
+                                <p class="small mb-0">Internes System für Artikel, Bestellungen, Finanzen, Kontakte und mehr.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
 {% endblock %}
