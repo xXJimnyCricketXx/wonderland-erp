@@ -1,0 +1,204 @@
+.calendar-toolbar {
+    margin-top: .5rem;
+}
+
+/* .btn-link sets its own color via a class-level rule, which beats the
+   global "a { color: var(--brand-rust) }" in base.css on specificity alone
+   regardless of stylesheet order - so Heute/</> render in Bootstrap's
+   default link blue unless overridden here explicitly. */
+.calendar-toolbar .btn-link {
+    color: var(--brand-green) !important;
+    --bs-btn-focus-shadow-rgb: 244, 170, 27;
+}
+
+.calendar-toolbar .btn-link:hover,
+.calendar-toolbar .btn-link:focus {
+    color: var(--brand-gold) !important;
+}
+
+/* Match the Monat/Woche/Liste dropdown's height to the "+ Neu" button next
+   to it - form-select-sm is shorter than a default .btn, which looked
+   uneven side by side. */
+.calendar-toolbar select.form-select {
+    height: calc(1.5em + .75rem + 2px);
+}
+
+/* Best-effort only: the highlighted/hovered <option> inside an OPEN native
+   <select> popup is rendered by the OS/browser shell, not the page, so this
+   works in Firefox but Chromium-based browsers (Chrome, Edge) ignore it and
+   keep their own blue highlight - there's no reliable cross-browser CSS fix
+   for a plain <select>; a fully custom dropdown would be needed for that. */
+.calendar-toolbar select.form-select option:checked,
+.calendar-toolbar select.form-select option:hover {
+    background-color: var(--brand-green);
+    color: var(--brand-white);
+}
+
+/* Month view */
+.calendar-weekdays,
+.calendar-week {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+}
+
+.calendar-weekdays > div {
+    text-align: center;
+    font-weight: 600;
+    padding: .5rem 0;
+    color: var(--brand-green);
+}
+
+/* Day number sits absolutely positioned in the top padding, so events below
+   it start right at the padding edge instead of needing extra margin. */
+.calendar-day {
+    border: 1px solid #dee2e6;
+    min-height: 92px;
+    padding: 30px 2px 4px 2px;
+    position: relative;
+}
+
+.calendar-week > .calendar-day + .calendar-day {
+    border-left: none;
+}
+
+.calendar-month > .calendar-week + .calendar-week {
+    margin-top: -1px;
+}
+
+.calendar-day-muted {
+    background-color: #f8f9fa;
+    color: #adb5bd;
+}
+
+.calendar-day-today {
+    background-color: #fff8e6;
+}
+
+.calendar-day-header {
+    position: absolute;
+    top: 4px;
+    left: 4px;
+    right: 4px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: .85rem;
+}
+
+.calendar-day-number {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 22px;
+    height: 22px;
+}
+
+.calendar-day-add {
+    border: none;
+    background: none;
+    color: var(--brand-rust);
+    line-height: 1;
+    padding: 0 .25rem;
+    visibility: hidden;
+}
+
+.calendar-day:hover .calendar-day-add {
+    visibility: visible;
+}
+
+.calendar-day-events {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    overflow-y: auto;
+}
+
+.calendar-event {
+    font-size: .78rem;
+    padding: 1px 4px;
+    border-radius: 3px;
+    cursor: pointer;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.calendar-event-time {
+    font-weight: 600;
+    margin-right: 3px;
+}
+
+/* Week view: a real <table> - each tbody row is one 15-minute slot, the
+   hour label <th> uses rowspan to merge 4 slot-rows into one cell, and a
+   timed appointment's <td> uses rowspan to span its own duration in slots.
+   No absolute positioning/pixel math - the browser's table layout is what
+   keeps everything grid-aligned. */
+/* table-layout: fixed forces every day column to the same width regardless
+   of cell content - without it, a single long event title (in any row, on
+   any day) makes the browser's automatic table layout widen that whole
+   column, which is what made "today" balloon out when it happened to hold
+   a longer title than the other six days. */
+.calendar-week-table {
+    width: 100%;
+    table-layout: fixed;
+    border-collapse: collapse;
+    border: 1px solid #dee2e6;
+}
+
+.calendar-week-table th,
+.calendar-week-table td {
+    border-left: 1px solid #eee;
+    border-right: 1px solid #eee;
+}
+
+.calendar-week-table thead th {
+    text-align: center;
+    padding: .5rem 0;
+    border-bottom: 2px solid #dee2e6;
+}
+
+.calendar-week-gutter-col {
+    width: 55px;
+}
+
+.calendar-week-allday-row td {
+    vertical-align: top;
+    padding: 2px;
+}
+
+.calendar-week-table tbody td,
+.calendar-week-table tbody th {
+    height: 15px;
+}
+
+/* Grid lines only at the hour and half-hour marks, not on every 15-minute
+   row - the underlying slots stay 15 minutes (for precise placement), but
+   showing all of them as visible lines was too busy. */
+.calendar-week-hour-start > td,
+.calendar-week-hour-start > th {
+    border-top: 1px solid #dee2e6;
+}
+
+.calendar-week-half-hour > td,
+.calendar-week-half-hour > th {
+    border-top: 1px solid #eee;
+}
+
+.calendar-week-hour-label {
+    font-size: .72rem;
+    color: #6c757d;
+    text-align: right;
+    vertical-align: top;
+    padding: 1px 4px 0 0;
+    white-space: nowrap;
+}
+
+.calendar-week-event-cell {
+    vertical-align: top;
+    padding: 1px;
+}
+
+.calendar-week-event-cell .calendar-event {
+    height: 100%;
+    white-space: normal;
+}

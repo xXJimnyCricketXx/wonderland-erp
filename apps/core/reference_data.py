@@ -18,6 +18,7 @@ CATEGORY_LABELS = {
     "order_type": "Bestellart",
     "payment_method": "Zahlungsmethode",
     "payment_type": "Zahlungsart",
+    "appointment_type": "Termin-Typ",
 }
 
 DEFAULT_SEED_DATA = {
@@ -35,4 +36,5 @@ DEFAULT_SEED_DATA = {
     "order_type": ["Etsy", "Barverkauf"],
     "payment_method": ["Etsy Payments", "PayPal", "Überweisung", "Bar"],
     "payment_type": ["Kreditkarte", "PayPal-Guthaben", "Sofortüberweisung", "Bar"],
+    "appointment_type": ["Meeting", "Markt", "Lieferung", "Beratung", "Sonstiges"],
 }

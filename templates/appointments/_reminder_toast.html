@@ -1,0 +1,13 @@
+<div class="toast show w-100 mb-2" role="alert" aria-live="assertive" aria-atomic="true" style="max-width: none;">
+    <div class="toast-header" style="background:{{ reminder.bg_color }}; color:{{ reminder.fg_color }};">
+        <strong class="me-auto">Terminerinnerung</strong>
+        <small>{{ reminder.start_date|date:"d.m.Y" }}{% if reminder.start_time %} {{ reminder.start_time|time:"H:i" }}{% endif %}</small>
+        <button type="button" class="btn-close ms-2"
+                hx-post="{% url 'appointments:reminder_dismiss' reminder.pk %}" hx-target="closest .toast" hx-swap="outerHTML swap:0.2s"
+                aria-label="Schließen"></button>
+    </div>
+    <div class="toast-body">
+        {% if reminder.start_time %}{{ reminder.start_time|time:"H:i" }} &ndash; {% endif %}{{ reminder.title }}
+        {% if reminder.location %}<div class="small text-muted mt-1">{{ reminder.location }}</div>{% endif %}
+    </div>
+</div>

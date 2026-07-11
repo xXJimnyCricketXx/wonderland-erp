@@ -42,6 +42,7 @@ INSTALLED_APPS = [
     "tasks",
     "settings_hub",
     "data_import",
+    "appointments",
 ]
 
 MIDDLEWARE = [
@@ -67,6 +68,7 @@ TEMPLATES = [
                 "django.template.context_processors.request",
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
+                "appointments.context_processors.pending_reminders",
             ],
         },
     },
