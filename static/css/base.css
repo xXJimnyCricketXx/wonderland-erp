@@ -215,11 +215,11 @@ a:hover {
    only 1-2 short toasts there's nothing to scroll, so no track should show
    at all; once enough toasts stack up to exceed min-height, the body (not
    the whole modal) scrolls on its own and the header/footer stay in place. */
-#remindersModal .modal-content {
+#notificationsModal .modal-content {
     min-height: 60vh;
 }
 
-#remindersModal .modal-body {
+#notificationsModal .modal-body {
     overflow-y: auto;
 }
 

@@ -1,0 +1,19 @@
+<div class="toast show w-100 mb-2" role="alert" aria-live="assertive" aria-atomic="true" style="max-width: none;">
+    <div class="toast-header" style="background:{{ notification.bg_color }}; color:{{ notification.fg_color }};">
+        <strong class="me-auto">{{ notification.header }}</strong>
+        {% if notification.subtitle %}<small>{{ notification.subtitle }}</small>{% endif %}
+        {% if notification.dismiss_url %}
+            <button type="button" class="btn-close ms-2"
+                    hx-post="{{ notification.dismiss_url }}" hx-target="closest .toast" hx-swap="outerHTML swap:0.2s"
+                    aria-label="Schließen"></button>
+        {% endif %}
+    </div>
+    <div class="toast-body">
+        {{ notification.body }}
+        {% if notification.detail_url %}
+            <div class="mt-1">
+                <a href="{{ notification.detail_url }}" class="small">Ansehen</a>
+            </div>
+        {% endif %}
+    </div>
+</div>

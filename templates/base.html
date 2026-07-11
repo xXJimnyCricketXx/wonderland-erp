@@ -35,10 +35,10 @@
                 <a href="#" class="nav-link"><i class="bi bi-chat-dots fs-5"></i></a>
             </li>
             <li class="nav-item">
-                <a href="#" class="nav-link" data-bs-toggle="modal" data-bs-target="#remindersModal">
+                <a href="#" class="nav-link" data-bs-toggle="modal" data-bs-target="#notificationsModal">
                     <span class="position-relative d-inline-block">
                         <i class="bi bi-bell fs-5"></i>
-                        <span id="reminder-badge" class="badge rounded-pill bg-danger position-absolute top-0 start-100 translate-middle{% if not pending_reminder_count %} d-none{% endif %}" style="font-size: .65rem;">{{ pending_reminder_count }}</span>
+                        <span id="notification-badge" class="badge rounded-pill bg-danger position-absolute top-0 start-100 translate-middle{% if not notification_count %} d-none{% endif %}" style="font-size: .65rem;">{{ notification_count }}</span>
                     </span>
                 </a>
             </li>
@@ -112,7 +112,8 @@
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a href="#" class="nav-link d-flex align-items-center justify-content-lg-center text-white" title="Aufgaben" data-bs-toggle="tooltip" data-bs-placement="right">
+                        {% url 'tasks:board' as tasks_url %}
+                        <a href="{{ tasks_url }}" class="nav-link d-flex align-items-center justify-content-lg-center text-white{% if request.path == tasks_url %} active{% endif %}" title="Aufgaben" data-bs-toggle="tooltip" data-bs-placement="right">
                             <i class="bi bi-check2-square"></i><span class="ms-2 d-lg-none">Aufgaben</span>
                         </a>
                     </li>
@@ -155,7 +156,7 @@
     </div>
 
     {% if user.is_authenticated %}
-    <div class="modal fade" id="remindersModal" tabindex="-1" aria-hidden="true">
+    <div class="modal fade" id="notificationsModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-lg">
             <div class="modal-content">
                 <div class="modal-header bg-brand text-white">
@@ -163,9 +164,9 @@
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Schließen"></button>
                 </div>
                 <div class="modal-body">
-                    {% if pending_reminders %}
-                        {% for reminder in pending_reminders %}
-                            {% include "appointments/_reminder_toast.html" %}
+                    {% if notifications %}
+                        {% for notification in notifications %}
+                            {% include "core/_notification_toast.html" %}
                         {% endfor %}
                     {% else %}
                         {% include "components/empty_state.html" with message="Keine offenen Benachrichtigungen." %}

@@ -264,12 +264,13 @@ class ReminderDismissView(LoginRequiredMixin, SingleObjectMixin, View):
     model = Appointment
 
     def post(self, request, *args, **kwargs):
+        from core.notifications import get_all_notifications
+
         appointment = self.get_object()
         appointment.reminder_dismissed = True
         appointment.save(update_fields=["reminder_dismissed"])
 
-        remaining = Appointment.objects.filter(has_reminder=True, reminder_dismissed=False)
-        count = sum(1 for appt in remaining if appt.is_reminder_due)
+        count = len(get_all_notifications(request))
 
-        html = render_to_string("appointments/_reminder_badge_oob.html", {"count": count})
+        html = render_to_string("core/_notification_badge_oob.html", {"count": count})
         return HttpResponse(html)

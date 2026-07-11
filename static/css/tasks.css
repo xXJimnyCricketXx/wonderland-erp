@@ -1,0 +1,72 @@
+.kanban-board {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+    align-items: start;
+}
+
+.kanban-column {
+    background-color: #f8f9fa;
+    border-radius: .5rem;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    min-height: 200px;
+}
+
+.kanban-column-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-weight: 600;
+    padding: .75rem 1rem;
+    border-radius: .5rem .5rem 0 0;
+}
+
+.kanban-column-body {
+    flex: 1 1 auto;
+    padding: .75rem;
+    display: flex;
+    flex-direction: column;
+    gap: .5rem;
+    min-height: 120px;
+}
+
+.kanban-column-body.drag-over {
+    background-color: rgba(244, 170, 27, .12);
+    outline: 2px dashed var(--brand-gold);
+    outline-offset: -4px;
+    border-radius: .375rem;
+}
+
+.task-card {
+    background-color: var(--brand-white);
+    border: 1px solid #e9ecef;
+    border-radius: .5rem;
+    padding: .6rem .75rem;
+    cursor: grab;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, .05);
+}
+
+.task-card:active {
+    cursor: grabbing;
+}
+
+.task-card.dragging {
+    opacity: .4;
+}
+
+.task-card-overdue {
+    border-left: 3px solid #B3261E;
+}
+
+.task-card-title {
+    font-weight: 600;
+    word-break: break-word;
+}
+
+.task-card-desc {
+    font-size: .82rem;
+    color: #6c757d;
+    margin: .25rem 0;
+}

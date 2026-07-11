@@ -13,6 +13,7 @@ urlpatterns = [
     path("bewertungen/", ReviewListView.as_view(), name="review_list"),
     path("kontakte/", include("contacts.urls")),
     path("termine/", include("appointments.urls")),
+    path("aufgaben/", include("tasks.urls")),
     path("einstellungen/", include("settings_hub.urls")),
     path("import/", include("data_import.urls")),
     path("", include("dashboard.urls")),

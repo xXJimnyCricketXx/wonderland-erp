@@ -1,15 +1,24 @@
 from django.conf import settings
 from django.db import models
 
-from core.models import ReferenceOption
+from core.models import Archivable, ReferenceOption
 from orders.models import Order
 
+STATUS_CHOICES = [
+    ("todo", "To-Do"),
+    ("in_progress", "In Arbeit"),
+    ("done", "Erledigt"),
+]
 
-class Task(models.Model):
+
+class Task(Archivable):
     title = models.CharField("Titel", max_length=255)
     description = models.TextField("Beschreibung", blank=True)
     due_date = models.DateField("Fällig am", blank=True, null=True)
-    is_done = models.BooleanField("Erledigt", default=False)
+    # Drives the Kanban column (To-Do / In Arbeit / Erledigt) - a new task
+    # always starts in "todo", moving columns via drag & drop just updates
+    # this field.
+    status = models.CharField("Status", max_length=20, choices=STATUS_CHOICES, default="todo")
 
     tags = models.ManyToManyField(
         ReferenceOption,
@@ -43,7 +52,7 @@ class Task(models.Model):
     class Meta:
         verbose_name = "Aufgabe"
         verbose_name_plural = "Aufgaben"
-        ordering = ["is_done", "due_date"]
+        ordering = ["due_date"]
 
     def __str__(self):
         return self.title

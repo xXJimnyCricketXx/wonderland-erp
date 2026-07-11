@@ -1,0 +1,90 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Aufgaben{% endblock %}
+{% block extra_css %}
+    <link rel="stylesheet" href="{% static 'css/tasks.css' %}">
+{% endblock %}
+{% block content %}
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="mb-0">Aufgaben</h1>
+        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#taskModal"
+                hx-get="{% url 'tasks:create' %}" hx-target="#taskModalContent">
+            <i class="bi bi-plus-lg me-1"></i>Neu
+        </button>
+    </div>
+
+    <div id="kanban-board" class="kanban-board" data-status-url-template="{% url 'tasks:status_update' 0 %}">
+        {% for column in columns %}
+            <div class="kanban-column" style="background:{{ column.bg_color }};">
+                <div class="kanban-column-header" style="color:{{ column.fg_color }};">
+                    {{ column.label }}
+                    <span class="badge text-bg-light border">{{ column.tasks|length }}</span>
+                </div>
+                <div class="kanban-column-body" data-status="{{ column.status }}">
+                    {% for task in column.tasks %}
+                        {% include "tasks/_task_card.html" with today=today %}
+                    {% endfor %}
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+
+    <div class="modal fade" id="taskModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content" id="taskModalContent">
+                <!-- HTMX swaps the create/edit form in here -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        (function () {
+            var board = document.getElementById('kanban-board');
+            if (!board) return;
+            var urlTemplate = board.dataset.statusUrlTemplate;
+
+            function statusUrl(taskId) {
+                return urlTemplate.replace('/0/', '/' + taskId + '/');
+            }
+
+            board.querySelectorAll('.task-card').forEach(function (card) {
+                card.addEventListener('dragstart', function (e) {
+                    e.dataTransfer.setData('text/plain', card.dataset.taskId);
+                    e.dataTransfer.effectAllowed = 'move';
+                    card.classList.add('dragging');
+                });
+                card.addEventListener('dragend', function () {
+                    card.classList.remove('dragging');
+                });
+            });
+
+            board.querySelectorAll('.kanban-column-body').forEach(function (column) {
+                column.addEventListener('dragover', function (e) {
+                    e.preventDefault();
+                    column.classList.add('drag-over');
+                });
+                column.addEventListener('dragleave', function () {
+                    column.classList.remove('drag-over');
+                });
+                column.addEventListener('drop', function (e) {
+                    e.preventDefault();
+                    column.classList.remove('drag-over');
+                    var taskId = e.dataTransfer.getData('text/plain');
+                    var card = board.querySelector('.task-card[data-task-id="' + taskId + '"]');
+                    if (!card) return;
+                    column.appendChild(card);
+                    fetch(statusUrl(taskId), {
+                        method: 'POST',
+                        headers: {
+                            'X-CSRFToken': getCookie('csrftoken'),
+                            'Content-Type': 'application/x-www-form-urlencoded',
+                        },
+                        body: 'status=' + encodeURIComponent(column.dataset.status),
+                    }).catch(function () {
+                        window.location.reload();
+                    });
+                });
+            });
+        })();
+    </script>
+{% endblock %}

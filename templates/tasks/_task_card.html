@@ -1,0 +1,36 @@
+<div class="task-card{% if task.due_date and task.due_date < today and task.status != 'done' %} task-card-overdue{% endif %}" draggable="true" data-task-id="{{ task.pk }}">
+    <div class="d-flex justify-content-between align-items-start">
+        <span class="task-card-title">{{ task.title }}</span>
+        <div class="dropdown">
+            <button type="button" class="btn btn-sm btn-link text-muted p-0" data-bs-toggle="dropdown" aria-expanded="false">
+                <i class="bi bi-three-dots"></i>
+            </button>
+            <ul class="dropdown-menu dropdown-menu-end">
+                <li>
+                    <button type="button" class="dropdown-item"
+                            data-bs-toggle="modal" data-bs-target="#taskModal"
+                            hx-get="{% url 'tasks:update' task.pk %}" hx-target="#taskModalContent">
+                        <i class="bi bi-pencil me-1"></i>Bearbeiten
+                    </button>
+                </li>
+                <li>
+                    <button type="button" class="dropdown-item text-danger"
+                            hx-post="{% url 'tasks:archive' task.pk %}"
+                            hx-confirm="„{{ task.title }}“ wirklich löschen?">
+                        <i class="bi bi-trash me-1"></i>Löschen
+                    </button>
+                </li>
+            </ul>
+        </div>
+    </div>
+    {% if task.description %}<p class="task-card-desc">{{ task.description|truncatechars:80 }}</p>{% endif %}
+    {% if task.tags.all %}
+        <div class="d-flex flex-wrap gap-1 mb-1">
+            {% for tag in task.tags.all %}<span class="badge text-bg-light border">{{ tag.value }}</span>{% endfor %}
+        </div>
+    {% endif %}
+    <div class="d-flex justify-content-between align-items-center small text-muted">
+        <span>{% if task.due_date %}<i class="bi bi-calendar3 me-1"></i>{{ task.due_date|date:"d.m.Y" }}{% endif %}</span>
+        <span>{% if task.assigned_to %}<i class="bi bi-person me-1"></i>{{ task.assigned_to.username }}{% endif %}</span>
+    </div>
+</div>
