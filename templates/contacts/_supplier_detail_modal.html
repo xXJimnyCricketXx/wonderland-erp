@@ -1,0 +1,138 @@
+<div class="modal-header bg-brand text-white">
+    <h5 class="modal-title">{{ supplier.full_name }}</h5>
+    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Schließen"></button>
+</div>
+<div class="modal-body">
+    <div class="row mb-3">
+        <div class="col-md-7">
+            {% if supplier.company_name %}<p class="text-muted mb-1">{{ supplier.company_name }}{% if supplier.job_title %} · {{ supplier.job_title }}{% endif %}</p>{% endif %}
+            {% if supplier.platform %}<p class="text-muted mb-1">Plattform: {{ supplier.platform.full_name }}</p>{% endif %}
+            <div class="d-flex flex-wrap gap-2">
+                {% if supplier.status %}<span class="badge text-bg-light border">{{ supplier.status }}</span>{% endif %}
+            </div>
+        </div>
+        <div class="col-md-5 text-md-end">
+            <p class="text-muted mb-0">{{ supplier.email|default:"–" }}</p>
+            <p class="text-muted mb-0">{{ supplier.phone|default:"–" }}</p>
+        </div>
+    </div>
+
+    <ul class="nav nav-pills mb-3" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active" data-bs-toggle="pill" data-bs-target="#pill-kontakt" type="button" role="tab">
+                <i class="bi bi-person-lines-fill me-1"></i>Kontakt
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" data-bs-toggle="pill" data-bs-target="#pill-konditionen" type="button" role="tab">
+                <i class="bi bi-cash-coin me-1"></i>Konditionen
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" data-bs-toggle="pill" data-bs-target="#pill-artikel" type="button" role="tab">
+                <i class="bi bi-box-seam me-1"></i>Artikel
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" data-bs-toggle="pill" data-bs-target="#pill-notizen" type="button" role="tab">
+                <i class="bi bi-journal-text me-1"></i>Notizen
+            </button>
+        </li>
+    </ul>
+
+    <div class="tab-content">
+        <div class="tab-pane fade show active" id="pill-kontakt" role="tabpanel">
+            <dl class="row mb-0">
+                <dt class="col-4">Adresse</dt>
+                <dd class="col-8">
+                    {{ supplier.street1 }}{% if supplier.street2 %}, {{ supplier.street2 }}{% endif %}<br>
+                    {{ supplier.zipcode }} {{ supplier.city }}<br>
+                    {% if supplier.state %}{{ supplier.state }}<br>{% endif %}
+                    {{ supplier.country }}
+                </dd>
+                <dt class="col-4">Website</dt>
+                <dd class="col-8">
+                    {% if supplier.website %}<a href="{{ supplier.website }}" target="_blank" rel="noopener">{{ supplier.website }}</a>{% else %}–{% endif %}
+                </dd>
+                <dt class="col-4">Bevorzugte Kontaktart</dt>
+                <dd class="col-8">{{ supplier.preferred_contact_method|default:"–" }}</dd>
+            </dl>
+        </div>
+
+        <div class="tab-pane fade" id="pill-konditionen" role="tabpanel">
+            <dl class="row mb-3">
+                <dt class="col-5">Kundennummer beim Lieferanten</dt>
+                <dd class="col-7">{{ supplier.account_number|default:"–" }}</dd>
+                <dt class="col-5">Zahlungsziel</dt>
+                <dd class="col-7">{{ supplier.payment_terms|default:"–" }}</dd>
+                <dt class="col-5">Lieferzeit</dt>
+                <dd class="col-7">{% if supplier.lead_time_days %}{{ supplier.lead_time_days }} Tage{% else %}–{% endif %}</dd>
+                <dt class="col-5">USt-ID</dt>
+                <dd class="col-7">{{ supplier.vat_id|default:"–" }}</dd>
+                <dt class="col-5">Standard-Rabatt</dt>
+                <dd class="col-7">{% if supplier.standard_discount_percent %}{{ supplier.standard_discount_percent }} %{% else %}–{% endif %}</dd>
+            </dl>
+            <h6 class="text-muted text-uppercase small">Rabattstaffeln</h6>
+            {% if discount_tiers %}
+                <table class="table table-sm">
+                    <thead>
+                        <tr>
+                            <th>Ab Mindestbestellwert</th>
+                            <th>Rabatt</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for tier in discount_tiers %}
+                            <tr>
+                                <td>{{ tier.min_order_value }}</td>
+                                <td>{{ tier.discount_percent }} %</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            {% else %}
+                <p class="text-muted mb-0">Keine Rabattstaffeln hinterlegt.</p>
+            {% endif %}
+        </div>
+
+        <div class="tab-pane fade" id="pill-artikel" role="tabpanel">
+            {% if articles %}
+                <table class="table table-sm">
+                    <thead>
+                        <tr>
+                            <th>SKU</th>
+                            <th>Titel</th>
+                            <th>Preis</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for article in articles %}
+                            <tr>
+                                <td>{{ article.sku|default:"–" }}</td>
+                                <td>{{ article.title }}</td>
+                                <td>{{ article.price }} {{ article.currency_code }}</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            {% else %}
+                <p class="text-muted mb-0">Keine Artikel von diesem Lieferanten.</p>
+            {% endif %}
+        </div>
+
+        <div class="tab-pane fade" id="pill-notizen" role="tabpanel">
+            {% if supplier.notes %}
+                {{ supplier.notes|linebreaks }}
+            {% else %}
+                <p class="text-muted mb-0">Keine Notizen hinterlegt.</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+<div class="modal-footer">
+    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Schließen</button>
+    <button type="button" class="btn btn-primary"
+            hx-get="{% url 'contacts:supplier_update' supplier.pk %}" hx-target="#contactModalContent">
+        <i class="bi bi-pencil me-1"></i>Bearbeiten
+    </button>
+</div>

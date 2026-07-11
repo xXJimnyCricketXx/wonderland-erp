@@ -96,7 +96,8 @@
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a href="#" class="nav-link d-flex align-items-center justify-content-lg-center text-white" title="Kontakte" data-bs-toggle="tooltip" data-bs-placement="right">
+                        {% url 'contacts:list' as contacts_url %}
+                        <a href="{{ contacts_url }}" class="nav-link d-flex align-items-center justify-content-lg-center text-white{% if request.path == contacts_url %} active{% endif %}" title="Kontakte" data-bs-toggle="tooltip" data-bs-placement="right">
                             <i class="bi bi-people"></i><span class="ms-2 d-lg-none">Kontakte</span>
                         </a>
                     </li>

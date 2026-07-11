@@ -11,6 +11,7 @@ urlpatterns = [
     path("artikel/", include("catalog.urls")),
     path("bestellungen/", include("orders.urls")),
     path("bewertungen/", ReviewListView.as_view(), name="review_list"),
+    path("kontakte/", include("contacts.urls")),
     path("einstellungen/", include("settings_hub.urls")),
     path("import/", include("data_import.urls")),
     path("", include("dashboard.urls")),

@@ -1,0 +1,149 @@
+<div class="modal-header bg-brand text-white">
+    <h5 class="modal-title">{% if object %}Kunde bearbeiten{% else %}Neuer Kunde{% endif %}</h5>
+    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Schließen"></button>
+</div>
+<form hx-post="{{ request.path }}" hx-target="#contactModalContent">
+    {% csrf_token %}
+    <div class="modal-body">
+        {% if form.non_field_errors %}
+            <div class="alert alert-danger">{{ form.non_field_errors }}</div>
+        {% endif %}
+        <div class="container-fluid">
+            <div class="row mb-3">
+                <div class="col-md-3">
+                    <label class="form-label">Vorname</label>
+                    {{ form.first_name }}
+                    {% include "components/field_errors.html" with field=form.first_name %}
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Nachname</label>
+                    {{ form.last_name }}
+                    {% include "components/field_errors.html" with field=form.last_name %}
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Firma</label>
+                    {{ form.company_name }}
+                    {% include "components/field_errors.html" with field=form.company_name %}
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Position</label>
+                    {{ form.job_title }}
+                    {% include "components/field_errors.html" with field=form.job_title %}
+                </div>
+            </div>
+
+            <ul class="nav nav-pills mb-3" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active" data-bs-toggle="pill" data-bs-target="#pill-form-kontakt" type="button" role="tab">
+                        <i class="bi bi-person-lines-fill me-1"></i>Kontakt
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" data-bs-toggle="pill" data-bs-target="#pill-form-weiteres" type="button" role="tab">
+                        <i class="bi bi-journal-text me-1"></i>Weiteres
+                    </button>
+                </li>
+            </ul>
+
+            <div class="tab-content">
+                <div class="tab-pane fade show active" id="pill-form-kontakt" role="tabpanel">
+                    <div class="row mb-3">
+                        <div class="col-md-4">
+                            <label class="form-label">E-Mail</label>
+                            {{ form.email }}
+                            {% include "components/field_errors.html" with field=form.email %}
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Telefon</label>
+                            {{ form.phone }}
+                            {% include "components/field_errors.html" with field=form.phone %}
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Bevorzugte Kontaktart</label>
+                            {{ form.preferred_contact_method }}
+                            {% include "components/field_errors.html" with field=form.preferred_contact_method %}
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Straße &amp; Hausnummer</label>
+                            {{ form.street1 }}
+                            {% include "components/field_errors.html" with field=form.street1 %}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Adresszusatz</label>
+                            {{ form.street2 }}
+                            {% include "components/field_errors.html" with field=form.street2 %}
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-4">
+                            <label class="form-label">PLZ</label>
+                            {{ form.zipcode }}
+                            {% include "components/field_errors.html" with field=form.zipcode %}
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Ort</label>
+                            {{ form.city }}
+                            {% include "components/field_errors.html" with field=form.city %}
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Bundesland/Region</label>
+                            {{ form.state }}
+                            {% include "components/field_errors.html" with field=form.state %}
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-4">
+                            <label class="form-label">Land</label>
+                            {{ form.country }}
+                            {% include "components/field_errors.html" with field=form.country %}
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Etsy-Käufer-ID</label>
+                            {{ form.etsy_buyer_user_id }}
+                            {% include "components/field_errors.html" with field=form.etsy_buyer_user_id %}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="tab-pane fade" id="pill-form-weiteres" role="tabpanel">
+                    <div class="row mb-3">
+                        <div class="col-md-3">
+                            <label class="form-label">Status</label>
+                            {{ form.status }}
+                            {% include "components/field_errors.html" with field=form.status %}
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Geburtstag</label>
+                            {{ form.birthday }}
+                            {% include "components/field_errors.html" with field=form.birthday %}
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Letzter Kontakt</label>
+                            {{ form.last_contact_at }}
+                            {% include "components/field_errors.html" with field=form.last_contact_at %}
+                        </div>
+                        <div class="col-md-3 d-flex align-items-end">
+                            <div class="form-check">
+                                {{ form.is_returning_customer }}
+                                <label class="form-check-label" for="{{ form.is_returning_customer.id_for_label }}">Stammkunde</label>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-12">
+                            <label class="form-label">Notizen</label>
+                            {{ form.notes }}
+                            {% include "components/field_errors.html" with field=form.notes %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal-footer">
+        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Abbrechen</button>
+        <button type="submit" class="btn btn-primary">Speichern</button>
+    </div>
+</form>

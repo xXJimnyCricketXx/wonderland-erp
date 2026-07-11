@@ -1,0 +1,194 @@
+{% extends "base.html" %}
+{% load sortable %}
+{% block title %}Kontakte{% endblock %}
+{% block content %}
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h1 class="mb-0">Kontakte</h1>
+        <div class="d-flex gap-2">
+            {% if active_tab == "kunden" %}
+                <a href="{% url 'settings_hub:index' %}?tab=papierkorb&modul=kunden" class="btn btn-outline-secondary">
+                    <i class="bi bi-trash me-1"></i>Papierkorb{% if trash_count %} ({{ trash_count }}){% endif %}
+                </a>
+                <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#contactModal"
+                        hx-get="{% url 'contacts:customer_create' %}" hx-target="#contactModalContent">
+                    <i class="bi bi-plus-lg me-1"></i>Neuer Kunde
+                </button>
+            {% else %}
+                <a href="{% url 'settings_hub:index' %}?tab=papierkorb&modul=lieferanten" class="btn btn-outline-secondary">
+                    <i class="bi bi-trash me-1"></i>Papierkorb{% if trash_count %} ({{ trash_count }}){% endif %}
+                </a>
+                <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#contactModal"
+                        hx-get="{% url 'contacts:supplier_create' %}" hx-target="#contactModalContent">
+                    <i class="bi bi-plus-lg me-1"></i>Neuer Lieferant
+                </button>
+            {% endif %}
+        </div>
+    </div>
+
+    <ul class="nav nav-pills mb-4">
+        <li class="nav-item">
+            <a class="nav-link{% if active_tab == "kunden" %} active{% endif %}" href="?tab=kunden">
+                <i class="bi bi-person me-1"></i>Kunden
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link{% if active_tab == "lieferanten" %} active{% endif %}" href="?tab=lieferanten">
+                <i class="bi bi-truck me-1"></i>Lieferanten
+            </a>
+        </li>
+    </ul>
+
+    {% if active_tab == "kunden" %}
+        <form method="get" class="row g-2 mb-3 align-items-end">
+            <input type="hidden" name="tab" value="kunden">
+            <div class="col-md-5">
+                {% include "components/search_box.html" with query=query placeholder="Name, Firma oder E-Mail suchen" %}
+            </div>
+            <div class="col-md-3">
+                <label class="form-label small mb-1">Status</label>
+                <select name="status" class="form-select" onchange="this.form.submit()">
+                    <option value="">Alle</option>
+                    {% for s in statuses %}
+                        <option value="{{ s.value }}" {% if selected_status == s.value %}selected{% endif %}>{{ s.value }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label small mb-1">Stammkunde</label>
+                <select name="is_returning_customer" class="form-select" onchange="this.form.submit()">
+                    <option value="">Alle</option>
+                    <option value="1" {% if selected_returning == "1" %}selected{% endif %}>Ja</option>
+                    <option value="0" {% if selected_returning == "0" %}selected{% endif %}>Nein</option>
+                </select>
+            </div>
+        </form>
+
+        {% if customers %}
+            <div class="table-responsive">
+                <table class="table table-striped table-hover align-middle table-brand-header">
+                    <thead>
+                        <tr>
+                            <th><a href="{% sort_url 'last_name' %}" class="text-white text-decoration-none">Nachname <i class="bi {% sort_icon 'last_name' %} small"></i></a></th>
+                            <th><a href="{% sort_url 'first_name' %}" class="text-white text-decoration-none">Vorname <i class="bi {% sort_icon 'first_name' %} small"></i></a></th>
+                            <th><a href="{% sort_url 'email' %}" class="text-white text-decoration-none">E-Mail <i class="bi {% sort_icon 'email' %} small"></i></a></th>
+                            <th>Telefon</th>
+                            <th><a href="{% sort_url 'status' %}" class="text-white text-decoration-none">Status <i class="bi {% sort_icon 'status' %} small"></i></a></th>
+                            <th><a href="{% sort_url 'is_returning_customer' %}" class="text-white text-decoration-none">Stammkunde <i class="bi {% sort_icon 'is_returning_customer' %} small"></i></a></th>
+                            <th class="text-nowrap">Aktionen</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for customer in customers %}
+                            <tr>
+                                <td>{{ customer.last_name }}</td>
+                                <td>{{ customer.first_name }}</td>
+                                <td>{{ customer.email|default:"–" }}</td>
+                                <td>{{ customer.phone|default:"–" }}</td>
+                                <td>{{ customer.status|default:"–" }}</td>
+                                <td>
+                                    {% if customer.is_returning_customer %}
+                                        <span class="badge text-bg-success">Ja</span>
+                                    {% else %}
+                                        <span class="badge text-bg-secondary">Nein</span>
+                                    {% endif %}
+                                </td>
+                                <td class="text-nowrap">
+                                    <div class="btn-group">
+                                        <button type="button" class="btn btn-sm btn-outline-secondary" title="Ansehen" data-bs-toggle="modal" data-bs-target="#contactModal"
+                                                hx-get="{% url 'contacts:customer_detail' customer.pk %}" hx-target="#contactModalContent">
+                                            <i class="bi bi-eye"></i>
+                                        </button>
+                                        <button type="button" class="btn btn-sm btn-outline-secondary" title="Bearbeiten" data-bs-toggle="modal" data-bs-target="#contactModal"
+                                                hx-get="{% url 'contacts:customer_update' customer.pk %}" hx-target="#contactModalContent">
+                                            <i class="bi bi-pencil"></i>
+                                        </button>
+                                        <button type="button" class="btn btn-sm btn-outline-danger" title="Löschen"
+                                                hx-post="{% url 'contacts:customer_archive' customer.pk %}"
+                                                hx-confirm="„{{ customer.full_name }}“ wirklich löschen?">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% include "components/pagination.html" %}
+        {% else %}
+            {% include "components/empty_state.html" %}
+        {% endif %}
+    {% else %}
+        <form method="get" class="row g-2 mb-3 align-items-end">
+            <input type="hidden" name="tab" value="lieferanten">
+            <div class="col-md-6">
+                {% include "components/search_box.html" with query=query placeholder="Name, Firma oder Kundennummer suchen" %}
+            </div>
+            <div class="col-md-4">
+                <label class="form-label small mb-1">Status</label>
+                <select name="status" class="form-select" onchange="this.form.submit()">
+                    <option value="">Alle</option>
+                    {% for s in statuses %}
+                        <option value="{{ s.value }}" {% if selected_status == s.value %}selected{% endif %}>{{ s.value }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+        </form>
+
+        {% if suppliers %}
+            <div class="table-responsive">
+                <table class="table table-striped table-hover align-middle table-brand-header">
+                    <thead>
+                        <tr>
+                            <th><a href="{% sort_url 'last_name' %}" class="text-white text-decoration-none">Nachname <i class="bi {% sort_icon 'last_name' %} small"></i></a></th>
+                            <th><a href="{% sort_url 'first_name' %}" class="text-white text-decoration-none">Vorname <i class="bi {% sort_icon 'first_name' %} small"></i></a></th>
+                            <th><a href="{% sort_url 'company_name' %}" class="text-white text-decoration-none">Firma <i class="bi {% sort_icon 'company_name' %} small"></i></a></th>
+                            <th><a href="{% sort_url 'platform__last_name' %}" class="text-white text-decoration-none">Plattform <i class="bi {% sort_icon 'platform__last_name' %} small"></i></a></th>
+                            <th><a href="{% sort_url 'status' %}" class="text-white text-decoration-none">Status <i class="bi {% sort_icon 'status' %} small"></i></a></th>
+                            <th class="text-nowrap">Aktionen</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for supplier in suppliers %}
+                            <tr>
+                                <td>{{ supplier.last_name }}</td>
+                                <td>{{ supplier.first_name }}</td>
+                                <td>{{ supplier.company_name|default:"–" }}</td>
+                                <td>{{ supplier.platform.full_name|default:"–" }}</td>
+                                <td>{{ supplier.status|default:"–" }}</td>
+                                <td class="text-nowrap">
+                                    <div class="btn-group">
+                                        <button type="button" class="btn btn-sm btn-outline-secondary" title="Ansehen" data-bs-toggle="modal" data-bs-target="#contactModal"
+                                                hx-get="{% url 'contacts:supplier_detail' supplier.pk %}" hx-target="#contactModalContent">
+                                            <i class="bi bi-eye"></i>
+                                        </button>
+                                        <button type="button" class="btn btn-sm btn-outline-secondary" title="Bearbeiten" data-bs-toggle="modal" data-bs-target="#contactModal"
+                                                hx-get="{% url 'contacts:supplier_update' supplier.pk %}" hx-target="#contactModalContent">
+                                            <i class="bi bi-pencil"></i>
+                                        </button>
+                                        <button type="button" class="btn btn-sm btn-outline-danger" title="Löschen"
+                                                hx-post="{% url 'contacts:supplier_archive' supplier.pk %}"
+                                                hx-confirm="„{{ supplier.full_name }}“ wirklich löschen?">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% include "components/pagination.html" %}
+        {% else %}
+            {% include "components/empty_state.html" %}
+        {% endif %}
+    {% endif %}
+
+    <div class="modal fade" id="contactModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
+        <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-xl">
+            <div class="modal-content" id="contactModalContent">
+                <!-- HTMX swaps the create/edit/detail content in here -->
+            </div>
+        </div>
+    </div>
+{% endblock %}

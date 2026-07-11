@@ -1,0 +1,244 @@
+<div class="modal-header bg-brand text-white">
+    <h5 class="modal-title">{% if object %}Lieferant bearbeiten{% else %}Neuer Lieferant{% endif %}</h5>
+    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Schließen"></button>
+</div>
+<form hx-post="{{ request.path }}" hx-target="#contactModalContent">
+    {% csrf_token %}
+    <div class="modal-body">
+        {% if form.non_field_errors %}
+            <div class="alert alert-danger">{{ form.non_field_errors }}</div>
+        {% endif %}
+        <div class="container-fluid">
+            <div class="row mb-3">
+                <div class="col-md-3">
+                    <label class="form-label">Vorname</label>
+                    {{ form.first_name }}
+                    {% include "components/field_errors.html" with field=form.first_name %}
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Nachname</label>
+                    {{ form.last_name }}
+                    {% include "components/field_errors.html" with field=form.last_name %}
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Firma</label>
+                    {{ form.company_name }}
+                    {% include "components/field_errors.html" with field=form.company_name %}
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Position</label>
+                    {{ form.job_title }}
+                    {% include "components/field_errors.html" with field=form.job_title %}
+                </div>
+            </div>
+
+            <ul class="nav nav-pills mb-3" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active" data-bs-toggle="pill" data-bs-target="#pill-form-kontakt" type="button" role="tab">
+                        <i class="bi bi-person-lines-fill me-1"></i>Kontakt
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" data-bs-toggle="pill" data-bs-target="#pill-form-konditionen" type="button" role="tab">
+                        <i class="bi bi-cash-coin me-1"></i>Konditionen
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" data-bs-toggle="pill" data-bs-target="#pill-form-weiteres" type="button" role="tab">
+                        <i class="bi bi-journal-text me-1"></i>Weiteres
+                    </button>
+                </li>
+            </ul>
+
+            <div class="tab-content">
+                <div class="tab-pane fade show active" id="pill-form-kontakt" role="tabpanel">
+                    <div class="row mb-3">
+                        <div class="col-md-4">
+                            <label class="form-label">E-Mail</label>
+                            {{ form.email }}
+                            {% include "components/field_errors.html" with field=form.email %}
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Telefon</label>
+                            {{ form.phone }}
+                            {% include "components/field_errors.html" with field=form.phone %}
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Bevorzugte Kontaktart</label>
+                            {{ form.preferred_contact_method }}
+                            {% include "components/field_errors.html" with field=form.preferred_contact_method %}
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Website</label>
+                            {{ form.website }}
+                            {% include "components/field_errors.html" with field=form.website %}
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Straße &amp; Hausnummer</label>
+                            {{ form.street1 }}
+                            {% include "components/field_errors.html" with field=form.street1 %}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Adresszusatz</label>
+                            {{ form.street2 }}
+                            {% include "components/field_errors.html" with field=form.street2 %}
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-4">
+                            <label class="form-label">PLZ</label>
+                            {{ form.zipcode }}
+                            {% include "components/field_errors.html" with field=form.zipcode %}
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Ort</label>
+                            {{ form.city }}
+                            {% include "components/field_errors.html" with field=form.city %}
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Bundesland/Region</label>
+                            {{ form.state }}
+                            {% include "components/field_errors.html" with field=form.state %}
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-4">
+                            <label class="form-label">Land</label>
+                            {{ form.country }}
+                            {% include "components/field_errors.html" with field=form.country %}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="tab-pane fade" id="pill-form-konditionen" role="tabpanel">
+                    <div class="row mb-3">
+                        <div class="col-md-4">
+                            <label class="form-label">Kundennummer beim Lieferanten</label>
+                            {{ form.account_number }}
+                            {% include "components/field_errors.html" with field=form.account_number %}
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Zahlungsziel</label>
+                            {{ form.payment_terms }}
+                            {% include "components/field_errors.html" with field=form.payment_terms %}
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">USt-ID</label>
+                            {{ form.vat_id }}
+                            {% include "components/field_errors.html" with field=form.vat_id %}
+                        </div>
+                    </div>
+                    <div class="row mb-4">
+                        <div class="col-md-3">
+                            <label class="form-label">Lieferzeit (Tage)</label>
+                            {{ form.lead_time_days }}
+                            {% include "components/field_errors.html" with field=form.lead_time_days %}
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Standard-Rabatt (%)</label>
+                            {{ form.standard_discount_percent }}
+                            {% include "components/field_errors.html" with field=form.standard_discount_percent %}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Plattform</label>
+                            {{ form.platform }}
+                            {% include "components/field_errors.html" with field=form.platform %}
+                        </div>
+                    </div>
+
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <h6 class="text-muted text-uppercase small mb-0">Rabattstaffeln</h6>
+                        <button type="button" id="add-tier-row" class="btn btn-sm btn-outline-secondary">
+                            <i class="bi bi-plus-lg me-1"></i>Rabattstufe
+                        </button>
+                    </div>
+                    {{ formset.management_form }}
+                    <div id="discount-tiers">
+                        {% for tier_form in formset %}
+                            <div class="row mb-2 discount-tier-row">
+                                <div class="col-md-5">
+                                    <label class="form-label small">Ab Mindestbestellwert</label>
+                                    {{ tier_form.min_order_value }}
+                                    {% include "components/field_errors.html" with field=tier_form.min_order_value %}
+                                </div>
+                                <div class="col-md-5">
+                                    <label class="form-label small">Rabatt (%)</label>
+                                    {{ tier_form.discount_percent }}
+                                    {% include "components/field_errors.html" with field=tier_form.discount_percent %}
+                                </div>
+                                <div class="col-md-2 d-flex align-items-center">
+                                    <div class="form-check mt-4">
+                                        {{ tier_form.DELETE }}
+                                        <label class="form-check-label small">Löschen</label>
+                                    </div>
+                                </div>
+                                {{ tier_form.id }}
+                            </div>
+                        {% endfor %}
+                    </div>
+                    <template id="empty-tier-form">
+                        <div class="row mb-2 discount-tier-row">
+                            <div class="col-md-5">
+                                <label class="form-label small">Ab Mindestbestellwert</label>
+                                <input type="number" step="0.01" name="discount_tiers-__prefix__-min_order_value" class="form-control" id="id_discount_tiers-__prefix__-min_order_value">
+                            </div>
+                            <div class="col-md-5">
+                                <label class="form-label small">Rabatt (%)</label>
+                                <input type="number" step="0.01" name="discount_tiers-__prefix__-discount_percent" class="form-control" id="id_discount_tiers-__prefix__-discount_percent">
+                            </div>
+                            <div class="col-md-2"></div>
+                        </div>
+                    </template>
+                </div>
+
+                <div class="tab-pane fade" id="pill-form-weiteres" role="tabpanel">
+                    <div class="row mb-3">
+                        <div class="col-md-4">
+                            <label class="form-label">Status</label>
+                            {{ form.status }}
+                            {% include "components/field_errors.html" with field=form.status %}
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Geburtstag</label>
+                            {{ form.birthday }}
+                            {% include "components/field_errors.html" with field=form.birthday %}
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Letzter Kontakt</label>
+                            {{ form.last_contact_at }}
+                            {% include "components/field_errors.html" with field=form.last_contact_at %}
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-12">
+                            <label class="form-label">Notizen</label>
+                            {{ form.notes }}
+                            {% include "components/field_errors.html" with field=form.notes %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal-footer">
+        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Abbrechen</button>
+        <button type="submit" class="btn btn-primary">Speichern</button>
+    </div>
+</form>
+<script>
+    (function () {
+        var addBtn = document.getElementById('add-tier-row');
+        if (!addBtn) return;
+        addBtn.addEventListener('click', function () {
+            var totalForms = document.getElementById('id_discount_tiers-TOTAL_FORMS');
+            var idx = parseInt(totalForms.value, 10);
+            var templateHtml = document.getElementById('empty-tier-form').innerHTML.split('__prefix__').join(idx);
+            document.getElementById('discount-tiers').insertAdjacentHTML('beforeend', templateHtml);
+            totalForms.value = idx + 1;
+        });
+    })();
+</script>
