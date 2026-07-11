@@ -44,6 +44,7 @@
                 </a>
                 <ul class="dropdown-menu dropdown-menu-end shadow" aria-labelledby="dropdownUser1">
                     <li><a class="dropdown-item" href="#">Profil</a></li>
+                    <li><a class="dropdown-item" href="{% url 'data_import:index' %}">Import</a></li>
                     <li><a class="dropdown-item" href="{% url 'settings_hub:index' %}">Einstellungen</a></li>
                     {% if user.is_staff %}
                         <li><hr class="dropdown-divider"></li>
@@ -77,12 +78,14 @@
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a href="#" class="nav-link d-flex align-items-center justify-content-lg-center text-white" title="Bestellungen" data-bs-toggle="tooltip" data-bs-placement="right">
+                        {% url 'orders:list' as orders_url %}
+                        <a href="{{ orders_url }}" class="nav-link d-flex align-items-center justify-content-lg-center text-white{% if request.path == orders_url %} active{% endif %}" title="Bestellungen" data-bs-toggle="tooltip" data-bs-placement="right">
                             <i class="bi bi-cart3"></i><span class="ms-2 d-lg-none">Bestellungen</span>
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a href="#" class="nav-link d-flex align-items-center justify-content-lg-center text-white" title="Bewertungen" data-bs-toggle="tooltip" data-bs-placement="right">
+                        {% url 'review_list' as reviews_url %}
+                        <a href="{{ reviews_url }}" class="nav-link d-flex align-items-center justify-content-lg-center text-white{% if request.path == reviews_url %} active{% endif %}" title="Bewertungen" data-bs-toggle="tooltip" data-bs-placement="right">
                             <i class="bi bi-star"></i><span class="ms-2 d-lg-none">Bewertungen</span>
                         </a>
                     </li>

@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% load static %}
+{% load static sortable %}
 {% block title %}Artikel{% endblock %}
 {% block extra_css %}
     <link rel="stylesheet" href="{% static 'css/catalog.css' %}">
@@ -56,13 +56,13 @@
                 <thead>
                     <tr>
                         <th></th>
-                        <th>SKU</th>
-                        <th>Titel</th>
-                        <th>Kategorie</th>
-                        <th>Preis</th>
-                        <th>Bestand</th>
-                        <th>Lieferant</th>
-                        <th>Status</th>
+                        <th><a href="{% sort_url 'sku' %}" class="text-white text-decoration-none">SKU <i class="bi {% sort_icon 'sku' %} small"></i></a></th>
+                        <th><a href="{% sort_url 'title' %}" class="text-white text-decoration-none">Titel <i class="bi {% sort_icon 'title' %} small"></i></a></th>
+                        <th><a href="{% sort_url 'category' %}" class="text-white text-decoration-none">Kategorie <i class="bi {% sort_icon 'category' %} small"></i></a></th>
+                        <th><a href="{% sort_url 'price' %}" class="text-white text-decoration-none">Preis <i class="bi {% sort_icon 'price' %} small"></i></a></th>
+                        <th><a href="{% sort_url 'stock_quantity' %}" class="text-white text-decoration-none">Bestand <i class="bi {% sort_icon 'stock_quantity' %} small"></i></a></th>
+                        <th><a href="{% sort_url 'supplier__last_name' %}" class="text-white text-decoration-none">Lieferant <i class="bi {% sort_icon 'supplier__last_name' %} small"></i></a></th>
+                        <th><a href="{% sort_url 'is_active' %}" class="text-white text-decoration-none">Status <i class="bi {% sort_icon 'is_active' %} small"></i></a></th>
                         <th class="text-nowrap">Aktionen</th>
                     </tr>
                 </thead>

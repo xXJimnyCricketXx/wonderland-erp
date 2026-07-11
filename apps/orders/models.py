@@ -7,7 +7,11 @@ from knowledge.models import PackagingType
 
 
 class Order(Archivable):
+    # Internal, always-present identifier (e.g. "B-1001") - covers Etsy orders
+    # and cash sales alike. etsy_order_number below is Etsy's own order
+    # number and only ever set for orders that actually came through Etsy.
     order_id = models.CharField("Bestell-ID", max_length=50, unique=True)
+    etsy_order_number = models.CharField("Etsy-Bestellnummer", max_length=50, blank=True)
     customer = models.ForeignKey(
         Customer, verbose_name="Kunde", on_delete=models.PROTECT, related_name="orders"
     )

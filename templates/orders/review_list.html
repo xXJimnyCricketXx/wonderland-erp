@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% block title %}Bewertungen{% endblock %}
+{% block content %}
+    <h1 class="mb-4">Bewertungen</h1>
+
+    <div class="row justify-content-center">
+        <div class="col-lg-8 col-xl-6">
+            {% if reviews %}
+                {% for review in reviews %}
+                    <div class="card mb-3">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div>
+                                    <strong>{{ review.reviewer_name }}</strong>
+                                    <div class="text-muted small">Bestellung #{{ review.order.order_id }} · {{ review.order.customer.full_name }}</div>
+                                </div>
+                                <div class="text-end">
+                                    <div class="text-warning">
+                                        {% for i in "12345" %}{% if forloop.counter <= review.star_rating %}★{% else %}☆{% endif %}{% endfor %}
+                                    </div>
+                                    <div class="text-muted small">{{ review.date_reviewed|date:"d.m.Y" }}</div>
+                                </div>
+                            </div>
+                            {% if review.message %}
+                                <p class="mb-0 mt-2">{{ review.message }}</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                {% endfor %}
+            {% else %}
+                {% include "components/empty_state.html" %}
+            {% endif %}
+        </div>
+    </div>
+{% endblock %}

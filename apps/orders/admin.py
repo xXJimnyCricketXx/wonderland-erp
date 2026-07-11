@@ -20,5 +20,5 @@ class OrderAdmin(admin.ModelAdmin):
         "status", "is_archived",
     ]
     list_filter = ["status", "order_type", "is_archived"]
-    search_fields = ["order_id", "customer__full_name", "buyer_username", "tracking_number"]
+    search_fields = ["order_id", "customer__first_name", "customer__last_name", "buyer_username", "tracking_number"]
     inlines = [OrderItemInline, ReviewInline]

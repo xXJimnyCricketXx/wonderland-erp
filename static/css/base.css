@@ -181,14 +181,43 @@ a:hover {
     color: #555555;
 }
 
-/* Shared list-page table style (Artikel, Bestellungen, Finanzen, ...) - brand
-   green header instead of Bootstrap's plain .table-dark gray. */
-.table-brand-header thead {
-    background-color: var(--brand-green);
-    color: var(--brand-white);
+/* Bootstrap's scrollable-modal CSS needs modal-body to be a direct flex child
+   of modal-content (flex-column) so modal-body can flex:1 into the remaining
+   space and scroll internally while header/footer stay put. Our create/edit
+   modals wrap modal-body+modal-footer in a <form>, which sits in between as
+   a plain block box - that silently breaks the flex chain, so modal-content's
+   overflow:hidden just clips long forms instead of letting them scroll.
+   Making the form itself a flex column (matching modal-content) restores it;
+   min-height:0 is needed so the form is actually allowed to shrink below its
+   content size, which is what lets modal-body's own scrolling kick in. */
+.modal-dialog-scrollable .modal-content > form {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    overflow: hidden;
 }
 
+/* Windows/Chrome's overlay scrollbar is nearly invisible, so a genuinely
+   scrollable body can still look cut off at a glance - force a visible track. */
+.modal-dialog-scrollable .modal-body {
+    overflow-y: scroll;
+}
+
+/* Shared list-page table style (Artikel, Bestellungen, Finanzen, ...) - brand
+   green header instead of Bootstrap's plain .table-dark gray. Bootstrap 5.3
+   paints each cell's own background/color via .table>:not(caption)>*>*
+   (equal specificity to a plain "thead" rule, so which one wins depends on
+   stylesheet load order) - targeting "thead th" directly instead of just
+   "thead" and adding !important removes that ambiguity, since sortable
+   column headers (clickable <a> links) turned out to inherit the wrong one
+   and render invisible (white-on-white). */
 .table-brand-header thead th {
+    background-color: var(--brand-green) !important;
+    color: var(--brand-white) !important;
     border-color: var(--brand-green);
     vertical-align: middle;
+}
+
+.table-brand-header thead th a {
+    color: var(--brand-white) !important;
 }

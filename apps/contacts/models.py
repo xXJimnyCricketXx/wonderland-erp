@@ -17,9 +17,8 @@ class ContactBase(Archivable):
     its own table (and its own auto-incrementing id, i.e. Kunden-/
     Lieferanten-Nr.) instead of one shared Contact table with a type flag."""
 
-    full_name = models.CharField("Vollständiger Name", max_length=255)
-    first_name = models.CharField("Vorname", max_length=255, blank=True)
-    last_name = models.CharField("Nachname", max_length=255, blank=True)
+    first_name = models.CharField("Vorname", max_length=255)
+    last_name = models.CharField("Nachname", max_length=255)
 
     company_name = models.CharField("Firma", max_length=255, blank=True)
     job_title = models.CharField("Position", max_length=255, blank=True)
@@ -54,10 +53,14 @@ class ContactBase(Archivable):
 
     class Meta:
         abstract = True
-        ordering = ["full_name"]
+        ordering = ["last_name", "first_name"]
 
     def __str__(self):
         return self.full_name
+
+    @property
+    def full_name(self):
+        return f"{self.first_name} {self.last_name}".strip()
 
 
 class Customer(ContactBase):

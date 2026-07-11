@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% block title %}Import{% endblock %}
+{% block content %}
+    <h1 class="mb-4">Import</h1>
+
+    <ul class="nav nav-pills mb-4" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active" data-bs-toggle="pill" data-bs-target="#pill-statement" type="button" role="tab">
+                <i class="bi bi-cash-coin me-1"></i>Etsy-Statement
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" data-bs-toggle="pill" data-bs-target="#pill-orders" type="button" role="tab">
+                <i class="bi bi-cart3 me-1"></i>Bestellungen
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" data-bs-toggle="pill" data-bs-target="#pill-listings" type="button" role="tab">
+                <i class="bi bi-box-seam me-1"></i>Artikel-Listings
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" data-bs-toggle="pill" data-bs-target="#pill-reviews" type="button" role="tab">
+                <i class="bi bi-star me-1"></i>Bewertungen
+            </button>
+        </li>
+    </ul>
+
+    <div class="tab-content">
+        <div class="tab-pane fade show active" id="pill-statement" role="tabpanel">
+            <p class="text-muted">Import der Etsy-Zahlungskonto-Abrechnung (Statement-CSV) folgt.</p>
+        </div>
+        <div class="tab-pane fade" id="pill-orders" role="tabpanel">
+            <p class="text-muted">Import der Etsy-Bestell-CSV folgt.</p>
+        </div>
+        <div class="tab-pane fade" id="pill-listings" role="tabpanel">
+            <p class="text-muted">Import der Etsy-Listing-CSV folgt.</p>
+        </div>
+        <div class="tab-pane fade" id="pill-reviews" role="tabpanel">
+            <p class="text-muted">Import von reviews.json folgt.</p>
+        </div>
+    </div>
+{% endblock %}

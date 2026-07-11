@@ -41,6 +41,7 @@ INSTALLED_APPS = [
     "knowledge",
     "tasks",
     "settings_hub",
+    "data_import",
 ]
 
 MIDDLEWARE = [

@@ -47,5 +47,5 @@ class ArticleForm(forms.ModelForm):
             widget=forms.Select(attrs={"class": "form-select"}),
         )
 
-        self.fields["supplier"].queryset = Supplier.objects.filter(is_archived=False).order_by("full_name")
+        self.fields["supplier"].queryset = Supplier.objects.filter(is_archived=False).order_by("last_name", "first_name")
         self.fields["supplier"].widget.attrs.update({"class": "form-select"})

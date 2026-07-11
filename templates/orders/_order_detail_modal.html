@@ -1,0 +1,199 @@
+<div class="modal-header bg-brand text-white">
+    <h5 class="modal-title">Bestellung #{{ order.order_id }}</h5>
+    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Schließen"></button>
+</div>
+<div class="modal-body">
+    <div class="row mb-3">
+        <div class="col-md-7">
+            <div class="row mb-2 gy-2">
+                <div class="col-md-6">
+                    <div class="small text-muted">Kunde</div>
+                    <div class="mb-2">{{ order.customer.full_name }}</div>
+                    <div class="small text-muted">Lieferadresse</div>
+                    <div>
+                        {{ order.ship_street1 }}{% if order.ship_street2 %}, {{ order.ship_street2 }}{% endif %}<br>
+                        {{ order.ship_zipcode }} {{ order.ship_city }}<br>
+                        {% if order.ship_state %}{{ order.ship_state }}<br>{% endif %}
+                        {{ order.ship_country }}
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="small text-muted">Bestell-ID</div>
+                    <div class="mb-2">{{ order.order_id }}</div>
+                    <div class="small text-muted">Etsy-Bestellnummer</div>
+                    <div>{{ order.etsy_order_number|default:"–" }}</div>
+                </div>
+            </div>
+            <div class="d-flex flex-wrap gap-2">
+                {% if order.status %}<span class="badge text-bg-light border">{{ order.status }}</span>{% endif %}
+                {% if order.order_type %}<span class="badge text-bg-light border">{{ order.order_type }}</span>{% endif %}
+            </div>
+        </div>
+        <div class="col-md-5 text-md-end">
+            <h2 class="mb-0">{{ order.order_total }} {{ order.currency }}</h2>
+            <p class="text-muted mb-0">{{ order.number_of_items }} Artikel</p>
+            <p class="text-muted mb-0">{{ order.sale_date|date:"d.m.Y" }}</p>
+        </div>
+    </div>
+
+    <ul class="nav nav-pills mb-3" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active" data-bs-toggle="pill" data-bs-target="#pill-positionen" type="button" role="tab">
+                <i class="bi bi-list-ul me-1"></i>Positionen
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" data-bs-toggle="pill" data-bs-target="#pill-zahlung" type="button" role="tab">
+                <i class="bi bi-cash-coin me-1"></i>Zahlung &amp; Rabatte
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" data-bs-toggle="pill" data-bs-target="#pill-versand" type="button" role="tab">
+                <i class="bi bi-truck me-1"></i>Versand
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" data-bs-toggle="pill" data-bs-target="#pill-bewertung" type="button" role="tab">
+                <i class="bi bi-star me-1"></i>Bewertungen
+            </button>
+        </li>
+    </ul>
+
+    <div class="tab-content">
+        <div class="tab-pane fade show active" id="pill-positionen" role="tabpanel">
+            {% if order_items %}
+                <table class="table table-sm">
+                    <thead>
+                        <tr>
+                            <th>Pos.</th>
+                            <th>Artikel</th>
+                            <th>SKU</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in order_items %}
+                            <tr>
+                                <td>{{ item.position }}</td>
+                                <td>{{ item.article.title|default:"–" }}</td>
+                                <td>{{ item.sku_raw|default:"–" }}</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            {% else %}
+                <p class="text-muted mb-0">Keine Positionen hinterlegt.</p>
+            {% endif %}
+        </div>
+
+        <div class="tab-pane fade" id="pill-zahlung" role="tabpanel">
+            {% if order.coupon_code %}
+                <p class="text-muted mb-2">Gutschein: {{ order.coupon_code }}{% if order.coupon_details %} – {{ order.coupon_details }}{% endif %}</p>
+            {% endif %}
+            <table class="table table-borderless table-sm mb-0">
+                <tbody>
+                    <tr>
+                        <td>Bestellwert</td>
+                        <td class="text-end">{{ order.order_value }} {{ order.currency }}</td>
+                    </tr>
+                    {% if order.discount_amount %}
+                        <tr>
+                            <td>Rabatt</td>
+                            <td class="text-end">−{{ order.discount_amount }} {{ order.currency }}</td>
+                        </tr>
+                    {% endif %}
+                    {% if order.inperson_discount %}
+                        <tr>
+                            <td>Vor-Ort-Rabatt</td>
+                            <td class="text-end">−{{ order.inperson_discount }} {{ order.currency }}</td>
+                        </tr>
+                    {% endif %}
+                    <tr>
+                        <td>Versandkosten</td>
+                        <td class="text-end">{{ order.shipping }} {{ order.currency }}</td>
+                    </tr>
+                    {% if order.shipping_discount %}
+                        <tr>
+                            <td>Versandrabatt</td>
+                            <td class="text-end">−{{ order.shipping_discount }} {{ order.currency }}</td>
+                        </tr>
+                    {% endif %}
+                    <tr>
+                        <td>Umsatzsteuer</td>
+                        <td class="text-end">{{ order.sales_tax }} {{ order.currency }}</td>
+                    </tr>
+                    <tr class="border-top fw-bold">
+                        <td>Bestellsumme</td>
+                        <td class="text-end">{{ order.order_total }} {{ order.currency }}</td>
+                    </tr>
+                    <tr class="text-muted">
+                        <td>Kartengebühren</td>
+                        <td class="text-end">−{{ order.card_processing_fees }} {{ order.currency }}</td>
+                    </tr>
+                    <tr class="border-top fw-bold">
+                        <td>Netto-Bestellwert</td>
+                        <td class="text-end">{{ order.order_net }} {{ order.currency }}</td>
+                    </tr>
+                </tbody>
+            </table>
+            {% if order.adjusted_order_total or order.adjusted_card_processing_fees or order.adjusted_net_order_amount %}
+                <hr>
+                <h6 class="text-muted text-uppercase small">Korrekturen</h6>
+                <table class="table table-borderless table-sm mb-0">
+                    <tbody>
+                        <tr>
+                            <td>Bestellsumme</td>
+                            <td class="text-end">{{ order.adjusted_order_total|default:"–" }}</td>
+                        </tr>
+                        <tr>
+                            <td>Kartengebühren</td>
+                            <td class="text-end">{{ order.adjusted_card_processing_fees|default:"–" }}</td>
+                        </tr>
+                        <tr class="border-top fw-bold">
+                            <td>Netto-Bestellwert</td>
+                            <td class="text-end">{{ order.adjusted_net_order_amount|default:"–" }}</td>
+                        </tr>
+                    </tbody>
+                </table>
+            {% endif %}
+        </div>
+
+        <div class="tab-pane fade" id="pill-versand" role="tabpanel">
+            <dl class="row mb-0">
+                <dt class="col-4">Versendet am</dt>
+                <dd class="col-8">{{ order.date_shipped|date:"d.m.Y"|default:"–" }}</dd>
+                <dt class="col-4">Versandunternehmen</dt>
+                <dd class="col-8">{{ order.shipping_carrier|default:"–" }}</dd>
+                <dt class="col-4">Sendungsnummer</dt>
+                <dd class="col-8">{{ order.tracking_number|default:"–" }}</dd>
+                <dt class="col-4">Versendet als</dt>
+                <dd class="col-8">{{ order.package_type|default:"–" }}</dd>
+            </dl>
+        </div>
+
+        <div class="tab-pane fade" id="pill-bewertung" role="tabpanel">
+            {% if reviews %}
+                {% for review in reviews %}
+                    <div class="mb-3 pb-3 border-bottom">
+                        <div class="d-flex justify-content-between">
+                            <strong>{{ review.reviewer_name }}</strong>
+                            <span class="text-warning">
+                                {% for i in "12345" %}{% if forloop.counter <= review.star_rating %}★{% else %}☆{% endif %}{% endfor %}
+                            </span>
+                        </div>
+                        <div class="text-muted small">{{ review.date_reviewed|date:"d.m.Y" }}</div>
+                        <p class="mb-0">{{ review.message }}</p>
+                    </div>
+                {% endfor %}
+            {% else %}
+                <p class="text-muted mb-0">Keine Bewertungen vorhanden.</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+<div class="modal-footer">
+    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Schließen</button>
+    <button type="button" class="btn btn-primary"
+            hx-get="{% url 'orders:update' order.pk %}" hx-target="#orderModalContent">
+        <i class="bi bi-pencil me-1"></i>Bearbeiten
+    </button>
+</div>

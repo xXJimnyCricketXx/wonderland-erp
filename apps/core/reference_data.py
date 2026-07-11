@@ -14,6 +14,10 @@ CATEGORY_LABELS = {
     "payment_account": "Zahlungskonto",
     "expense_status": "Ausgaben-Status",
     "vat_rate": "USt-Sätze",
+    "order_status": "Bestell-Status",
+    "order_type": "Bestellart",
+    "payment_method": "Zahlungsmethode",
+    "payment_type": "Zahlungsart",
 }
 
 DEFAULT_SEED_DATA = {
@@ -27,4 +31,8 @@ DEFAULT_SEED_DATA = {
     "payment_account": ["Bank", "Kasse", "KG", "Bank-Direktkauf"],
     "expense_status": ["Offen", "Bezahlt"],
     "vat_rate": ["0", "7", "19"],
+    "order_status": ["Zahlung ausstehend", "Bezahlt", "Versendet", "Abgeschlossen", "Storniert", "Rückerstattet"],
+    "order_type": ["Etsy", "Barverkauf"],
+    "payment_method": ["Etsy Payments", "PayPal", "Überweisung", "Bar"],
+    "payment_type": ["Kreditkarte", "PayPal-Guthaben", "Sofortüberweisung", "Bar"],
 }

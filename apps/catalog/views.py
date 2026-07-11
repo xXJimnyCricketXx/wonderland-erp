@@ -8,6 +8,7 @@ from django.views.generic.base import View
 
 from contacts.models import Supplier
 from core.models import ReferenceOption
+from core.sorting import resolve_sort
 
 from .forms import ArticleForm
 from .models import Article
@@ -18,6 +19,11 @@ class ArticleListView(LoginRequiredMixin, ListView):
     template_name = "catalog/article_list.html"
     context_object_name = "articles"
     paginate_by = 20
+
+    ALLOWED_SORT_FIELDS = {
+        "sku", "title", "category", "price", "stock_quantity",
+        "supplier__last_name", "is_active",
+    }
 
     def get_queryset(self):
         # Variants show up on their parent's detail page, not as their own
@@ -43,11 +49,12 @@ class ArticleListView(LoginRequiredMixin, ListView):
         if category:
             qs = qs.filter(category=category)
 
-        return qs.order_by("title")
+        sort = resolve_sort(self.request, self.ALLOWED_SORT_FIELDS, "title")
+        return qs.order_by(sort)
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context["suppliers"] = Supplier.objects.filter(is_archived=False).order_by("full_name")
+        context["suppliers"] = Supplier.objects.filter(is_archived=False).order_by("last_name", "first_name")
         context["categories"] = ReferenceOption.objects.filter(
             category="article_category"
         ).order_by("order", "value")
