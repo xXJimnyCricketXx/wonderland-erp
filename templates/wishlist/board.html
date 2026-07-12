@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Inspirationboard{% endblock %}
+{% block content %}
+    <h1 class="mb-4">Inspirationboard</h1>
+
+    <div class="d-flex justify-content-between align-items-center mb-3 gap-2 flex-wrap">
+        <ul class="nav nav-pills">
+            <li class="nav-item">
+                <a href="?" class="nav-link{% if not active_status %} active{% endif %}">Alle</a>
+            </li>
+            {% for s in statuses %}
+                <li class="nav-item">
+                    <a href="?status={{ s.value|urlencode }}" class="nav-link{% if active_status == s.value %} active{% endif %}">{{ s.value }}</a>
+                </li>
+            {% endfor %}
+        </ul>
+        <div class="d-flex gap-2">
+            <form method="get" style="max-width: 300px;">
+                {% if active_status %}<input type="hidden" name="status" value="{{ active_status }}">{% endif %}
+                {% include "components/search_box.html" with query=query placeholder="Titel suchen" %}
+            </form>
+            <button type="button" class="btn btn-primary text-nowrap" data-bs-toggle="modal" data-bs-target="#wishlistModal"
+                    hx-get="{% url 'wishlist:item_create' %}" hx-target="#wishlistModalContent">
+                <i class="bi bi-plus-lg me-1"></i>Neu
+            </button>
+        </div>
+    </div>
+
+    {% if items %}
+        <div class="masonry">
+            {% for item in items %}
+                {% with cover=item.images.first %}
+                    <div class="masonry-item" role="button" data-bs-toggle="modal" data-bs-target="#wishlistModal"
+                         hx-get="{% url 'wishlist:item_detail' item.pk %}" hx-target="#wishlistModalContent">
+                        {% if cover and cover.image %}
+                            <img src="{{ cover.image.url }}" class="w-100 rounded" alt="{{ item.title }}">
+                        {% elif cover and cover.image_url %}
+                            <img src="{{ cover.image_url }}" class="w-100 rounded" alt="{{ item.title }}">
+                        {% else %}
+                            <div class="bg-light rounded d-flex align-items-center justify-content-center" style="aspect-ratio: 1;">
+                                <i class="bi bi-heart text-muted fs-1"></i>
+                            </div>
+                        {% endif %}
+                        <div class="d-flex justify-content-between align-items-center gap-2 mt-1">
+                            <span class="text-truncate small fw-semibold">
+                                {{ item.title }}
+                                {% if item.source_url %}<i class="bi bi-box-arrow-up-right text-muted ms-1"></i>{% endif %}
+                            </span>
+                            {% if item.status %}<span class="badge text-bg-light border text-nowrap">{{ item.status }}</span>{% endif %}
+                        </div>
+                    </div>
+                {% endwith %}
+            {% endfor %}
+        </div>
+    {% else %}
+        {% include "components/empty_state.html" with message="Noch keine Einträge auf dem Inspirationboard." %}
+    {% endif %}
+
+    <div class="modal fade" id="wishlistModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
+        <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-lg">
+            <div class="modal-content" id="wishlistModalContent">
+                <!-- HTMX swaps create/edit/detail content in here -->
+            </div>
+        </div>
+    </div>
+
+{% endblock %}

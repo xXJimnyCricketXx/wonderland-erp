@@ -31,8 +31,8 @@ class WishlistItem(models.Model):
     updated_at = models.DateTimeField("Aktualisiert am", auto_now=True)
 
     class Meta:
-        verbose_name = "Wunschlisten-Eintrag"
-        verbose_name_plural = "Wunschlisten-Einträge"
+        verbose_name = "Inspirationboard-Eintrag"
+        verbose_name_plural = "Inspirationboard-Einträge"
         ordering = ["-created_at"]
 
     def __str__(self):
@@ -49,8 +49,8 @@ class WishlistItemImage(models.Model):
     position = models.PositiveIntegerField("Reihenfolge", default=1)
 
     class Meta:
-        verbose_name = "Wunschlisten-Bild"
-        verbose_name_plural = "Wunschlisten-Bilder"
+        verbose_name = "Inspirationboard-Bild"
+        verbose_name_plural = "Inspirationboard-Bilder"
         ordering = ["item", "position"]
 
     def __str__(self):

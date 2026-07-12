@@ -1,0 +1,53 @@
+<div class="modal-header bg-brand text-white">
+    <h5 class="modal-title">{{ item.title }}</h5>
+    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Schließen"></button>
+</div>
+<div class="modal-body">
+    {% with images=item.images.all %}
+        {% if images %}
+            <div class="row g-2 mb-3">
+                {% for img in images %}
+                    <div class="col-4">
+                        {% if img.image %}
+                            <img src="{{ img.image.url }}" class="img-fluid rounded" alt="{{ item.title }}"
+                                 role="button" style="cursor: zoom-in;" onclick="openLightbox('{{ img.image.url|escapejs }}')">
+                        {% elif img.image_url %}
+                            <img src="{{ img.image_url }}" class="img-fluid rounded" alt="{{ item.title }}"
+                                 role="button" style="cursor: zoom-in;" onclick="openLightbox('{{ img.image_url|escapejs }}')">
+                        {% endif %}
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="bg-light rounded d-flex align-items-center justify-content-center mb-3" style="height: 160px;">
+                <i class="bi bi-heart text-muted fs-1"></i>
+            </div>
+        {% endif %}
+    {% endwith %}
+
+    <div class="d-flex flex-wrap gap-1 mb-2">
+        {% if item.status %}<span class="badge text-bg-light border">{{ item.status }}</span>{% endif %}
+        {% for tag in item.tags.all %}<span class="badge text-bg-light border">{{ tag.value }}</span>{% endfor %}
+    </div>
+
+    <dl class="row mb-2 small">
+        <dt class="col-4">Geschätzter Preis</dt>
+        <dd class="col-8">{% if item.estimated_price %}{{ item.estimated_price }} €{% else %}–{% endif %}</dd>
+        <dt class="col-4">Link zum Angebot</dt>
+        <dd class="col-8">
+            {% if item.source_url %}<a href="{{ item.source_url }}" target="_blank" rel="noopener">{{ item.source_url }}</a>{% else %}–{% endif %}
+        </dd>
+    </dl>
+
+    {% if item.notes %}
+        <h6 class="text-muted text-uppercase small">Notizen</h6>
+        <p class="mb-0">{{ item.notes|linebreaks }}</p>
+    {% endif %}
+</div>
+<div class="modal-footer">
+    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Schließen</button>
+    <button type="button" class="btn btn-primary"
+            hx-get="{% url 'wishlist:item_update' item.pk %}" hx-target="#wishlistModalContent">
+        <i class="bi bi-pencil me-1"></i>Bearbeiten
+    </button>
+</div>

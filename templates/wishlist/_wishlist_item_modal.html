@@ -1,0 +1,129 @@
+<div class="modal-header bg-brand text-white">
+    <h5 class="modal-title">{% if object %}Eintrag bearbeiten{% else %}Neuer Inspirationboard-Eintrag{% endif %}</h5>
+    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Schließen"></button>
+</div>
+<form hx-post="{{ request.path }}" hx-target="#wishlistModalContent" enctype="multipart/form-data">
+    {% csrf_token %}
+    <div class="modal-body">
+        {% if form.non_field_errors %}
+            <div class="alert alert-danger">{{ form.non_field_errors }}</div>
+        {% endif %}
+        <div class="container-fluid">
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <label class="form-label">Titel</label>
+                    {{ form.title }}
+                    {% include "components/field_errors.html" with field=form.title %}
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Status</label>
+                    {{ form.status }}
+                    {% include "components/field_errors.html" with field=form.status %}
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Geschätzter Preis</label>
+                    {{ form.estimated_price }}
+                    {% include "components/field_errors.html" with field=form.estimated_price %}
+                </div>
+            </div>
+            <div class="row mb-3">
+                <div class="col-md-8">
+                    <label class="form-label">Link zum Angebot</label>
+                    {{ form.source_url }}
+                    {% include "components/field_errors.html" with field=form.source_url %}
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Tags</label>
+                    {{ form.tags }}
+                    {% include "components/field_errors.html" with field=form.tags %}
+                </div>
+            </div>
+            <div class="row mb-3">
+                <div class="col-12">
+                    <label class="form-label">Notizen</label>
+                    {{ form.notes }}
+                    {% include "components/field_errors.html" with field=form.notes %}
+                </div>
+            </div>
+
+            <div class="d-flex justify-content-between align-items-center mb-2">
+                <h6 class="text-muted text-uppercase small mb-0">Bilder (max. 5)</h6>
+                <button type="button" id="add-image-row" class="btn btn-sm btn-outline-secondary">
+                    <i class="bi bi-plus-lg me-1"></i>Bild
+                </button>
+            </div>
+            {{ formset.management_form }}
+            <div id="wishlist-images">
+                {% for image_form in formset %}
+                    <div class="row mb-2 wishlist-image-row">
+                        <div class="col-md-5">
+                            <label class="form-label small">Bild-Upload</label>
+                            {{ image_form.image }}
+                            {% include "components/field_errors.html" with field=image_form.image %}
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label small">...oder Bild-Link</label>
+                            {{ image_form.image_url }}
+                            {% include "components/field_errors.html" with field=image_form.image_url %}
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label small">Reihenfolge</label>
+                            {{ image_form.position }}
+                        </div>
+                        <div class="col-md-1 d-flex align-items-end">
+                            {% if image_form.instance.pk %}
+                                <div class="form-check mb-2">
+                                    {{ image_form.DELETE }}
+                                    <label class="form-check-label small">Löschen</label>
+                                </div>
+                            {% endif %}
+                        </div>
+                        {{ image_form.id }}
+                    </div>
+                {% endfor %}
+            </div>
+            <template id="empty-image-form">
+                <div class="row mb-2 wishlist-image-row">
+                    <div class="col-md-5">
+                        <label class="form-label small">Bild-Upload</label>
+                        <input type="file" name="images-__prefix__-image" class="form-control" id="id_images-__prefix__-image">
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label small">...oder Bild-Link</label>
+                        <input type="url" name="images-__prefix__-image_url" class="form-control" id="id_images-__prefix__-image_url" placeholder="...oder Bild-Link">
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label small">Reihenfolge</label>
+                        <input type="number" name="images-__prefix__-position" class="form-control" id="id_images-__prefix__-position" value="1">
+                    </div>
+                    <div class="col-md-1"></div>
+                </div>
+            </template>
+        </div>
+    </div>
+    <div class="modal-footer">
+        {% if object %}
+            <button type="button" class="btn btn-outline-danger me-auto"
+                    hx-post="{% url 'wishlist:item_delete' object.pk %}" hx-target="#wishlistModalContent"
+                    hx-confirm="„{{ object.title }}“ wirklich löschen?">
+                <i class="bi bi-trash me-1"></i>Löschen
+            </button>
+        {% endif %}
+        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Abbrechen</button>
+        <button type="submit" class="btn btn-primary">Speichern</button>
+    </div>
+</form>
+<script>
+    (function () {
+        var addBtn = document.getElementById('add-image-row');
+        if (!addBtn) return;
+        addBtn.addEventListener('click', function () {
+            var totalForms = document.getElementById('id_images-TOTAL_FORMS');
+            var idx = parseInt(totalForms.value, 10);
+            if (idx >= 5) return;
+            var templateHtml = document.getElementById('empty-image-form').innerHTML.split('__prefix__').join(idx);
+            document.getElementById('wishlist-images').insertAdjacentHTML('beforeend', templateHtml);
+            totalForms.value = idx + 1;
+        });
+    })();
+</script>
