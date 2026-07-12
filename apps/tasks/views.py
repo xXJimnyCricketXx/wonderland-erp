@@ -7,6 +7,7 @@ from django.urls import reverse
 from django.views.generic import CreateView, UpdateView, View
 from django.views.generic.detail import SingleObjectMixin
 
+from core.htmx_utils import htmx_redirect
 from core.notifications import color_for_level
 
 from .forms import TaskForm
@@ -46,9 +47,7 @@ class TaskModalMixin(LoginRequiredMixin):
             form.instance.created_by = self.request.user
         form.instance.updated_by = self.request.user
         self.object = form.save()
-        response = HttpResponse(status=204)
-        response["HX-Redirect"] = reverse("tasks:board")
-        return response
+        return htmx_redirect(self.request, reverse("tasks:board"))
 
 
 class TaskCreateView(TaskModalMixin, CreateView):
@@ -83,6 +82,4 @@ class TaskArchiveView(LoginRequiredMixin, SingleObjectMixin, View):
     def post(self, request, *args, **kwargs):
         task = self.get_object()
         task.archive()
-        response = HttpResponse(status=204)
-        response["HX-Redirect"] = reverse("tasks:board")
-        return response
+        return htmx_redirect(request, reverse("tasks:board"))
