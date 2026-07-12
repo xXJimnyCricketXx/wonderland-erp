@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+{% block title %}Etsy-Zuordnung{% endblock %}
+{% block content %}
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h1 class="mb-0">Etsy-Zuordnung</h1>
+        <a href="{% url 'catalog:list' %}" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left me-1"></i>Zurück zu Artikel
+        </a>
+    </div>
+    <p class="text-muted">
+        Jedes Etsy-Listing muss nur einmal einem Artikel zugeordnet werden - das gilt danach automatisch
+        für alle bisherigen und künftigen Bestellungen mit dieser Listing-ID. Sortiert nach Anzahl
+        betroffener Bestellpositionen, damit die wirkungsvollsten Zuordnungen zuerst kommen.
+    </p>
+
+    {% if total_items %}
+        <div class="mb-3">
+            <div class="d-flex justify-content-between small text-muted mb-1">
+                <span>Bestellpositionen mit zugeordnetem Artikel</span>
+                <span>{{ mapped_items }} / {{ total_items }} ({{ progress_percent }}%)</span>
+            </div>
+            <div class="progress" style="height: 8px;">
+                <div class="progress-bar bg-success" role="progressbar" style="width: {{ progress_percent }}%;"></div>
+            </div>
+        </div>
+    {% endif %}
+
+    {% if mappings %}
+        <div class="table-responsive">
+            <table class="table table-striped table-hover align-middle table-brand-header">
+                <thead>
+                    <tr>
+                        <th>Etsy-Artikelname</th>
+                        <th>Listing-ID</th>
+                        <th>Bestellpositionen</th>
+                        <th>Artikel</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for mapping in mappings %}
+                        <tr>
+                            <td>{{ mapping.item_name|default:"–" }}</td>
+                            <td>{{ mapping.listing_id }}</td>
+                            <td>{{ mapping.order_item_count }}</td>
+                            <td>
+                                {% if mapping.suggested_article %}
+                                    <div class="small text-muted mb-1">
+                                        Vorschlag ({{ mapping.suggested_score }}%): {{ mapping.suggested_article.sku }} – {{ mapping.suggested_article.title }}
+                                        <button type="button" class="btn btn-link btn-sm p-0 ms-1"
+                                                onclick="applySuggestion(this, '{{ mapping.suggested_article.pk }}')">Übernehmen</button>
+                                    </div>
+                                {% endif %}
+                                <form method="post" action="{% url 'catalog:listing_mapping_update' mapping.pk %}" class="d-flex gap-2">
+                                    {% csrf_token %}
+                                    <select name="article" class="form-select form-select-sm" onchange="this.form.submit()">
+                                        <option value="">---------</option>
+                                        {% for article in articles %}
+                                            <option value="{{ article.pk }}" {% if mapping.article_id == article.pk %}selected{% endif %}>
+                                                {{ article.sku }} – {{ article.title }}
+                                            </option>
+                                        {% endfor %}
+                                    </select>
+                                </form>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% else %}
+        {% include "components/empty_state.html" with message="Noch keine Etsy-Listings bekannt - erst die Sold-Order-Items-CSV importieren." %}
+    {% endif %}
+
+    <script>
+        function applySuggestion(button, articleId) {
+            var form = button.closest('td').querySelector('form');
+            var select = form.querySelector('select[name="article"]');
+            select.value = articleId;
+            form.submit();
+        }
+    </script>
+{% endblock %}

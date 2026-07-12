@@ -24,6 +24,11 @@
                 <i class="bi bi-star me-1"></i>Bewertungen
             </button>
         </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" data-bs-toggle="pill" data-bs-target="#pill-verpackungslizenz" type="button" role="tab">
+                <i class="bi bi-box-seam-fill me-1"></i>Verpackungslizenz
+            </button>
+        </li>
     </ul>
 
     <div class="tab-content">
@@ -31,13 +36,137 @@
             <p class="text-muted">Import der Etsy-Zahlungskonto-Abrechnung (Statement-CSV) folgt.</p>
         </div>
         <div class="tab-pane fade" id="pill-orders" role="tabpanel">
-            <p class="text-muted">Import der Etsy-Bestell-CSV folgt.</p>
+            <div class="card" style="max-width: 500px;">
+                <div class="card-body">
+                    <h6 class="text-uppercase text-muted small mb-3">Etsy-Sold-Orders-CSV importieren</h6>
+                    <p class="text-muted small">
+                        Legt neue Bestellungen an bzw. aktualisiert bestehende (Abgleich über Etsys Order-ID).
+                        Kunden werden automatisch angelegt bzw. über die Etsy-Käufer-ID wiedererkannt.
+                        Die SKU-Spalte wird nur als Rohwert je Bestellposition übernommen (keine automatische
+                        Artikel-Zuordnung, da diese Angabe bei Etsy-Exporten historisch unzuverlässig ist).
+                        Jede Jahres-CSV einzeln hochladen.
+                    </p>
+                    <form method="post" action="{% url 'data_import:order_import' %}" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            {{ order_import_form.file }}
+                            {% include "components/field_errors.html" with field=order_import_form.file %}
+                        </div>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-upload me-1"></i>Importieren
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <div class="card mt-3" style="max-width: 500px;">
+                <div class="card-body">
+                    <h6 class="text-uppercase text-muted small mb-3">Etsy-Sold-Order-Items-CSV importieren</h6>
+                    <p class="text-muted small">
+                        Ergänzt die Bestellungen um die echten Positionen (Etsy-Artikelname, Listing-ID, Variante,
+                        Menge, Preis) statt nur dem rohen SKU-Feld - <strong>zuerst die Sold-Orders-CSV für den
+                        gleichen Zeitraum importieren</strong>, sonst werden die Zeilen übersprungen. Über die
+                        Listing-ID lässt sich unter Artikel → Etsy-Zuordnung einmalig festlegen, welcher Artikel
+                        gemeint ist - das gilt dann automatisch für alle Bestellungen mit dieser Listing-ID.
+                    </p>
+                    <form method="post" action="{% url 'data_import:order_item_import' %}" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            {{ order_item_import_form.file }}
+                            {% include "components/field_errors.html" with field=order_item_import_form.file %}
+                        </div>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-upload me-1"></i>Importieren
+                        </button>
+                    </form>
+                </div>
+            </div>
         </div>
         <div class="tab-pane fade" id="pill-listings" role="tabpanel">
-            <p class="text-muted">Import der Etsy-Listing-CSV folgt.</p>
+            <div class="card" style="max-width: 500px;">
+                <div class="card-body">
+                    <h6 class="text-uppercase text-muted small mb-3">Etsy-Listing-CSV importieren</h6>
+                    <p class="text-muted small">
+                        Legt neue Artikel an bzw. aktualisiert bestehende (Abgleich über den exakten Titel).
+                        Varianten (z.B. „Ausführung: A/B") werden automatisch als eigene Artikel mit
+                        Hauptartikel-Verknüpfung angelegt - der Lagerbestand der Varianten muss danach manuell
+                        gepflegt werden, da Etsy dafür keine Einzelwerte exportiert.
+                    </p>
+                    <form method="post" action="{% url 'data_import:article_import' %}" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            {{ article_import_form.file }}
+                            {% include "components/field_errors.html" with field=article_import_form.file %}
+                        </div>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-upload me-1"></i>Importieren
+                        </button>
+                    </form>
+                </div>
+            </div>
         </div>
         <div class="tab-pane fade" id="pill-reviews" role="tabpanel">
-            <p class="text-muted">Import von reviews.json folgt.</p>
+            <div class="card" style="max-width: 500px;">
+                <div class="card-body">
+                    <h6 class="text-uppercase text-muted small mb-3">reviews.json importieren</h6>
+                    <p class="text-muted small">
+                        Ordnet Bewertungen über die Etsy-Order-ID der passenden Bestellung zu - die zugehörige
+                        Bestellung muss also vorher importiert sein, sonst wird die Bewertung übersprungen.
+                    </p>
+                    <form method="post" action="{% url 'data_import:review_import' %}" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            {{ review_import_form.file }}
+                            {% include "components/field_errors.html" with field=review_import_form.file %}
+                        </div>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-upload me-1"></i>Importieren
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+        <div class="tab-pane fade" id="pill-verpackungslizenz" role="tabpanel">
+            <div class="card" style="max-width: 500px;">
+                <div class="card-body">
+                    <h6 class="text-uppercase text-muted small mb-3">LUCID-Datenmeldung (XML) importieren</h6>
+                    <p class="text-muted small">
+                        Sowohl LUCID als auch Der Grüne Punkt geben Datenmeldungen im gleichen XML-Format aus
+                        (eine Grüne-Punkt-Meldung lässt sich unverändert bei LUCID hochladen) - beim Import
+                        daher angeben, für welchen Empfänger diese Datei gilt. Meldezeitraum und Materialmengen
+                        werden direkt aus der Datei übernommen; jede Datei erzeugt einen neuen Eintrag in der
+                        entsprechenden Übersicht unter Infothek → Verpackungslizenz.
+                    </p>
+                    <form method="post" action="{% url 'data_import:packaging_license_xml_import' %}" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            <label class="form-label">{{ packaging_license_xml_import_form.recipient.label }}</label>
+                            {{ packaging_license_xml_import_form.recipient }}
+                            {% include "components/field_errors.html" with field=packaging_license_xml_import_form.recipient %}
+                        </div>
+                        <div class="mb-3">
+                            {{ packaging_license_xml_import_form.file }}
+                            {% include "components/field_errors.html" with field=packaging_license_xml_import_form.file %}
+                        </div>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-upload me-1"></i>Importieren
+                        </button>
+                    </form>
+                </div>
+            </div>
         </div>
     </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            var params = new URLSearchParams(window.location.search);
+            var tab = params.get('tab');
+            if (tab) {
+                var target = document.querySelector('[data-bs-target="#pill-' + tab + '"]');
+                if (target) {
+                    new bootstrap.Tab(target).show();
+                }
+            }
+        });
+    </script>
 {% endblock %}
