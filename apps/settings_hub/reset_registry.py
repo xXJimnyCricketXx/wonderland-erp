@@ -4,12 +4,16 @@ Customer can't be deleted while Orders still reference it).
 
 django.contrib.auth (Users/Groups), sessions, contenttypes, admin log and
 BackupSettings are deliberately NOT included - accounts and backup config
-survive a reset."""
+survive a reset. The lexikon app (separate DB, portable/reusable reference
+data) is also deliberately NOT included - it isn't shop data."""
 
 from catalog.models import Article
 from contacts.models import Customer, Supplier, SupplierDiscountTier
 from finance.models import AccountMapping, Expense, LedgerEntry, SKR03Account
-from knowledge.models import CustomsTariffCode, KnowledgeEntry, PackagingType, ShippingOption
+from knowledge.models import (
+    CustomsTariffCode, MaterialCategory, PackagingLicenseDocument, PackagingLicenseSubmission,
+    PackagingType, ShippingOption,
+)
 from orders.models import Order, OrderItem, Review
 from tasks.models import Task
 from wishlist.models import WishlistItem, WishlistItemImage
@@ -33,8 +37,10 @@ RESET_MODEL_ORDER = [
     SupplierDiscountTier,
     Supplier,
     Customer,
-    KnowledgeEntry,
+    PackagingLicenseDocument,
+    PackagingLicenseSubmission,
     PackagingType,
+    MaterialCategory,
     ShippingOption,
     CustomsTariffCode,
     ReferenceOption,

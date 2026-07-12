@@ -16,4 +16,12 @@ urlpatterns = [
     path("backups/<str:filename>/herunterladen/", views.BackupDownloadView.as_view(), name="backup_download"),
     path("backups/<str:filename>/loeschen/", views.BackupDeleteView.as_view(), name="backup_delete"),
     path("danger-zone/datenbank-zuruecksetzen/", views.DatabaseResetView.as_view(), name="database_reset"),
+    path("danger-zone/bestellungen-loeschen/", views.OrderResetView.as_view(), name="order_reset"),
+    path("danger-zone/artikel-loeschen/", views.ArticleResetView.as_view(), name="article_reset"),
+    path("verpackungsarten/neu/", views.PackagingTypeCreateView.as_view(), name="packaging_type_create"),
+    path("verpackungsarten/<int:pk>/bearbeiten/", views.PackagingTypeUpdateView.as_view(), name="packaging_type_update"),
+    path("verpackungsarten/<int:pk>/loeschen/", views.PackagingTypeDeleteView.as_view(), name="packaging_type_delete"),
+    path("materialkategorien/neu/", views.MaterialCategoryCreateView.as_view(), name="material_category_create"),
+    path("materialkategorien/<int:pk>/bearbeiten/", views.MaterialCategoryUpdateView.as_view(), name="material_category_update"),
+    path("materialkategorien/<int:pk>/loeschen/", views.MaterialCategoryDeleteView.as_view(), name="material_category_delete"),
 ]

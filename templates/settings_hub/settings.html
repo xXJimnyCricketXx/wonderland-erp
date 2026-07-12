@@ -126,31 +126,148 @@
         </div>
 
         <div class="tab-pane fade" id="pill-referenzdaten" role="tabpanel">
-            {% for group in reference_groups %}
-                <div class="card mb-3">
-                    <div class="card-body">
-                        <h6 class="text-uppercase text-muted small">{{ group.label }}</h6>
-                        <div class="d-flex flex-wrap gap-2 mb-3">
-                            {% for opt in group.options %}
-                                <form method="post" action="{% url 'settings_hub:reference_delete' opt.pk %}" class="d-inline">
-                                    {% csrf_token %}
-                                    <button type="submit" class="btn btn-sm btn-outline-secondary">
-                                        {{ opt.value }} <i class="bi bi-x ms-1"></i>
-                                    </button>
-                                </form>
-                            {% empty %}
-                                <span class="text-muted small">Noch keine Werte.</span>
-                            {% endfor %}
-                        </div>
-                        <form method="post" action="{% url 'settings_hub:reference_add' %}" class="d-flex gap-2">
-                            {% csrf_token %}
-                            <input type="hidden" name="category" value="{{ group.slug }}">
-                            <input type="text" name="value" class="form-control form-control-sm" placeholder="Neuer Wert...">
-                            <button type="submit" class="btn btn-sm btn-primary text-nowrap">+ Hinzufügen</button>
-                        </form>
+            <ul class="nav nav-pills mb-3" id="referenzdaten-subpills">
+                {% for group in reference_menu_groups %}
+                    <li class="nav-item">
+                        <button class="nav-link{% if forloop.first %} active{% endif %}" data-bs-toggle="pill" data-bs-target="#refsubpill-{{ group.slug }}" type="button">
+                            <i class="bi {{ group.icon }} me-1"></i>{{ group.label }}
+                        </button>
+                    </li>
+                {% endfor %}
+            </ul>
+            <div class="tab-content">
+                {% for group in reference_menu_groups %}
+                    <div class="tab-pane fade{% if forloop.first %} show active{% endif %}" id="refsubpill-{{ group.slug }}">
+                        {% for category in group.categories %}
+                            <div class="card mb-3">
+                                <div class="card-body">
+                                    <h6 class="text-uppercase text-muted small">{{ category.label }}</h6>
+                                    <div class="d-flex flex-wrap gap-2 mb-3">
+                                        {% for opt in category.options %}
+                                            <form method="post" action="{% url 'settings_hub:reference_delete' opt.pk %}" class="d-inline">
+                                                {% csrf_token %}
+                                                <button type="submit" class="btn btn-sm btn-outline-secondary">
+                                                    {{ opt.value }} <i class="bi bi-x ms-1"></i>
+                                                </button>
+                                            </form>
+                                        {% empty %}
+                                            <span class="text-muted small">Noch keine Werte.</span>
+                                        {% endfor %}
+                                    </div>
+                                    <form method="post" action="{% url 'settings_hub:reference_add' %}" class="d-flex gap-2">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="category" value="{{ category.slug }}">
+                                        <input type="text" name="value" class="form-control form-control-sm" placeholder="Neuer Wert...">
+                                        <button type="submit" class="btn btn-sm btn-primary text-nowrap">+ Hinzufügen</button>
+                                    </form>
+                                </div>
+                            </div>
+                        {% endfor %}
+
+                        {% if group.slug == "infothek" %}
+                            <div class="card mb-3">
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between align-items-center mb-3">
+                                        <h6 class="text-uppercase text-muted small mb-0">Materialkategorien</h6>
+                                        <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#settingsModal"
+                                                hx-get="{% url 'settings_hub:material_category_create' %}" hx-target="#settingsModalContent">
+                                            <i class="bi bi-plus-lg me-1"></i>Neu
+                                        </button>
+                                    </div>
+                                    {% if material_categories %}
+                                        <div class="table-responsive">
+                                            <table class="table table-striped table-hover align-middle table-brand-header">
+                                                <thead>
+                                                    <tr>
+                                                        <th>Name</th>
+                                                        <th>Preis (€/kg)</th>
+                                                        <th class="text-nowrap">Aktionen</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    {% for cat in material_categories %}
+                                                        <tr>
+                                                            <td>{{ cat.name }}</td>
+                                                            <td>{{ cat.price_per_kg }}</td>
+                                                            <td class="text-nowrap">
+                                                                <div class="btn-group">
+                                                                    <button type="button" class="btn btn-sm btn-outline-secondary" title="Bearbeiten" data-bs-toggle="modal" data-bs-target="#settingsModal"
+                                                                            hx-get="{% url 'settings_hub:material_category_update' cat.pk %}" hx-target="#settingsModalContent">
+                                                                        <i class="bi bi-pencil"></i>
+                                                                    </button>
+                                                                    <button type="button" class="btn btn-sm btn-outline-danger" title="Löschen"
+                                                                            hx-post="{% url 'settings_hub:material_category_delete' cat.pk %}"
+                                                                            hx-confirm="„{{ cat.name }}“ wirklich löschen?">
+                                                                        <i class="bi bi-trash"></i>
+                                                                    </button>
+                                                                </div>
+                                                            </td>
+                                                        </tr>
+                                                    {% endfor %}
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    {% else %}
+                                        {% include "components/empty_state.html" with message="Noch keine Materialkategorien vorhanden." %}
+                                    {% endif %}
+                                </div>
+                            </div>
+
+                            <div class="card mb-3">
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between align-items-center mb-3">
+                                        <h6 class="text-uppercase text-muted small mb-0">Verpackungsarten</h6>
+                                        <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#settingsModal"
+                                                hx-get="{% url 'settings_hub:packaging_type_create' %}" hx-target="#settingsModalContent">
+                                            <i class="bi bi-plus-lg me-1"></i>Neu
+                                        </button>
+                                    </div>
+                                    {% if packaging_types %}
+                                        <div class="table-responsive">
+                                            <table class="table table-striped table-hover align-middle table-brand-header">
+                                                <thead>
+                                                    <tr>
+                                                        <th>Name</th>
+                                                        <th>Beschreibung</th>
+                                                        <th>Maße</th>
+                                                        <th>Gültig ab</th>
+                                                        <th class="text-nowrap">Aktionen</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    {% for pt in packaging_types %}
+                                                        <tr>
+                                                            <td>{{ pt.name }}</td>
+                                                            <td>{{ pt.description|default:"–" }}</td>
+                                                            <td>{{ pt.dimensions|default:"–" }}</td>
+                                                            <td>{{ pt.valid_from|date:"d.m.Y"|default:"–" }}</td>
+                                                            <td class="text-nowrap">
+                                                                <div class="btn-group">
+                                                                    <button type="button" class="btn btn-sm btn-outline-secondary" title="Bearbeiten" data-bs-toggle="modal" data-bs-target="#settingsModal"
+                                                                            hx-get="{% url 'settings_hub:packaging_type_update' pt.pk %}" hx-target="#settingsModalContent">
+                                                                        <i class="bi bi-pencil"></i>
+                                                                    </button>
+                                                                    <button type="button" class="btn btn-sm btn-outline-danger" title="Löschen"
+                                                                            hx-post="{% url 'settings_hub:packaging_type_delete' pt.pk %}"
+                                                                            hx-confirm="„{{ pt.name }}“ wirklich löschen?">
+                                                                        <i class="bi bi-trash"></i>
+                                                                    </button>
+                                                                </div>
+                                                            </td>
+                                                        </tr>
+                                                    {% endfor %}
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    {% else %}
+                                        {% include "components/empty_state.html" with message="Noch keine Verpackungsarten vorhanden." %}
+                                    {% endif %}
+                                </div>
+                            </div>
+                        {% endif %}
                     </div>
-                </div>
-            {% endfor %}
+                {% endfor %}
+            </div>
         </div>
 
         <div class="tab-pane fade" id="pill-benutzer" role="tabpanel">
@@ -355,9 +472,55 @@
                                 <i class="bi bi-radioactive me-1"></i>Datenbank zurücksetzen
                             </button>
                         </form>
+
+                        <hr>
+
+                        <p class="text-muted small">
+                            Löscht nur alle Bestellungen (inkl. Positionen und Bewertungen). Artikel, Kunden und
+                            alles andere bleiben erhalten. Direkt davor wird automatisch ein Sicherungs-Backup erstellt.
+                        </p>
+                        <form method="post" action="{% url 'settings_hub:order_reset' %}"
+                              onsubmit="return confirm('Wirklich ALLE Bestellungen unwiderruflich löschen? Ein Backup wird vorher automatisch erstellt.');">
+                            {% csrf_token %}
+                            <div class="mb-2">
+                                <label class="form-label small">Zum Bestätigen "{{ order_reset_confirm_phrase }}" eingeben:</label>
+                                <input type="text" id="order-reset-confirm-input" class="form-control" style="max-width: 300px;" autocomplete="off">
+                            </div>
+                            <input type="hidden" name="confirm_text" id="order-reset-confirm-hidden">
+                            <button type="submit" id="order-reset-confirm-btn" class="btn btn-danger" disabled>
+                                <i class="bi bi-radioactive me-1"></i>Nur alle Bestellungen löschen
+                            </button>
+                        </form>
+
+                        <hr>
+
+                        <p class="text-muted small">
+                            Löscht nur alle Artikel (inkl. Varianten). Bestellungen bleiben erhalten, verweisen
+                            danach aber auf keinen Artikel mehr. Direkt davor wird automatisch ein Sicherungs-Backup erstellt.
+                        </p>
+                        <form method="post" action="{% url 'settings_hub:article_reset' %}"
+                              onsubmit="return confirm('Wirklich ALLE Artikel unwiderruflich löschen? Ein Backup wird vorher automatisch erstellt.');">
+                            {% csrf_token %}
+                            <div class="mb-2">
+                                <label class="form-label small">Zum Bestätigen "{{ article_reset_confirm_phrase }}" eingeben:</label>
+                                <input type="text" id="article-reset-confirm-input" class="form-control" style="max-width: 300px;" autocomplete="off">
+                            </div>
+                            <input type="hidden" name="confirm_text" id="article-reset-confirm-hidden">
+                            <button type="submit" id="article-reset-confirm-btn" class="btn btn-danger" disabled>
+                                <i class="bi bi-radioactive me-1"></i>Nur alle Artikel löschen
+                            </button>
+                        </form>
                     </div>
                 </div>
             {% endif %}
+        </div>
+    </div>
+
+    <div class="modal fade" id="settingsModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
+        <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-lg">
+            <div class="modal-content" id="settingsModalContent">
+                <!-- HTMX swaps create/edit content in here -->
+            </div>
         </div>
     </div>
 
@@ -379,16 +542,23 @@
                 }
             }
 
-            var resetInput = document.getElementById('reset-confirm-input');
-            var resetBtn = document.getElementById('reset-confirm-btn');
-            var resetHidden = document.getElementById('reset-confirm-hidden');
-            if (resetInput) {
-                resetInput.addEventListener('input', function () {
-                    var matches = resetInput.value === '{{ reset_confirm_phrase }}';
-                    resetBtn.disabled = !matches;
-                    resetHidden.value = resetInput.value;
+            var confirmPhrases = {
+                'reset-confirm-input': '{{ reset_confirm_phrase }}',
+                'order-reset-confirm-input': '{{ order_reset_confirm_phrase }}',
+                'article-reset-confirm-input': '{{ article_reset_confirm_phrase }}'
+            };
+            Object.keys(confirmPhrases).forEach(function (inputId) {
+                var input = document.getElementById(inputId);
+                if (!input) return;
+                var prefix = inputId.replace('-input', '');
+                var btn = document.getElementById(prefix + '-btn');
+                var hidden = document.getElementById(prefix + '-hidden');
+                input.addEventListener('input', function () {
+                    var matches = input.value === confirmPhrases[inputId];
+                    btn.disabled = !matches;
+                    hidden.value = input.value;
                 });
-            }
+            });
         });
     </script>
 {% endblock %}
