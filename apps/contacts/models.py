@@ -70,8 +70,10 @@ class Customer(ContactBase):
         "Etsy-Käufer-ID", max_length=100, blank=True, null=True, unique=True
     )
 
-    # Manually flagged, not auto-derived from order count - a simple marker
-    # for now (e.g. shown as a star), room to grow into a ranking later.
+    # Auto-set to True once this customer has more than one order (see
+    # Order.save) - a one-way ratchet, never auto-unset. Can still be
+    # flipped manually (e.g. for a customer met in person with no Order
+    # records at all).
     is_returning_customer = models.BooleanField("Stammkunde", default=False)
 
     class Meta(ContactBase.Meta):
@@ -80,6 +82,12 @@ class Customer(ContactBase):
 
 
 class Supplier(ContactBase):
+    # Unlike Customer, a Supplier is often a company with no natural
+    # "person" name (e.g. wholesalers imported from order SKU hints like
+    # "WELSCH"/"IMPEXCO") - so first/last name are optional here.
+    first_name = models.CharField("Vorname", max_length=255, blank=True)
+    last_name = models.CharField("Nachname", max_length=255, blank=True)
+
     website = models.URLField("Website", blank=True)
     # The account number *the supplier* assigned to us - not our own id/PK.
     account_number = models.CharField("Kundennummer beim Lieferanten", max_length=100, blank=True)
@@ -105,6 +113,12 @@ class Supplier(ContactBase):
     class Meta(ContactBase.Meta):
         verbose_name = "Lieferant"
         verbose_name_plural = "Lieferanten"
+
+    @property
+    def full_name(self):
+        # Unlike Customer, prefer the company name when set - a supplier is
+        # usually dealt with as a company, not the specific person's name.
+        return self.company_name or f"{self.first_name} {self.last_name}".strip()
 
 
 class SupplierDiscountTier(models.Model):

@@ -2,12 +2,13 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.paginator import Paginator
 from django.db import transaction
 from django.db.models import Q
-from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, render
 from django.urls import reverse
 from django.views.generic import CreateView, UpdateView, View
 from django.views.generic.detail import DetailView, SingleObjectMixin
 
+from core.htmx_utils import htmx_redirect
+from core.mixins import BackModalMixin
 from core.models import ReferenceOption
 from core.sorting import resolve_sort
 
@@ -98,7 +99,7 @@ class ContactListView(LoginRequiredMixin, View):
         }
 
 
-class CustomerDetailModalView(LoginRequiredMixin, DetailView):
+class CustomerDetailModalView(BackModalMixin, LoginRequiredMixin, DetailView):
     model = Customer
     template_name = "contacts/_customer_detail_modal.html"
     context_object_name = "customer"
@@ -116,9 +117,7 @@ class CustomerModalMixin(LoginRequiredMixin):
 
     def form_valid(self, form):
         self.object = form.save()
-        response = HttpResponse(status=204)
-        response["HX-Redirect"] = reverse("contacts:list") + "?tab=kunden"
-        return response
+        return htmx_redirect(self.request, reverse("contacts:list") + "?tab=kunden")
 
 
 class CustomerCreateView(CustomerModalMixin, CreateView):
@@ -135,9 +134,7 @@ class CustomerArchiveView(LoginRequiredMixin, SingleObjectMixin, View):
     def post(self, request, *args, **kwargs):
         customer = self.get_object()
         customer.archive()
-        response = HttpResponse(status=204)
-        response["HX-Redirect"] = reverse("contacts:list") + "?tab=kunden"
-        return response
+        return htmx_redirect(request, reverse("contacts:list") + "?tab=kunden")
 
 
 class SupplierDetailModalView(LoginRequiredMixin, DetailView):
@@ -181,9 +178,7 @@ class SupplierModalView(LoginRequiredMixin, View):
                 supplier = form.save()
                 formset.instance = supplier
                 formset.save()
-            response = HttpResponse(status=204)
-            response["HX-Redirect"] = reverse("contacts:list") + "?tab=lieferanten"
-            return response
+            return htmx_redirect(request, reverse("contacts:list") + "?tab=lieferanten")
 
         return self._render(request, form, formset)
 
@@ -201,6 +196,4 @@ class SupplierArchiveView(LoginRequiredMixin, SingleObjectMixin, View):
     def post(self, request, *args, **kwargs):
         supplier = self.get_object()
         supplier.archive()
-        response = HttpResponse(status=204)
-        response["HX-Redirect"] = reverse("contacts:list") + "?tab=lieferanten"
-        return response
+        return htmx_redirect(request, reverse("contacts:list") + "?tab=lieferanten")
