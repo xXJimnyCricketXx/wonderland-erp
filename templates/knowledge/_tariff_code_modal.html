@@ -1,0 +1,37 @@
+<div class="modal-header bg-brand text-white">
+    <h5 class="modal-title">{% if object %}Zolltarifnummer bearbeiten{% else %}Neue Zolltarifnummer{% endif %}</h5>
+    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Schließen"></button>
+</div>
+<form hx-post="{{ request.path }}" hx-target="#infothekModalContent">
+    {% csrf_token %}
+    <div class="modal-body">
+        {% if form.non_field_errors %}
+            <div class="alert alert-danger">{{ form.non_field_errors }}</div>
+        {% endif %}
+        <div class="container-fluid">
+            <div class="row mb-3">
+                <div class="col-md-4">
+                    <label class="form-label">Zolltarifnummer</label>
+                    {{ form.code }}
+                    {% include "components/field_errors.html" with field=form.code %}
+                </div>
+                <div class="col-md-8">
+                    <label class="form-label">Definition</label>
+                    {{ form.definition }}
+                    {% include "components/field_errors.html" with field=form.definition %}
+                </div>
+            </div>
+            <div class="row mb-3">
+                <div class="col-12">
+                    <label class="form-label">Beschreibung</label>
+                    {{ form.description }}
+                    {% include "components/field_errors.html" with field=form.description %}
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal-footer">
+        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Abbrechen</button>
+        <button type="submit" class="btn btn-primary">Speichern</button>
+    </div>
+</form>

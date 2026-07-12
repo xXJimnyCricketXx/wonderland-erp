@@ -1,0 +1,350 @@
+{% extends "base.html" %}
+{% block title %}Infothek{% endblock %}
+{% block content %}
+    <h1 class="mb-4">Infothek</h1>
+
+    <ul class="nav nav-pills mb-4 flex-wrap">
+        <li class="nav-item"><a class="nav-link{% if active_tab == "verpackungslizenz" %} active{% endif %}" href="?tab=verpackungslizenz"><i class="bi bi-recycle me-1"></i>Verpackungslizenz</a></li>
+        <li class="nav-item"><a class="nav-link{% if active_tab == "versand" %} active{% endif %}" href="?tab=versand"><i class="bi bi-truck me-1"></i>Versandoptionen</a></li>
+        <li class="nav-item"><a class="nav-link{% if active_tab == "zoll" %} active{% endif %}" href="?tab=zoll"><i class="bi bi-globe me-1"></i>Zolltarifnummern</a></li>
+        <li class="nav-item"><a class="nav-link{% if active_tab == "preisrechner" %} active{% endif %}" href="?tab=preisrechner"><i class="bi bi-calculator me-1"></i>Preisrechner</a></li>
+        <li class="nav-item"><a class="nav-link{% if active_tab == "heilsteine" %} active{% endif %}" href="?tab=heilsteine"><i class="bi bi-gem me-1"></i>Heilstein-Lexikon</a></li>
+    </ul>
+
+    {% if active_tab == "verpackungslizenz" %}
+        <form method="get" class="row g-2 mb-3 align-items-end">
+            <input type="hidden" name="tab" value="verpackungslizenz">
+            <div class="col-md-3">
+                <label class="form-label small mb-1">Jahr (Rechner)</label>
+                <select name="jahr" class="form-select" onchange="this.form.submit()">
+                    {% for y in years %}
+                        <option value="{{ y }}" {% if y == selected_year %}selected{% endif %}>{{ y }}</option>
+                    {% empty %}
+                        <option value="{{ selected_year }}">{{ selected_year }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+        </form>
+
+        {% if rows %}
+            <div class="table-responsive">
+                <table class="table table-striped table-hover align-middle table-brand-header">
+                    <thead>
+                        <tr>
+                            <th>Verpackungsart</th>
+                            <th>Anzahl Sendungen</th>
+                            {% for cat in categories %}<th>{{ cat.name }} (kg)</th>{% endfor %}
+                            <th>Geschätzte Kosten (€)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for row in rows %}
+                            <tr>
+                                <td>{{ row.packaging_type.name }}</td>
+                                <td>{{ row.count }}</td>
+                                {% for kg in row.cells %}<td>{{ kg|floatformat:4 }}</td>{% endfor %}
+                                <td>{{ row.cost|floatformat:2 }} €</td>
+                            </tr>
+                        {% endfor %}
+                        <tr class="fw-bold">
+                            <td colspan="2">Gesamt {{ selected_year }}</td>
+                            {% for kg in totals_kg %}<td>{{ kg|floatformat:4 }}</td>{% endfor %}
+                            <td>{{ total_cost|floatformat:2 }} €</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            {% include "components/empty_state.html" with message="Keine Bestellungen mit Verpackungsart für dieses Jahr." %}
+        {% endif %}
+
+        <hr class="my-4">
+
+        <ul class="nav nav-pills mb-3" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" data-bs-toggle="pill" data-bs-target="#pill-lucid" type="button" role="tab">LUCID</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" data-bs-toggle="pill" data-bs-target="#pill-gp" type="button" role="tab">Der Grüne Punkt</button>
+            </li>
+        </ul>
+        <div class="tab-content">
+            <div class="tab-pane fade show active" id="pill-lucid" role="tabpanel">
+                {% include "knowledge/_packaging_license_recipient.html" with submissions=lucid_submissions reports=lucid_reports nachtrag_reports=lucid_nachtrag_reports recipient_slug="lucid" %}
+            </div>
+            <div class="tab-pane fade" id="pill-gp" role="tabpanel">
+                {% include "knowledge/_packaging_license_recipient.html" with submissions=gp_submissions reports=gp_reports nachtrag_reports=gp_nachtrag_reports recipient_slug="gp" %}
+            </div>
+        </div>
+
+        <hr class="my-4">
+
+        <div class="d-flex justify-content-between align-items-center mt-4 mb-3">
+            <h6 class="text-uppercase text-muted small mb-0">Dokumente (Vertrag, Rechnungen, Bestätigungen)</h6>
+            <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#infothekModal"
+                    hx-get="{% url 'knowledge:license_document_create' %}" hx-target="#infothekModalContent">
+                <i class="bi bi-plus-lg me-1"></i>Neu
+            </button>
+        </div>
+        {% if license_documents %}
+            <div class="table-responsive">
+                <table class="table table-striped table-hover align-middle table-brand-header">
+                    <thead>
+                        <tr>
+                            <th>Jahr</th>
+                            <th>Dokumenttyp</th>
+                            <th>Datei</th>
+                            <th>Hochgeladen am</th>
+                            <th class="text-nowrap">Aktionen</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for doc in license_documents %}
+                            <tr>
+                                <td>{{ doc.year }}</td>
+                                <td>{{ doc.get_doc_type_display }}</td>
+                                <td><a href="{{ doc.file.url }}" target="_blank" rel="noopener">{{ doc.file.name|slice:"-40:" }}</a></td>
+                                <td>{{ doc.uploaded_at|date:"d.m.Y H:i" }}</td>
+                                <td class="text-nowrap">
+                                    <button type="button" class="btn btn-sm btn-outline-danger" title="Löschen"
+                                            hx-post="{% url 'knowledge:license_document_delete' doc.pk %}"
+                                            hx-confirm="„{{ doc.get_doc_type_display }} {{ doc.year }}“ wirklich löschen?">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            {% include "components/empty_state.html" with message="Noch keine Dokumente hochgeladen." %}
+        {% endif %}
+
+        <script>
+            document.addEventListener('DOMContentLoaded', function () {
+                // The LUCID/Grüne-Punkt pill isn't reflected in the ?tab=
+                // query string at all (pure client-side Bootstrap state) -
+                // read it back from ?pill= (set explicitly by every relevant
+                // save/delete redirect - see knowledge/views.py
+                // _verpackungslizenz_url) so a reload doesn't silently reset
+                // to LUCID, the default-active pill. Must run after
+                // DOMContentLoaded, not inline - the page's content area
+                // (where this script lives) renders before base.html's own
+                // bootstrap.bundle.min.js script tag further down the page,
+                // so calling "new bootstrap.Tab(...)" synchronously at parse
+                // time throws "bootstrap is not defined" (shipped once
+                // already - don't repeat it in a future inline script here).
+                var params = new URLSearchParams(window.location.search);
+                if (params.get('pill') === 'gp') {
+                    var gpTab = document.querySelector('[data-bs-target="#pill-gp"]');
+                    if (gpTab) new bootstrap.Tab(gpTab).show();
+                }
+                ['pill-lucid', 'pill-gp'].forEach(function (id) {
+                    var btn = document.querySelector('[data-bs-target="#' + id + '"]');
+                    if (!btn) return;
+                    btn.addEventListener('shown.bs.tab', function () {
+                        var url = new URL(window.location.href);
+                        url.searchParams.set('pill', id.replace('pill-', ''));
+                        history.replaceState(null, '', url);
+                    });
+                });
+            });
+        </script>
+
+    {% elif active_tab == "versand" %}
+        <div class="d-flex justify-content-end mb-3">
+            <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#infothekModal"
+                    hx-get="{% url 'knowledge:shipping_create' %}" hx-target="#infothekModalContent">
+                <i class="bi bi-plus-lg me-1"></i>Neu
+            </button>
+        </div>
+        {% if shipping_options %}
+            <div class="table-responsive">
+                <table class="table table-striped table-hover align-middle table-brand-header">
+                    <thead>
+                        <tr>
+                            <th>Anbieter</th>
+                            <th>Beschreibung</th>
+                            <th>Anwendung</th>
+                            <th>Preis</th>
+                            <th>Sendungsnummer</th>
+                            <th>International</th>
+                            <th>Gültig ab</th>
+                            <th class="text-nowrap">Aktionen</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for option in shipping_options %}
+                            <tr>
+                                <td>{{ option.carrier }}</td>
+                                <td>{{ option.description }}</td>
+                                <td>{{ option.use_case|default:"–" }}</td>
+                                <td>{{ option.price_note|default:"–" }}</td>
+                                <td>{% if option.requires_tracking_number %}<i class="bi bi-check-lg text-success"></i>{% else %}–{% endif %}</td>
+                                <td>{% if option.is_international %}<i class="bi bi-check-lg text-success"></i>{% else %}–{% endif %}</td>
+                                <td>{{ option.valid_from|date:"d.m.Y"|default:"–" }}</td>
+                                <td class="text-nowrap">
+                                    <div class="btn-group">
+                                        <button type="button" class="btn btn-sm btn-outline-secondary" title="Bearbeiten" data-bs-toggle="modal" data-bs-target="#infothekModal"
+                                                hx-get="{% url 'knowledge:shipping_update' option.pk %}" hx-target="#infothekModalContent">
+                                            <i class="bi bi-pencil"></i>
+                                        </button>
+                                        <button type="button" class="btn btn-sm btn-outline-danger" title="Löschen"
+                                                hx-post="{% url 'knowledge:shipping_delete' option.pk %}"
+                                                hx-confirm="„{{ option.carrier }} – {{ option.description }}“ wirklich löschen?">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            {% include "components/empty_state.html" %}
+        {% endif %}
+
+    {% elif active_tab == "zoll" %}
+        <div class="d-flex justify-content-between mb-3 gap-2">
+            <form method="get" class="flex-grow-1" style="max-width: 400px;">
+                <input type="hidden" name="tab" value="zoll">
+                {% include "components/search_box.html" with query=query placeholder="Tarifnummer oder Definition suchen" %}
+            </form>
+            <button type="button" class="btn btn-primary text-nowrap" data-bs-toggle="modal" data-bs-target="#infothekModal"
+                    hx-get="{% url 'knowledge:tariff_create' %}" hx-target="#infothekModalContent">
+                <i class="bi bi-plus-lg me-1"></i>Neu
+            </button>
+        </div>
+        {% if tariff_codes %}
+            <div class="table-responsive">
+                <table class="table table-striped table-hover align-middle table-brand-header">
+                    <thead>
+                        <tr>
+                            <th>Zolltarifnummer</th>
+                            <th>Definition</th>
+                            <th>Beschreibung</th>
+                            <th class="text-nowrap">Aktionen</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for tariff in tariff_codes %}
+                            <tr>
+                                <td>{{ tariff.code }}</td>
+                                <td>{{ tariff.definition }}</td>
+                                <td>{{ tariff.description|default:"–" }}</td>
+                                <td class="text-nowrap">
+                                    <div class="btn-group">
+                                        <button type="button" class="btn btn-sm btn-outline-secondary" title="Bearbeiten" data-bs-toggle="modal" data-bs-target="#infothekModal"
+                                                hx-get="{% url 'knowledge:tariff_update' tariff.pk %}" hx-target="#infothekModalContent">
+                                            <i class="bi bi-pencil"></i>
+                                        </button>
+                                        <button type="button" class="btn btn-sm btn-outline-danger" title="Löschen"
+                                                hx-post="{% url 'knowledge:tariff_delete' tariff.pk %}"
+                                                hx-confirm="„{{ tariff.code }}“ wirklich löschen?">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            {% include "components/empty_state.html" %}
+        {% endif %}
+
+    {% elif active_tab == "preisrechner" %}
+        <div class="row justify-content-center">
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-body">
+                        <h6 class="text-muted text-uppercase small mb-3">Preisrechner</h6>
+                        <div class="mb-3">
+                            <label class="form-label">Einkaufspreis (EK)</label>
+                            <div class="input-group">
+                                <input type="number" id="preisrechner-ek" class="form-control" step="0.01" min="0" placeholder="0,00">
+                                <span class="input-group-text">€</span>
+                            </div>
+                        </div>
+                        <p class="text-muted small mb-1">Formel: EK &times; 2,5 &times; 1,19 (USt.) + 6,00&nbsp;&euro; Versand</p>
+                        <hr>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span class="fw-semibold">Ergebnis</span>
+                            <span id="preisrechner-ergebnis" class="fs-4 fw-bold">–</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <script>
+            (function () {
+                var input = document.getElementById('preisrechner-ek');
+                var result = document.getElementById('preisrechner-ergebnis');
+                if (!input) return;
+                input.addEventListener('input', function () {
+                    var ek = parseFloat(input.value.replace(',', '.'));
+                    if (isNaN(ek) || ek < 0) {
+                        result.textContent = '–';
+                        return;
+                    }
+                    var value = ek * 2.5 * 1.19 + 6;
+                    result.textContent = value.toLocaleString('de-DE', {minimumFractionDigits: 2, maximumFractionDigits: 2}) + ' €';
+                });
+            })();
+        </script>
+
+    {% elif active_tab == "heilsteine" %}
+        <div class="d-flex justify-content-between mb-3 gap-2">
+            <form method="get" class="flex-grow-1" style="max-width: 400px;">
+                <input type="hidden" name="tab" value="heilsteine">
+                {% include "components/search_box.html" with query=query placeholder="Stein oder Symptom suchen" %}
+            </form>
+            <button type="button" class="btn btn-primary text-nowrap" data-bs-toggle="modal" data-bs-target="#gemstoneModal"
+                    hx-get="{% url 'lexikon:gemstone_create' %}" hx-target="#gemstoneModalContent">
+                <i class="bi bi-plus-lg me-1"></i>Neu
+            </button>
+        </div>
+        {% if gemstones %}
+            <div class="row g-3">
+                {% for stone in gemstones %}
+                    <div class="col-md-4 col-lg-3">
+                        <div class="card h-100" role="button" data-bs-toggle="modal" data-bs-target="#gemstoneModal"
+                             hx-get="{% url 'lexikon:gemstone_detail' stone.pk %}" hx-target="#gemstoneModalContent">
+                            {% if stone.image %}
+                                <img src="{{ stone.image.url }}" class="card-img-top bg-light" alt="{{ stone.name }}" style="height: 200px; object-fit: contain;">
+                            {% else %}
+                                <div class="bg-light d-flex align-items-center justify-content-center" style="height: 200px;">
+                                    <i class="bi bi-gem text-muted fs-1"></i>
+                                </div>
+                            {% endif %}
+                            <div class="card-body">
+                                <h6 class="card-title mb-0">{{ stone.name }}</h6>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            {% include "components/empty_state.html" %}
+        {% endif %}
+    {% endif %}
+
+    <div class="modal fade" id="infothekModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
+        <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-xl">
+            <div class="modal-content" id="infothekModalContent">
+                <!-- HTMX swaps create/edit/detail content in here -->
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="gemstoneModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
+        <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-xl">
+            <div class="modal-content" id="gemstoneModalContent">
+                <!-- HTMX swaps create/edit/detail content in here -->
+            </div>
+        </div>
+    </div>
+{% endblock %}

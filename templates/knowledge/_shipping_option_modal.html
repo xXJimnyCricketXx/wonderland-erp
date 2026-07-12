@@ -1,0 +1,66 @@
+<div class="modal-header bg-brand text-white">
+    <h5 class="modal-title">{% if object %}Versandoption bearbeiten{% else %}Neue Versandoption{% endif %}</h5>
+    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Schließen"></button>
+</div>
+<form hx-post="{{ request.path }}" hx-target="#infothekModalContent">
+    {% csrf_token %}
+    <div class="modal-body">
+        {% if form.non_field_errors %}
+            <div class="alert alert-danger">{{ form.non_field_errors }}</div>
+        {% endif %}
+        <div class="container-fluid">
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <label class="form-label">Anbieter</label>
+                    {{ form.carrier }}
+                    {% include "components/field_errors.html" with field=form.carrier %}
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Beschreibung</label>
+                    {{ form.description }}
+                    {% include "components/field_errors.html" with field=form.description %}
+                </div>
+            </div>
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <label class="form-label">Anwendung</label>
+                    {{ form.use_case }}
+                    {% include "components/field_errors.html" with field=form.use_case %}
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Preis</label>
+                    {{ form.price_note }}
+                    {% include "components/field_errors.html" with field=form.price_note %}
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Bezahlen</label>
+                    {{ form.payment_method }}
+                    {% include "components/field_errors.html" with field=form.payment_method %}
+                </div>
+            </div>
+            <div class="row mb-3">
+                <div class="col-md-4">
+                    <label class="form-label">Gültig ab</label>
+                    {{ form.valid_from }}
+                    {% include "components/field_errors.html" with field=form.valid_from %}
+                </div>
+                <div class="col-md-4 d-flex align-items-end">
+                    <div class="form-check">
+                        {{ form.requires_tracking_number }}
+                        <label class="form-check-label" for="{{ form.requires_tracking_number.id_for_label }}">Sendungsnummer nötig</label>
+                    </div>
+                </div>
+                <div class="col-md-4 d-flex align-items-end">
+                    <div class="form-check">
+                        {{ form.is_international }}
+                        <label class="form-check-label" for="{{ form.is_international.id_for_label }}">International</label>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal-footer">
+        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Abbrechen</button>
+        <button type="submit" class="btn btn-primary">Speichern</button>
+    </div>
+</form>

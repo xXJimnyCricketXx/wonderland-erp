@@ -1,0 +1,65 @@
+<div class="modal-header bg-brand text-white">
+    <h5 class="modal-title">Datenmeldung</h5>
+    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Schließen"></button>
+</div>
+<div class="modal-body">
+    <h6 class="text-uppercase text-muted small mb-3">Allgemeine Informationen</h6>
+    <table class="table table-bordered mb-4">
+        <tbody>
+            <tr>
+                <th class="bg-light" style="width: 220px;">Empfänger</th>
+                <td>{{ report.get_recipient_display }}</td>
+            </tr>
+            <tr>
+                <th class="bg-light">Meldeart</th>
+                <td>{{ report.get_report_type_display }}</td>
+            </tr>
+            <tr>
+                <th class="bg-light">Meldung von</th>
+                <td>{{ report.reporting_period_from|date:"d.m.Y" }}</td>
+            </tr>
+            <tr>
+                <th class="bg-light">Meldung bis</th>
+                <td>{{ report.reporting_period_to|date:"d.m.Y" }}</td>
+            </tr>
+            {% if report.system_operator_id %}
+                <tr>
+                    <th class="bg-light">Systembeteiligungs-ID</th>
+                    <td>{{ report.system_operator_id }}</td>
+                </tr>
+            {% endif %}
+            <tr>
+                <th class="bg-light">Erfasst am</th>
+                <td>{{ report.imported_at|date:"d.m.Y H:i" }}</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <h6 class="text-uppercase text-muted small mb-3">Mengenangaben (in kg mit 3 Nachkommastellen)</h6>
+    <div class="table-responsive">
+        <table class="table table-bordered mb-0">
+            <thead>
+                <tr>
+                    <th>Systembetreiber</th>
+                    {% for cat, line in material_rows %}<th>{{ cat.name }}</th>{% endfor %}
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>{{ report.get_recipient_display }}</td>
+                    {% for cat, line in material_rows %}
+                        <td>{{ line.mass_kg|default:"0,000"|floatformat:3 }}</td>
+                    {% endfor %}
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+<div class="modal-footer">
+    {% if report.source_file %}
+        <a href="{{ report.source_file.url }}" target="_blank" rel="noopener" class="btn btn-outline-secondary me-auto">
+            <i class="bi bi-download me-1"></i>Datei herunterladen
+        </a>
+    {% endif %}
+    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Schließen</button>
+</div>
