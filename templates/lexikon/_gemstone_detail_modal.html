@@ -1,0 +1,80 @@
+<div class="modal-header bg-brand text-white">
+    <h5 class="modal-title">{{ gemstone.name }}</h5>
+    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Schließen"></button>
+</div>
+<div class="modal-body">
+    <div class="row mb-3">
+        <div class="col-md-4">
+            {% if gemstone.image %}
+                <img src="{{ gemstone.image.url }}" class="img-fluid rounded" alt="{{ gemstone.name }}">
+            {% else %}
+                <div class="bg-light rounded d-flex align-items-center justify-content-center" style="aspect-ratio: 1;">
+                    <i class="bi bi-gem text-muted fs-1"></i>
+                </div>
+            {% endif %}
+        </div>
+        <div class="col-md-8">
+            {% if gemstone.description %}
+                <p>{{ gemstone.description|linebreaks }}</p>
+            {% endif %}
+            <dl class="row mb-0 small">
+                <dt class="col-5">Alternative Namen</dt><dd class="col-7">{{ gemstone.alternative_names|default:"–" }}</dd>
+                <dt class="col-5">Herkunft</dt><dd class="col-7">{{ gemstone.origin|default:"–" }}</dd>
+                <dt class="col-5">Verwechslungen</dt><dd class="col-7">{{ gemstone.confusable_with|default:"–" }}</dd>
+                <dt class="col-5">Fälschungen</dt><dd class="col-7">{{ gemstone.counterfeits|default:"–" }}</dd>
+            </dl>
+        </div>
+    </div>
+
+    <h6 class="text-uppercase text-muted small mt-3">Mineralogie</h6>
+    <hr class="mt-0 mb-2">
+    <dl class="row small">
+        <dt class="col-3">Mineralklasse</dt><dd class="col-3">{{ gemstone.mineral_class|default:"–" }}</dd>
+        <dt class="col-3">Chem. Zusammensetzung</dt><dd class="col-3">{{ gemstone.chemical_composition|default:"–" }}</dd>
+        <dt class="col-3">Entstehung</dt><dd class="col-3">{{ gemstone.formation|default:"–" }}</dd>
+        <dt class="col-3">Kristallsystem</dt><dd class="col-3">{{ gemstone.crystal_system|default:"–" }}</dd>
+    </dl>
+
+    <h6 class="text-uppercase text-muted small mt-3">Eigenschaften</h6>
+    <hr class="mt-0 mb-2">
+    <dl class="row small">
+        <dt class="col-3">Mohshärte</dt><dd class="col-3">{{ gemstone.mohs_hardness|default:"–" }}</dd>
+        <dt class="col-3">Dichte</dt><dd class="col-3">{{ gemstone.density|default:"–" }}</dd>
+        <dt class="col-3">Spaltbarkeit</dt><dd class="col-3">{{ gemstone.cleavage|default:"–" }}</dd>
+        <dt class="col-3">Bruchverhalten</dt><dd class="col-3">{{ gemstone.fracture|default:"–" }}</dd>
+    </dl>
+
+    <h6 class="text-uppercase text-muted small mt-3">Farbliche Eigenschaften</h6>
+    <hr class="mt-0 mb-2">
+    <dl class="row small">
+        <dt class="col-3">Transparenz</dt><dd class="col-3">{{ gemstone.transparency|default:"–" }}</dd>
+        <dt class="col-3">Farbe</dt><dd class="col-3">{{ gemstone.color|default:"–" }}</dd>
+        <dt class="col-3">Glanz</dt><dd class="col-3">{{ gemstone.luster|default:"–" }}</dd>
+        <dt class="col-3">Strichfarbe</dt><dd class="col-3">{{ gemstone.streak|default:"–" }}</dd>
+    </dl>
+
+    <h6 class="text-uppercase text-muted small mt-3">Wirkungen</h6>
+    <hr class="mt-0 mb-2">
+    {% if gemstone.organ_effect %}<p class="mb-1 small"><strong>Organwirkung:</strong> {{ gemstone.organ_effect|linebreaksbr }}</p>{% endif %}
+    {% if gemstone.physical_effect %}<p class="mb-1 small"><strong>Körperlich:</strong> {{ gemstone.physical_effect|linebreaksbr }}</p>{% endif %}
+    {% if gemstone.emotional_effect %}<p class="mb-1 small"><strong>Seelisch:</strong> {{ gemstone.emotional_effect|linebreaksbr }}</p>{% endif %}
+    {% if gemstone.application %}<p class="mb-1 small"><strong>Anwendung:</strong> {{ gemstone.application|linebreaksbr }}</p>{% endif %}
+
+    <h6 class="text-uppercase text-muted small mt-3">Sonstiges</h6>
+    <hr class="mt-0 mb-2">
+    <dl class="row small mb-0">
+        <dt class="col-3">Bachblüte</dt><dd class="col-3">{{ gemstone.bach_flower|default:"–" }}</dd>
+        <dt class="col-3">Astrologie</dt><dd class="col-3">{{ gemstone.astrological_sign|default:"–" }}</dd>
+        <dt class="col-3">Chakra</dt><dd class="col-3">{{ gemstone.chakra|default:"–" }}</dd>
+        <dt class="col-3">Feng Shui</dt><dd class="col-3">{{ gemstone.feng_shui|default:"–" }}</dd>
+    </dl>
+    {% if gemstone.care_instructions %}<p class="mb-1 small mt-2"><strong>Pflege:</strong> {{ gemstone.care_instructions|linebreaksbr }}</p>{% endif %}
+    {% if gemstone.notes %}<p class="mb-0 small"><strong>Hinweise:</strong> {{ gemstone.notes|linebreaksbr }}</p>{% endif %}
+</div>
+<div class="modal-footer">
+    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Schließen</button>
+    <button type="button" class="btn btn-primary"
+            hx-get="{% url 'lexikon:gemstone_update' gemstone.pk %}" hx-target="#gemstoneModalContent">
+        <i class="bi bi-pencil me-1"></i>Bearbeiten
+    </button>
+</div>

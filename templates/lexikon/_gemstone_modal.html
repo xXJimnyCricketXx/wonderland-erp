@@ -1,0 +1,210 @@
+<div class="modal-header bg-brand text-white">
+    <h5 class="modal-title">{% if object %}Heilstein bearbeiten{% else %}Neuer Heilstein{% endif %}</h5>
+    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Schließen"></button>
+</div>
+<form hx-post="{{ request.path }}" hx-target="#gemstoneModalContent" enctype="multipart/form-data">
+    {% csrf_token %}
+    <div class="modal-body">
+        {% if form.non_field_errors %}
+            <div class="alert alert-danger">{{ form.non_field_errors }}</div>
+        {% endif %}
+        <div class="container-fluid">
+            <div class="row mb-3">
+                <div class="col-md-8">
+                    <label class="form-label">Name</label>
+                    {{ form.name }}
+                    {% include "components/field_errors.html" with field=form.name %}
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Bild</label>
+                    {{ form.image }}
+                    {% include "components/field_errors.html" with field=form.image %}
+                </div>
+            </div>
+
+            <h6 class="text-uppercase text-muted small mt-4">Allgemeine Informationen</h6>
+            <hr class="mt-0 mb-3">
+            <div class="row mb-3">
+                <div class="col-12">
+                    <label class="form-label">Beschreibung</label>
+                    {{ form.description }}
+                    {% include "components/field_errors.html" with field=form.description %}
+                </div>
+            </div>
+            <div class="row mb-3">
+                <div class="col-md-3">
+                    <label class="form-label">Alternative Namen</label>
+                    {{ form.alternative_names }}
+                    {% include "components/field_errors.html" with field=form.alternative_names %}
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Herkunft</label>
+                    {{ form.origin }}
+                    {% include "components/field_errors.html" with field=form.origin %}
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Verwechslungen</label>
+                    {{ form.confusable_with }}
+                    {% include "components/field_errors.html" with field=form.confusable_with %}
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Fälschungen</label>
+                    {{ form.counterfeits }}
+                    {% include "components/field_errors.html" with field=form.counterfeits %}
+                </div>
+            </div>
+
+            <h6 class="text-uppercase text-muted small mt-4">Mineralogie</h6>
+            <hr class="mt-0 mb-3">
+            <div class="row mb-3">
+                <div class="col-md-4">
+                    <label class="form-label">Mineralklasse</label>
+                    {{ form.mineral_class }}
+                    {% include "components/field_errors.html" with field=form.mineral_class %}
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Chemische Zusammensetzung</label>
+                    {{ form.chemical_composition }}
+                    {% include "components/field_errors.html" with field=form.chemical_composition %}
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Kristallsystem</label>
+                    {{ form.crystal_system }}
+                    {% include "components/field_errors.html" with field=form.crystal_system %}
+                </div>
+            </div>
+            <div class="row mb-3">
+                <div class="col-12">
+                    <label class="form-label">Entstehung</label>
+                    {{ form.formation }}
+                    {% include "components/field_errors.html" with field=form.formation %}
+                </div>
+            </div>
+
+            <h6 class="text-uppercase text-muted small mt-4">Eigenschaften</h6>
+            <hr class="mt-0 mb-3">
+            <div class="row mb-3">
+                <div class="col-md-3">
+                    <label class="form-label">Mohshärte</label>
+                    {{ form.mohs_hardness }}
+                    {% include "components/field_errors.html" with field=form.mohs_hardness %}
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Dichte</label>
+                    {{ form.density }}
+                    {% include "components/field_errors.html" with field=form.density %}
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Spaltbarkeit</label>
+                    {{ form.cleavage }}
+                    {% include "components/field_errors.html" with field=form.cleavage %}
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Bruchverhalten</label>
+                    {{ form.fracture }}
+                    {% include "components/field_errors.html" with field=form.fracture %}
+                </div>
+            </div>
+
+            <h6 class="text-uppercase text-muted small mt-4">Farbliche Eigenschaften</h6>
+            <hr class="mt-0 mb-3">
+            <div class="row mb-3">
+                <div class="col-md-3">
+                    <label class="form-label">Transparenz</label>
+                    {{ form.transparency }}
+                    {% include "components/field_errors.html" with field=form.transparency %}
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Farbe</label>
+                    {{ form.color }}
+                    {% include "components/field_errors.html" with field=form.color %}
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Glanz</label>
+                    {{ form.luster }}
+                    {% include "components/field_errors.html" with field=form.luster %}
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Strichfarbe</label>
+                    {{ form.streak }}
+                    {% include "components/field_errors.html" with field=form.streak %}
+                </div>
+            </div>
+
+            <h6 class="text-uppercase text-muted small mt-4">Wirkungen</h6>
+            <hr class="mt-0 mb-3">
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <label class="form-label">Organwirkung</label>
+                    {{ form.organ_effect }}
+                    {% include "components/field_errors.html" with field=form.organ_effect %}
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Körperliche Wirkung</label>
+                    {{ form.physical_effect }}
+                    {% include "components/field_errors.html" with field=form.physical_effect %}
+                </div>
+            </div>
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <label class="form-label">Seelische Wirkung</label>
+                    {{ form.emotional_effect }}
+                    {% include "components/field_errors.html" with field=form.emotional_effect %}
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Anwendung</label>
+                    {{ form.application }}
+                    {% include "components/field_errors.html" with field=form.application %}
+                </div>
+            </div>
+
+            <h6 class="text-uppercase text-muted small mt-4">Sonstiges</h6>
+            <hr class="mt-0 mb-3">
+            <div class="row mb-3">
+                <div class="col-md-3">
+                    <label class="form-label">Ergänzende Bachblüte</label>
+                    {{ form.bach_flower }}
+                    {% include "components/field_errors.html" with field=form.bach_flower %}
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Astrologische Zuordnung</label>
+                    {{ form.astrological_sign }}
+                    {% include "components/field_errors.html" with field=form.astrological_sign %}
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Chakra-Zuordnung</label>
+                    {{ form.chakra }}
+                    {% include "components/field_errors.html" with field=form.chakra %}
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Feng-Shui-Zuordnung</label>
+                    {{ form.feng_shui }}
+                    {% include "components/field_errors.html" with field=form.feng_shui %}
+                </div>
+            </div>
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <label class="form-label">Pflege</label>
+                    {{ form.care_instructions }}
+                    {% include "components/field_errors.html" with field=form.care_instructions %}
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Hinweise/Bemerkungen</label>
+                    {{ form.notes }}
+                    {% include "components/field_errors.html" with field=form.notes %}
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal-footer">
+        {% if object %}
+            <button type="button" class="btn btn-outline-danger me-auto"
+                    hx-post="{% url 'lexikon:gemstone_delete' object.pk %}" hx-target="#gemstoneModalContent"
+                    hx-confirm="„{{ object.name }}“ wirklich löschen?">
+                <i class="bi bi-trash me-1"></i>Löschen
+            </button>
+        {% endif %}
+        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Abbrechen</button>
+        <button type="submit" class="btn btn-primary">Speichern</button>
+    </div>
+</form>
