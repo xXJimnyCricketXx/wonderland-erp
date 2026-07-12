@@ -7,9 +7,11 @@ from knowledge.models import PackagingType
 
 
 class Order(Archivable):
-    # Internal, always-present identifier (e.g. "B-1001") - covers Etsy orders
-    # and cash sales alike. etsy_order_number below is Etsy's own order
-    # number and only ever set for orders that actually came through Etsy.
+    # Internal, always-present identifier ("B-0001", "B-0002", ... assigned
+    # sequentially by oldest sale_date first - see data_import.order_import.
+    # assign_order_ids) - covers Etsy orders and cash sales alike.
+    # etsy_order_number below is Etsy's own order number and only ever set
+    # for orders that actually came through Etsy.
     order_id = models.CharField("Bestell-ID", max_length=50, unique=True)
     etsy_order_number = models.CharField("Etsy-Bestellnummer", max_length=50, blank=True)
     customer = models.ForeignKey(
@@ -26,6 +28,9 @@ class Order(Archivable):
     package_type = models.ForeignKey(
         PackagingType, verbose_name="Versendet als", on_delete=models.SET_NULL,
         null=True, blank=True, related_name="orders",
+    )
+    etsy_receipt_file = models.FileField(
+        "Etsy-Bestellbeleg", upload_to="documents/bestellungen/", blank=True, null=True
     )
 
     number_of_items = models.PositiveIntegerField("Anzahl Artikel", default=1)
@@ -89,6 +94,15 @@ class Order(Archivable):
     def __str__(self):
         return f"Bestellung #{self.order_id}"
 
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+        # Auto-flag Stammkunde once a customer has more than one order - a
+        # one-way ratchet (never unset here), so archiving/deleting a later
+        # order doesn't strip the flag from an already-proven repeat buyer.
+        if not self.customer.is_returning_customer and self.customer.orders.filter(is_archived=False).count() > 1:
+            self.customer.is_returning_customer = True
+            self.customer.save(update_fields=["is_returning_customer"])
+
 
 class OrderItem(models.Model):
     order = models.ForeignKey(
@@ -99,10 +113,22 @@ class OrderItem(models.Model):
         null=True, blank=True, related_name="order_items",
     )
 
+    # Etsy's own listing name/id/variation, from the Sold-Order-Items export
+    # (a separate, richer per-item CSV than the order-level Sold-Orders one -
+    # see data_import.order_item_import). listing_id is what lets a single
+    # manual mapping (EtsyListingMapping) apply to every order of that
+    # listing automatically, instead of assigning article per order.
+    item_name = models.CharField("Etsy-Artikelname", max_length=255, blank=True)
+    listing_id = models.CharField("Etsy-Listing-ID", max_length=50, blank=True, db_index=True)
+    variations = models.CharField("Variante (Etsy)", max_length=255, blank=True)
+    quantity = models.PositiveIntegerField("Menge", default=1)
+    price = models.DecimalField("Preis (Etsy, pro Stück)", max_digits=10, decimal_places=2, blank=True, null=True)
+
     # Etsy's SKU export is unreliable (supplier codes, plain numbers, blanks -
     # see docs/konzept.md), so the raw value is always kept even when article
-    # matching fails or is ambiguous.
-    sku_raw = models.CharField("SKU (roh)", max_length=255, blank=True)
+    # matching fails or is ambiguous. Labelled "Etsy-SKU" (not just "SKU") so
+    # it's never mistaken for Article.sku (our own WD-XXXX number).
+    sku_raw = models.CharField("Etsy-SKU (roh)", max_length=255, blank=True)
     position = models.PositiveIntegerField("Position", default=1)
 
     class Meta:
@@ -111,7 +137,7 @@ class OrderItem(models.Model):
         ordering = ["order", "position"]
 
     def __str__(self):
-        return f"{self.order} - {self.sku_raw or self.article}"
+        return f"{self.order} - {self.item_name or self.sku_raw or self.article}"
 
 
 class Review(models.Model):

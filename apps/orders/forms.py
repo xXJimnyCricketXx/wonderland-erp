@@ -1,10 +1,12 @@
 from django import forms
+from django.forms import inlineformset_factory
 
+from catalog.models import Article
 from contacts.models import Customer
 from core.models import ReferenceOption
 from knowledge.models import PackagingType
 
-from .models import Order
+from .models import Order, OrderItem
 
 
 class OrderForm(forms.ModelForm):
@@ -20,9 +22,10 @@ class OrderForm(forms.ModelForm):
             "card_processing_fees", "order_net",
             "adjusted_order_total", "adjusted_card_processing_fees", "adjusted_net_order_amount",
             "inperson_discount", "inperson_location",
+            "etsy_receipt_file",
         ]
         widgets = {
-            "order_id": forms.TextInput(attrs={"class": "form-control", "placeholder": "z.B. B-1001"}),
+            "order_id": forms.TextInput(attrs={"class": "form-control", "placeholder": "z.B. B-0001"}),
             "etsy_order_number": forms.TextInput(attrs={"class": "form-control"}),
             # HTML5 <input type="date"> requires the value attribute in ISO
             # format - Django's default DateInput renders it in the active
@@ -58,6 +61,7 @@ class OrderForm(forms.ModelForm):
             "adjusted_net_order_amount": forms.NumberInput(attrs={"class": "form-control", "step": "0.01"}),
             "inperson_discount": forms.NumberInput(attrs={"class": "form-control", "step": "0.01"}),
             "inperson_location": forms.TextInput(attrs={"class": "form-control"}),
+            "etsy_receipt_file": forms.ClearableFileInput(attrs={"class": "form-control"}),
         }
 
     def __init__(self, *args, **kwargs):
@@ -86,3 +90,29 @@ class OrderForm(forms.ModelForm):
                 label=label,
                 widget=forms.Select(attrs={"class": "form-select"}),
             )
+
+
+class OrderItemForm(forms.ModelForm):
+    """sku_raw is deliberately not a form field here - it's Etsy's raw,
+    historically-unreliable import value (see OrderItem.sku_raw's comment),
+    kept only in the database for reference. The one SKU the user actually
+    sees is the assigned article's own SKU, shown read-only once "article"
+    is set - having a second editable SKU box next to it was confusing."""
+
+    class Meta:
+        model = OrderItem
+        fields = ["article", "position"]
+        widgets = {
+            "article": forms.Select(attrs={"class": "form-select"}),
+            "position": forms.NumberInput(attrs={"class": "form-control"}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["article"].queryset = Article.objects.filter(is_archived=False).order_by("title")
+        self.fields["article"].required = False
+
+
+OrderItemFormSet = inlineformset_factory(
+    Order, OrderItem, form=OrderItemForm, extra=0, can_delete=True,
+)

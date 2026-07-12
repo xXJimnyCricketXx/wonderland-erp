@@ -100,4 +100,16 @@
             </div>
         </div>
     </div>
+
+    <!-- Quick-view for an order position's Artikel, stacked on top of #orderModal (Bootstrap
+         supports nested/stacked modals natively) - same #articleModal/#articleModalContent ids
+         as templates/catalog/article_list.html, safe to reuse since only one of the two pages
+         is ever loaded at a time, and it lets the shared catalog modal partials work unmodified. -->
+    <div class="modal fade" id="articleModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
+        <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-xl">
+            <div class="modal-content" id="articleModalContent">
+                <!-- HTMX swaps the Artikel-Detailansicht in here -->
+            </div>
+        </div>
+    </div>
 {% endblock %}

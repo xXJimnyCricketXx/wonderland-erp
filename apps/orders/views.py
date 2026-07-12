@@ -1,14 +1,17 @@
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.db.models import Q
-from django.http import HttpResponse
+from django.db import transaction
+from django.db.models import Count, Q
+from django.shortcuts import get_object_or_404, render
 from django.urls import reverse
-from django.views.generic import CreateView, DetailView, ListView, UpdateView
+from django.views.generic import DetailView, ListView
 from django.views.generic.detail import SingleObjectMixin
 from django.views.generic.base import View
 
+from core.htmx_utils import htmx_redirect
+from core.mixins import BackModalMixin
 from core.sorting import resolve_sort
 
-from .forms import OrderForm
+from .forms import OrderForm, OrderItemFormSet
 from .models import Order, Review
 
 
@@ -64,9 +67,9 @@ class OrderListView(LoginRequiredMixin, ListView):
         return context
 
 
-class OrderDetailModalView(LoginRequiredMixin, DetailView):
+class OrderDetailModalView(BackModalMixin, LoginRequiredMixin, DetailView):
     """Read-only 'Bestellschein' shown by the eye icon - its footer links
-    into OrderUpdateView for editing."""
+    into OrderModalView for editing."""
 
     model = Order
     template_name = "orders/_order_detail_modal.html"
@@ -79,24 +82,43 @@ class OrderDetailModalView(LoginRequiredMixin, DetailView):
         return context
 
 
-class OrderModalMixin(LoginRequiredMixin):
-    model = Order
-    form_class = OrderForm
+class OrderModalView(LoginRequiredMixin, View):
+    """Create/update in one view (not two CBVs) because the OrderItem
+    inline formset (Positionen: Artikel/SKU nachtragen) needs to be
+    validated together with the main form before either is saved - same
+    pattern as SupplierModalView/WishlistItemModalView."""
+
     template_name = "orders/_order_modal.html"
 
-    def form_valid(self, form):
-        self.object = form.save()
-        response = HttpResponse(status=204)
-        response["HX-Redirect"] = reverse("orders:list")
-        return response
+    def _get_instance(self, pk):
+        return get_object_or_404(Order, pk=pk) if pk else None
 
+    def get(self, request, pk=None):
+        order = self._get_instance(pk)
+        form = OrderForm(instance=order)
+        formset = OrderItemFormSet(instance=order)
+        return self._render(request, form, formset)
 
-class OrderCreateView(OrderModalMixin, CreateView):
-    pass
+    def post(self, request, pk=None):
+        order = self._get_instance(pk)
+        form = OrderForm(request.POST, request.FILES, instance=order)
+        formset = OrderItemFormSet(request.POST, instance=order or Order())
 
+        if form.is_valid() and formset.is_valid():
+            with transaction.atomic():
+                order = form.save()
+                formset.instance = order
+                formset.save()
+            return htmx_redirect(request, reverse("orders:list"))
 
-class OrderUpdateView(OrderModalMixin, UpdateView):
-    pass
+        return self._render(request, form, formset)
+
+    def _render(self, request, form, formset):
+        return render(
+            request,
+            self.template_name,
+            {"form": form, "formset": formset, "object": form.instance if form.instance.pk else None},
+        )
 
 
 class ReviewListView(LoginRequiredMixin, ListView):
@@ -109,7 +131,26 @@ class ReviewListView(LoginRequiredMixin, ListView):
     context_object_name = "reviews"
 
     def get_queryset(self):
-        return Review.objects.select_related("order", "order__customer").order_by("-date_reviewed")
+        qs = Review.objects.select_related("order", "order__customer").order_by("-date_reviewed")
+        star_rating = self.request.GET.get("star_rating")
+        if star_rating:
+            qs = qs.filter(star_rating=star_rating)
+        return qs
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["selected_star_rating"] = self.request.GET.get("star_rating", "")
+        counts = dict(Review.objects.values_list("star_rating").annotate(n=Count("id")))
+        # Options carry their value as a string too, so the template can
+        # compare it directly against selected_star_rating (a GET param).
+        context["star_rating_options"] = [
+            {"value": str(n), "stars": "★" * n + "☆" * (5 - n), "count": counts.get(n, 0)}
+            for n in [5, 4, 3, 2, 1]
+        ]
+        context["selected_star_option"] = next(
+            (o for o in context["star_rating_options"] if o["value"] == context["selected_star_rating"]), None
+        )
+        return context
 
 
 class OrderArchiveView(LoginRequiredMixin, SingleObjectMixin, View):
@@ -121,6 +162,4 @@ class OrderArchiveView(LoginRequiredMixin, SingleObjectMixin, View):
     def post(self, request, *args, **kwargs):
         order = self.get_object()
         order.archive()
-        response = HttpResponse(status=204)
-        response["HX-Redirect"] = reverse("orders:list")
-        return response
+        return htmx_redirect(request, reverse("orders:list"))

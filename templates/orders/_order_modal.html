@@ -2,108 +2,21 @@
     <h5 class="modal-title">{% if object %}Bestellung bearbeiten{% else %}Neue Bestellung{% endif %}</h5>
     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Schließen"></button>
 </div>
-<form hx-post="{{ request.path }}" hx-target="#orderModalContent">
+<form hx-post="{{ request.path }}" hx-target="#orderModalContent" enctype="multipart/form-data">
     {% csrf_token %}
     <div class="modal-body">
         {% if form.non_field_errors %}
             <div class="alert alert-danger">{{ form.non_field_errors }}</div>
         {% endif %}
         <div class="container-fluid">
-            <div class="row mb-3">
-                <div class="col-md-2">
-                    <label class="form-label">Bestell-ID</label>
-                    {{ form.order_id }}
-                    {% include "components/field_errors.html" with field=form.order_id %}
-                </div>
-                <div class="col-md-3">
-                    <label class="form-label">Etsy-Bestellnummer</label>
-                    {{ form.etsy_order_number }}
-                    {% include "components/field_errors.html" with field=form.etsy_order_number %}
-                </div>
-                <div class="col-md-4">
-                    <label class="form-label">Kunde</label>
-                    {{ form.customer }}
-                    {% include "components/field_errors.html" with field=form.customer %}
-                </div>
-                <div class="col-md-3">
-                    <label class="form-label">Verkaufsdatum</label>
-                    {{ form.sale_date }}
-                    {% include "components/field_errors.html" with field=form.sale_date %}
-                </div>
-            </div>
-            <div class="row mb-3">
-                <div class="col-md-3">
-                    <label class="form-label">Status</label>
-                    {{ form.status }}
-                    {% include "components/field_errors.html" with field=form.status %}
-                </div>
-                <div class="col-md-3">
-                    <label class="form-label">Bestellart</label>
-                    {{ form.order_type }}
-                    {% include "components/field_errors.html" with field=form.order_type %}
-                </div>
-                <div class="col-md-3">
-                    <label class="form-label">Zahlungsmethode</label>
-                    {{ form.payment_method }}
-                    {% include "components/field_errors.html" with field=form.payment_method %}
-                </div>
-                <div class="col-md-3">
-                    <label class="form-label">Zahlungsart</label>
-                    {{ form.payment_type }}
-                    {% include "components/field_errors.html" with field=form.payment_type %}
-                </div>
-            </div>
-            <div class="row mb-3">
-                <div class="col-md-4">
-                    <label class="form-label">Etsy-Benutzername</label>
-                    {{ form.buyer_username }}
-                    {% include "components/field_errors.html" with field=form.buyer_username %}
-                </div>
-                <div class="col-md-2">
-                    <label class="form-label">Anzahl Artikel</label>
-                    {{ form.number_of_items }}
-                    {% include "components/field_errors.html" with field=form.number_of_items %}
-                </div>
-            </div>
-            <hr>
-            <div class="row mb-3">
-                <div class="col-md-5">
-                    <label class="form-label">Straße &amp; Hausnummer</label>
-                    {{ form.ship_street1 }}
-                    {% include "components/field_errors.html" with field=form.ship_street1 %}
-                </div>
-                <div class="col-md-4">
-                    <label class="form-label">Adresszusatz</label>
-                    {{ form.ship_street2 }}
-                    {% include "components/field_errors.html" with field=form.ship_street2 %}
-                </div>
-                <div class="col-md-3">
-                    <label class="form-label">PLZ</label>
-                    {{ form.ship_zipcode }}
-                    {% include "components/field_errors.html" with field=form.ship_zipcode %}
-                </div>
-            </div>
-            <div class="row mb-3">
-                <div class="col-md-4">
-                    <label class="form-label">Ort</label>
-                    {{ form.ship_city }}
-                    {% include "components/field_errors.html" with field=form.ship_city %}
-                </div>
-                <div class="col-md-4">
-                    <label class="form-label">Bundesland/Region</label>
-                    {{ form.ship_state }}
-                    {% include "components/field_errors.html" with field=form.ship_state %}
-                </div>
-                <div class="col-md-4">
-                    <label class="form-label">Land</label>
-                    {{ form.ship_country }}
-                    {% include "components/field_errors.html" with field=form.ship_country %}
-                </div>
-            </div>
-
             <ul class="nav nav-pills mb-3" role="tablist">
                 <li class="nav-item" role="presentation">
-                    <button class="nav-link active" data-bs-toggle="pill" data-bs-target="#pill-form-versand" type="button" role="tab">
+                    <button class="nav-link active" data-bs-toggle="pill" data-bs-target="#pill-form-stammdaten" type="button" role="tab">
+                        <i class="bi bi-card-list me-1"></i>Stammdaten
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" data-bs-toggle="pill" data-bs-target="#pill-form-versand" type="button" role="tab">
                         <i class="bi bi-truck me-1"></i>Versand
                     </button>
                 </li>
@@ -112,10 +25,79 @@
                         <i class="bi bi-cash-coin me-1"></i>Zahlung &amp; Rabatte
                     </button>
                 </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" data-bs-toggle="pill" data-bs-target="#pill-form-dokumente" type="button" role="tab">
+                        <i class="bi bi-file-earmark-text me-1"></i>Dokumente
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" data-bs-toggle="pill" data-bs-target="#pill-form-positionen" type="button" role="tab">
+                        <i class="bi bi-list-ul me-1"></i>Positionen
+                    </button>
+                </li>
             </ul>
 
             <div class="tab-content">
-                <div class="tab-pane fade show active" id="pill-form-versand" role="tabpanel">
+                <div class="tab-pane fade show active" id="pill-form-stammdaten" role="tabpanel">
+                    <div class="row mb-3">
+                        <div class="col-md-3">
+                            <label class="form-label">Bestell-ID</label>
+                            {{ form.order_id }}
+                            {% include "components/field_errors.html" with field=form.order_id %}
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Etsy-Bestellnummer</label>
+                            {{ form.etsy_order_number }}
+                            {% include "components/field_errors.html" with field=form.etsy_order_number %}
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Kunde</label>
+                            {{ form.customer }}
+                            {% include "components/field_errors.html" with field=form.customer %}
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Verkaufsdatum</label>
+                            {{ form.sale_date }}
+                            {% include "components/field_errors.html" with field=form.sale_date %}
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-3">
+                            <label class="form-label">Status</label>
+                            {{ form.status }}
+                            {% include "components/field_errors.html" with field=form.status %}
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Bestellart</label>
+                            {{ form.order_type }}
+                            {% include "components/field_errors.html" with field=form.order_type %}
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Zahlungsmethode</label>
+                            {{ form.payment_method }}
+                            {% include "components/field_errors.html" with field=form.payment_method %}
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Zahlungsart</label>
+                            {{ form.payment_type }}
+                            {% include "components/field_errors.html" with field=form.payment_type %}
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-3">
+                            <label class="form-label">Etsy-Benutzername</label>
+                            {{ form.buyer_username }}
+                            {% include "components/field_errors.html" with field=form.buyer_username %}
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Anzahl Artikel</label>
+                            {{ form.number_of_items }}
+                            {% include "components/field_errors.html" with field=form.number_of_items %}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="tab-pane fade" id="pill-form-versand" role="tabpanel">
                     <div class="row mb-3">
                         <div class="col-md-3">
                             <label class="form-label">Versendet am</label>
@@ -136,6 +118,42 @@
                             <label class="form-label">Versendet als</label>
                             {{ form.package_type }}
                             {% include "components/field_errors.html" with field=form.package_type %}
+                        </div>
+                    </div>
+                    <h6 class="text-muted text-uppercase small mt-3">Lieferadresse</h6>
+                    <hr class="mt-0 mb-3">
+                    <div class="row mb-3">
+                        <div class="col-md-3">
+                            <label class="form-label">Straße &amp; Hausnummer</label>
+                            {{ form.ship_street1 }}
+                            {% include "components/field_errors.html" with field=form.ship_street1 %}
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Adresszusatz</label>
+                            {{ form.ship_street2 }}
+                            {% include "components/field_errors.html" with field=form.ship_street2 %}
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">PLZ</label>
+                            {{ form.ship_zipcode }}
+                            {% include "components/field_errors.html" with field=form.ship_zipcode %}
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Ort</label>
+                            {{ form.ship_city }}
+                            {% include "components/field_errors.html" with field=form.ship_city %}
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-3">
+                            <label class="form-label">Bundesland/Region</label>
+                            {{ form.ship_state }}
+                            {% include "components/field_errors.html" with field=form.ship_state %}
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Land</label>
+                            {{ form.ship_country }}
+                            {% include "components/field_errors.html" with field=form.ship_country %}
                         </div>
                     </div>
                 </div>
@@ -164,22 +182,22 @@
                         </div>
                     </div>
                     <div class="row mb-3">
-                        <div class="col-md-4">
+                        <div class="col-md-3">
                             <label class="form-label">Gutscheincode</label>
                             {{ form.coupon_code }}
                             {% include "components/field_errors.html" with field=form.coupon_code %}
                         </div>
-                        <div class="col-md-4">
+                        <div class="col-md-3">
                             <label class="form-label">Gutschein-Details</label>
                             {{ form.coupon_details }}
                             {% include "components/field_errors.html" with field=form.coupon_details %}
                         </div>
-                        <div class="col-md-2">
+                        <div class="col-md-3">
                             <label class="form-label">Rabattbetrag</label>
                             {{ form.discount_amount }}
                             {% include "components/field_errors.html" with field=form.discount_amount %}
                         </div>
-                        <div class="col-md-2">
+                        <div class="col-md-3">
                             <label class="form-label">Versandrabatt</label>
                             {{ form.shipping_discount }}
                             {% include "components/field_errors.html" with field=form.shipping_discount %}
@@ -202,37 +220,130 @@
                             {% include "components/field_errors.html" with field=form.order_net %}
                         </div>
                     </div>
-                    <hr>
-                    <h6 class="text-muted text-uppercase small">Korrekturen &amp; Vor-Ort-Verkauf</h6>
+                    <h6 class="text-muted text-uppercase small mt-3">Korrekturen &amp; Vor-Ort-Verkauf</h6>
+                    <hr class="mt-0 mb-3">
                     <div class="row mb-3">
-                        <div class="col-md-4">
+                        <div class="col-md-3">
                             <label class="form-label">Korrigierte Bestellsumme</label>
                             {{ form.adjusted_order_total }}
                             {% include "components/field_errors.html" with field=form.adjusted_order_total %}
                         </div>
-                        <div class="col-md-4">
+                        <div class="col-md-3">
                             <label class="form-label">Korrigierte Kartengebühren</label>
                             {{ form.adjusted_card_processing_fees }}
                             {% include "components/field_errors.html" with field=form.adjusted_card_processing_fees %}
                         </div>
-                        <div class="col-md-4">
+                        <div class="col-md-3">
                             <label class="form-label">Korrigierter Netto-Bestellwert</label>
                             {{ form.adjusted_net_order_amount }}
                             {% include "components/field_errors.html" with field=form.adjusted_net_order_amount %}
                         </div>
-                    </div>
-                    <div class="row mb-3">
-                        <div class="col-md-4">
+                        <div class="col-md-3">
                             <label class="form-label">Vor-Ort-Rabatt</label>
                             {{ form.inperson_discount }}
                             {% include "components/field_errors.html" with field=form.inperson_discount %}
                         </div>
-                        <div class="col-md-8">
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-3">
                             <label class="form-label">Vor-Ort-Standort</label>
                             {{ form.inperson_location }}
                             {% include "components/field_errors.html" with field=form.inperson_location %}
                         </div>
                     </div>
+                </div>
+
+                <div class="tab-pane fade" id="pill-form-dokumente" role="tabpanel">
+                    <div class="row mb-3">
+                        <div class="col-md-3">
+                            <label class="form-label">Etsy-Bestellbeleg</label>
+                            {% if object.etsy_receipt_file %}
+                                <div class="small mb-1"><a href="{{ object.etsy_receipt_file.url }}" target="_blank" rel="noopener">Aktuelle Datei ansehen</a></div>
+                            {% endif %}
+                            {{ form.etsy_receipt_file }}
+                            {% include "components/field_errors.html" with field=form.etsy_receipt_file %}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="tab-pane fade" id="pill-form-positionen" role="tabpanel">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <h6 class="text-muted text-uppercase small mb-0">Bestellpositionen</h6>
+                        <button type="button" id="add-item-row" class="btn btn-sm btn-outline-secondary">
+                            <i class="bi bi-plus-lg me-1"></i>Position
+                        </button>
+                    </div>
+                    {{ formset.management_form }}
+                    <div class="row small text-muted mb-1 d-none d-md-flex">
+                        <div class="col-md-1">Pos.</div>
+                        <div class="col-md-3">Artikel</div>
+                        <div class="col-md-1"></div>
+                        <div class="col-md-2">Variante</div>
+                        <div class="col-md-1">SKU</div>
+                        <div class="col-md-1">Menge</div>
+                        <div class="col-md-2">Preis</div>
+                        <div class="col-md-1"></div>
+                    </div>
+                    <div id="order-items">
+                        {% for item_form in formset %}
+                            <div class="row mb-2 align-items-center order-item-row">
+                                <div class="col-md-1">
+                                    {{ item_form.position }}
+                                </div>
+                                <div class="col-md-3">
+                                    {{ item_form.article }}
+                                    {% include "components/field_errors.html" with field=item_form.article %}
+                                </div>
+                                <div class="col-md-1">
+                                    {% if item_form.instance.article %}
+                                        <button type="button" class="btn btn-sm btn-outline-secondary" title="Artikel ansehen"
+                                                data-bs-toggle="modal" data-bs-target="#articleModal" data-bs-dismiss="modal"
+                                                hx-get="{% url 'catalog:detail' item_form.instance.article.pk %}?zurueck_zu=orderModal" hx-target="#articleModalContent">
+                                            <i class="bi bi-eye"></i>
+                                        </button>
+                                    {% endif %}
+                                </div>
+                                <div class="col-md-2 small">
+                                    {{ item_form.instance.variations|default:"–" }}
+                                </div>
+                                <div class="col-md-1 small">
+                                    {{ item_form.instance.article.sku|default:"–" }}
+                                </div>
+                                <div class="col-md-1 small">
+                                    {{ item_form.instance.quantity|default:"–" }}
+                                </div>
+                                <div class="col-md-2 small">
+                                    {% if item_form.instance.price %}{{ item_form.instance.price }} €{% else %}–{% endif %}
+                                </div>
+                                <div class="col-md-1 form-check">
+                                    {{ item_form.DELETE }}
+                                    <label class="form-check-label small">Löschen</label>
+                                </div>
+                                {{ item_form.id }}
+                            </div>
+                        {% endfor %}
+                    </div>
+                    <template id="empty-item-form">
+                        <div class="row mb-2 align-items-center order-item-row">
+                            <div class="col-md-1">
+                                <input type="number" name="items-__prefix__-position" class="form-control" id="id_items-__prefix__-position" value="1">
+                            </div>
+                            <div class="col-md-3">
+                                <select name="items-__prefix__-article" class="form-select" id="id_items-__prefix__-article">
+                                    <option value="">---------</option>
+                                    {% for article in formset.empty_form.fields.article.queryset %}
+                                        <option value="{{ article.pk }}">{{ article }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-md-1"></div>
+                            <div class="col-md-2 small text-muted">–</div>
+                            <div class="col-md-1 small text-muted">–</div>
+                            <div class="col-md-1 small text-muted">–</div>
+                            <div class="col-md-2 small text-muted">–</div>
+                            <div class="col-md-1"></div>
+                        </div>
+                    </template>
                 </div>
             </div>
         </div>
@@ -242,3 +353,16 @@
         <button type="submit" class="btn btn-primary">Speichern</button>
     </div>
 </form>
+<script>
+    (function () {
+        var addBtn = document.getElementById('add-item-row');
+        if (!addBtn) return;
+        addBtn.addEventListener('click', function () {
+            var totalForms = document.getElementById('id_items-TOTAL_FORMS');
+            var idx = parseInt(totalForms.value, 10);
+            var templateHtml = document.getElementById('empty-item-form').innerHTML.split('__prefix__').join(idx);
+            document.getElementById('order-items').insertAdjacentHTML('beforeend', templateHtml);
+            totalForms.value = idx + 1;
+        });
+    })();
+</script>

@@ -3,6 +3,30 @@
 {% block content %}
     <h1 class="mb-4">Bewertungen</h1>
 
+    <div class="row justify-content-center mb-3">
+        <div class="col-lg-8 col-xl-6 d-flex justify-content-end">
+            <div class="dropdown">
+                <button class="btn btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                    {% if selected_star_option %}
+                        <span class="text-warning">{{ selected_star_option.stars }}</span> ({{ selected_star_option.count }})
+                    {% else %}
+                        Alle
+                    {% endif %}
+                </button>
+                <ul class="dropdown-menu">
+                    <li><a class="dropdown-item{% if not selected_star_rating %} active{% endif %}" href="?">Alle</a></li>
+                    {% for option in star_rating_options %}
+                        <li>
+                            <a class="dropdown-item{% if selected_star_rating == option.value %} active{% endif %}" href="?star_rating={{ option.value }}">
+                                <span class="text-warning">{{ option.stars }}</span> ({{ option.count }})
+                            </a>
+                        </li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+    </div>
+
     <div class="row justify-content-center">
         <div class="col-lg-8 col-xl-6">
             {% if reviews %}
@@ -12,7 +36,17 @@
                             <div class="d-flex justify-content-between align-items-start">
                                 <div>
                                     <strong>{{ review.reviewer_name }}</strong>
-                                    <div class="text-muted small">Bestellung #{{ review.order.order_id }} · {{ review.order.customer.full_name }}</div>
+                                    <div class="text-muted small">
+                                        <a href="#" data-bs-toggle="modal" data-bs-target="#orderModal"
+                                           hx-get="{% url 'orders:detail' review.order.pk %}" hx-target="#orderModalContent">
+                                            Bestellung #{{ review.order.order_id }}
+                                        </a>
+                                        ·
+                                        <a href="#" data-bs-toggle="modal" data-bs-target="#contactModal"
+                                           hx-get="{% url 'contacts:customer_detail' review.order.customer.pk %}" hx-target="#contactModalContent">
+                                            {{ review.order.customer.full_name }}
+                                        </a>
+                                    </div>
                                 </div>
                                 <div class="text-end">
                                     <div class="text-warning">
@@ -30,6 +64,25 @@
             {% else %}
                 {% include "components/empty_state.html" %}
             {% endif %}
+        </div>
+    </div>
+
+    <!-- Quick-view modals for a review's Bestellung/Kontakt, stacked on top -
+         reuse the same #orderModal/#contactModal ids as their home pages
+         (orders/order_list.html, contacts/kontakte.html) so the shared
+         detail partials work unmodified here too. -->
+    <div class="modal fade" id="orderModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
+        <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-xl">
+            <div class="modal-content" id="orderModalContent">
+                <!-- HTMX swaps the Bestellungs-Detailansicht in here -->
+            </div>
+        </div>
+    </div>
+    <div class="modal fade" id="contactModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
+        <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-xl">
+            <div class="modal-content" id="contactModalContent">
+                <!-- HTMX swaps the Kontakt-Detailansicht in here -->
+            </div>
         </div>
     </div>
 {% endblock %}

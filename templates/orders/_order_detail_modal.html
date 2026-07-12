@@ -67,15 +67,30 @@
                         <tr>
                             <th>Pos.</th>
                             <th>Artikel</th>
+                            <th>Variante</th>
                             <th>SKU</th>
+                            <th>Menge</th>
+                            <th>Preis</th>
                         </tr>
                     </thead>
                     <tbody>
                         {% for item in order_items %}
                             <tr>
                                 <td>{{ item.position }}</td>
-                                <td>{{ item.article.title|default:"–" }}</td>
-                                <td>{{ item.sku_raw|default:"–" }}</td>
+                                <td>
+                                    {% if item.article %}
+                                        <a href="#" data-bs-toggle="modal" data-bs-target="#articleModal" data-bs-dismiss="modal"
+                                           hx-get="{% url 'catalog:detail' item.article.pk %}?zurueck_zu=orderModal" hx-target="#articleModalContent">
+                                            {{ item.article.title }}
+                                        </a>
+                                    {% else %}
+                                        –
+                                    {% endif %}
+                                </td>
+                                <td>{{ item.variations|default:"–" }}</td>
+                                <td>{{ item.article.sku|default:"–" }}</td>
+                                <td>{{ item.quantity }}</td>
+                                <td>{% if item.price %}{{ item.price }} €{% else %}–{% endif %}</td>
                             </tr>
                         {% endfor %}
                     </tbody>
