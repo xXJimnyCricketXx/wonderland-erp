@@ -1,0 +1,106 @@
+{% extends "base.html" %}
+{% block title %}Profil{% endblock %}
+{% block content %}
+    <h1 class="mb-4">Profil</h1>
+
+    <div class="row justify-content-center">
+        <div class="col-lg-8 col-xl-6">
+            <div class="card mb-3">
+                <div class="card-body">
+                    <h6 class="text-uppercase text-muted small mb-3">Profilbild</h6>
+                    <div class="d-flex align-items-center gap-3">
+                        {% if avatar_form.instance.avatar %}
+                            <img src="{{ avatar_form.instance.avatar.url }}" class="rounded-circle" style="width: 72px; height: 72px; object-fit: cover;" alt="{{ user.username }}">
+                        {% else %}
+                            <i class="bi bi-person-circle text-muted" style="font-size: 72px;"></i>
+                        {% endif %}
+                        <form method="post" action="{% url 'accounts:profile_avatar' %}" enctype="multipart/form-data" class="flex-grow-1">
+                            {% csrf_token %}
+                            {{ avatar_form.avatar }}
+                            {% include "components/field_errors.html" with field=avatar_form.avatar %}
+                            <button type="submit" class="btn btn-outline-secondary btn-sm mt-2">Hochladen</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card mb-3">
+                <div class="card-body">
+                    <h6 class="text-uppercase text-muted small mb-3">Profildaten</h6>
+                    <dl class="row small mb-3">
+                        <dt class="col-5">Mitglied seit</dt>
+                        <dd class="col-7">{{ user.date_joined|date:"d.m.Y" }}</dd>
+                        <dt class="col-5">Letzte Anmeldung</dt>
+                        <dd class="col-7">{{ user.last_login|date:"d.m.Y H:i"|default:"–" }}</dd>
+                    </dl>
+                    <hr>
+                    <form method="post" action="{% url 'accounts:profile' %}">
+                        {% csrf_token %}
+                        {% if form.non_field_errors %}
+                            <div class="alert alert-danger">{{ form.non_field_errors }}</div>
+                        {% endif %}
+                        <div class="row g-2 mb-3">
+                            <div class="col-12">
+                                <label class="form-label">Benutzername</label>
+                                {{ form.username }}
+                                {% include "components/field_errors.html" with field=form.username %}
+                            </div>
+                        </div>
+                        <div class="row g-2 mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label">Vorname</label>
+                                {{ form.first_name }}
+                                {% include "components/field_errors.html" with field=form.first_name %}
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Nachname</label>
+                                {{ form.last_name }}
+                                {% include "components/field_errors.html" with field=form.last_name %}
+                            </div>
+                        </div>
+                        <div class="row g-2 mb-3">
+                            <div class="col-12">
+                                <label class="form-label">E-Mail</label>
+                                {{ form.email }}
+                                {% include "components/field_errors.html" with field=form.email %}
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Speichern</button>
+                    </form>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-body">
+                    <h6 class="text-uppercase text-muted small mb-3">Passwort ändern</h6>
+                    <form method="post" action="{% url 'accounts:profile_password' %}">
+                        {% csrf_token %}
+                        {% if password_form.non_field_errors %}
+                            <div class="alert alert-danger">{{ password_form.non_field_errors }}</div>
+                        {% endif %}
+                        <div class="row g-2 mb-3">
+                            <div class="col-12">
+                                <label class="form-label">Aktuelles Passwort</label>
+                                {{ password_form.old_password }}
+                                {% include "components/field_errors.html" with field=password_form.old_password %}
+                            </div>
+                        </div>
+                        <div class="row g-2 mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label">Neues Passwort</label>
+                                {{ password_form.new_password1 }}
+                                {% include "components/field_errors.html" with field=password_form.new_password1 %}
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Neues Passwort (Wiederholung)</label>
+                                {{ password_form.new_password2 }}
+                                {% include "components/field_errors.html" with field=password_form.new_password2 %}
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Passwort ändern</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
