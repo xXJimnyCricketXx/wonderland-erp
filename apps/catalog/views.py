@@ -1,17 +1,20 @@
+from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.db.models import Q
-from django.http import HttpResponse
+from django.db.models import Count, Q
+from django.shortcuts import get_object_or_404, redirect
 from django.urls import reverse
 from django.views.generic import CreateView, DetailView, ListView, UpdateView
 from django.views.generic.detail import SingleObjectMixin
 from django.views.generic.base import View
 
 from contacts.models import Supplier
+from core.htmx_utils import htmx_redirect
+from core.mixins import BackModalMixin
 from core.models import ReferenceOption
 from core.sorting import resolve_sort
 
 from .forms import ArticleForm
-from .models import Article
+from .models import Article, EtsyListingMapping
 
 
 class ArticleListView(LoginRequiredMixin, ListView):
@@ -68,7 +71,7 @@ class ArticleListView(LoginRequiredMixin, ListView):
         return context
 
 
-class ArticleDetailModalView(LoginRequiredMixin, DetailView):
+class ArticleDetailModalView(BackModalMixin, LoginRequiredMixin, DetailView):
     """Read-only 'product page' shown by the eye icon - a real detail view,
     not the edit form. Its footer links into ArticleUpdateView for editing."""
 
@@ -95,7 +98,7 @@ class ArticleDetailModalView(LoginRequiredMixin, DetailView):
         return context
 
 
-class ArticleModalMixin(LoginRequiredMixin):
+class ArticleModalMixin(BackModalMixin, LoginRequiredMixin):
     """Shared by create/update: both render into the same modal partial and,
     on success, tell HTMX to do a full-page redirect back to the list rather
     than trying to patch the table in place."""
@@ -106,9 +109,7 @@ class ArticleModalMixin(LoginRequiredMixin):
 
     def form_valid(self, form):
         self.object = form.save()
-        response = HttpResponse(status=204)
-        response["HX-Redirect"] = reverse("catalog:list")
-        return response
+        return htmx_redirect(self.request, reverse("catalog:list"))
 
 
 class ArticleCreateView(ArticleModalMixin, CreateView):
@@ -128,6 +129,70 @@ class ArticleArchiveView(LoginRequiredMixin, SingleObjectMixin, View):
     def post(self, request, *args, **kwargs):
         article = self.get_object()
         article.archive()
-        response = HttpResponse(status=204)
-        response["HX-Redirect"] = reverse("catalog:list")
-        return response
+        return htmx_redirect(request, reverse("catalog:list"))
+
+
+class EtsyListingMappingListView(LoginRequiredMixin, ListView):
+    """One-time "this Etsy listing = this Article" mapping, keyed by Etsy's
+    stable Listing ID - see EtsyListingMappingUpdateView for how setting it
+    here retroactively fixes every past order for that listing too."""
+
+    model = EtsyListingMapping
+    template_name = "catalog/listing_mapping_list.html"
+    context_object_name = "mappings"
+
+    def get_queryset(self):
+        return EtsyListingMapping.objects.select_related("article").order_by("item_name")
+
+    def get_context_data(self, **kwargs):
+        from difflib import SequenceMatcher
+
+        from orders.models import OrderItem
+
+        context = super().get_context_data(**kwargs)
+        counts = dict(OrderItem.objects.values_list("listing_id").annotate(n=Count("id")))
+        articles = list(Article.objects.filter(is_archived=False, parent_article__isnull=True))
+
+        for mapping in context["mappings"]:
+            mapping.order_item_count = counts.get(mapping.listing_id, 0)
+            mapping.suggested_article = None
+            mapping.suggested_score = 0
+            # Gemstone names/"tumbled stone"-type suffixes are close enough
+            # between English (Etsy's item name) and German (our Artikel
+            # title) that plain string similarity finds a lot of correct
+            # matches - still just a one-click suggestion, never auto-saved.
+            if not mapping.article and mapping.item_name and articles:
+                best = max(
+                    articles,
+                    key=lambda a: SequenceMatcher(None, mapping.item_name.lower(), a.title.lower()).ratio(),
+                )
+                score = SequenceMatcher(None, mapping.item_name.lower(), best.title.lower()).ratio()
+                if score >= 0.5:
+                    mapping.suggested_article = best
+                    mapping.suggested_score = round(score * 100)
+
+        # Most-ordered listings first - covers the most orders for the
+        # least manual clicks instead of working through them alphabetically.
+        context["mappings"] = sorted(context["mappings"], key=lambda m: -m.order_item_count)
+        context["articles"] = Article.objects.filter(is_archived=False).order_by("title")
+
+        total_items = sum(m.order_item_count for m in context["mappings"])
+        mapped_items = sum(m.order_item_count for m in context["mappings"] if m.article_id)
+        context["progress_percent"] = round(mapped_items / total_items * 100) if total_items else 0
+        context["mapped_items"] = mapped_items
+        context["total_items"] = total_items
+        return context
+
+
+class EtsyListingMappingUpdateView(LoginRequiredMixin, View):
+    def post(self, request, pk):
+        from orders.models import OrderItem
+
+        mapping = get_object_or_404(EtsyListingMapping, pk=pk)
+        article_id = request.POST.get("article") or None
+        mapping.article_id = article_id
+        mapping.save(update_fields=["article"])
+
+        updated = OrderItem.objects.filter(listing_id=mapping.listing_id).update(article=mapping.article)
+        messages.success(request, f"„{mapping.item_name}“: {updated} Bestellposition(en) aktualisiert.")
+        return redirect(reverse("catalog:listing_mappings"))

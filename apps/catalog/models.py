@@ -19,8 +19,9 @@ class Article(Archivable):
     currency_code = models.CharField("Währung", max_length=3, default="EUR")
 
     stock_quantity = models.PositiveIntegerField("Lagerbestand", default=0)
-    # Reorder threshold ("Soll-Lagerbestand") - see needs_restock below for
-    # how this and stock_quantity combine into a low-stock warning.
+    # Target stock level to hold ("Soll-Lagerbestand"), not a reorder
+    # threshold - see needs_restock below for how this and stock_quantity
+    # combine into a low-stock warning.
     minimum_stock_quantity = models.PositiveIntegerField("Soll-Lagerbestand", blank=True, null=True)
 
     supplier = models.ForeignKey(
@@ -66,9 +67,15 @@ class Article(Archivable):
         return f"{self.title} ({self.variant_label})" if self.variant_label else self.title
 
     def _is_low_stock(self):
+        # No warning without an explicit Soll-Bestand - stock=0 alone isn't
+        # enough, since e.g. freshly imported variants sit at 0 until their
+        # real stock is entered manually (Etsy's listing export doesn't give
+        # per-variant counts). Soll-Bestand is the target level to hold, not
+        # a reorder threshold - being exactly at it is fine, only falling
+        # below it warrants a warning.
         if self.minimum_stock_quantity is None:
-            return self.stock_quantity == 0
-        return self.stock_quantity <= self.minimum_stock_quantity
+            return False
+        return self.stock_quantity < self.minimum_stock_quantity
 
     @property
     def purchase_value_current_stock(self):
@@ -91,3 +98,28 @@ class Article(Archivable):
         if self._is_low_stock():
             return True
         return any(variant._is_low_stock() for variant in self.variants.all())
+
+
+class EtsyListingMapping(models.Model):
+    """One-time mapping "this Etsy listing = this Article", keyed by Etsy's
+    stable Listing ID (from the Sold-Order-Items export - see
+    data_import.order_item_import). Set this once per listing and every
+    past and future OrderItem for that listing_id picks up the article
+    automatically, instead of assigning it order by order."""
+
+    listing_id = models.CharField("Etsy-Listing-ID", max_length=50, unique=True)
+    # Cached from the last-seen order item, purely for display context when
+    # picking the article (Etsy's item name, not necessarily = Article.title).
+    item_name = models.CharField("Etsy-Artikelname", max_length=255, blank=True)
+    article = models.ForeignKey(
+        Article, verbose_name="Artikel", on_delete=models.SET_NULL,
+        null=True, blank=True, related_name="listing_mappings",
+    )
+
+    class Meta:
+        verbose_name = "Etsy-Listing-Zuordnung"
+        verbose_name_plural = "Etsy-Listing-Zuordnungen"
+        ordering = ["item_name"]
+
+    def __str__(self):
+        return f"{self.item_name} ({self.listing_id})"

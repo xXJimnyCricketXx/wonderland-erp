@@ -8,6 +8,9 @@
     <div class="d-flex justify-content-between align-items-center mb-3">
         <h1 class="mb-0">Artikel</h1>
         <div class="d-flex gap-2">
+            <a href="{% url 'catalog:listing_mappings' %}" class="btn btn-outline-secondary">
+                <i class="bi bi-link-45deg me-1"></i>Etsy-Zuordnung
+            </a>
             <a href="{% url 'settings_hub:index' %}?tab=papierkorb&modul=artikel" class="btn btn-outline-secondary">
                 <i class="bi bi-trash me-1"></i>Papierkorb{% if trash_count %} ({{ trash_count }}){% endif %}
             </a>
@@ -71,7 +74,8 @@
                         <tr>
                             <td>
                                 {% if article.thumbnail_url %}
-                                    <img src="{{ article.thumbnail_url }}" alt="" width="40" height="40" class="rounded" style="object-fit: cover;">
+                                    <img src="{{ article.thumbnail_url }}" alt="" width="40" height="40" class="rounded" style="object-fit: cover; cursor: zoom-in;"
+                                         role="button" onclick="openLightbox('{{ article.thumbnail_url|escapejs }}')">
                                 {% endif %}
                             </td>
                             <td>{{ article.sku|default:"–" }}</td>
@@ -120,7 +124,7 @@
     {% endif %}
 
     <div class="modal fade" id="articleModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
-        <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-lg">
+        <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-xl">
             <div class="modal-content" id="articleModalContent">
                 <!-- HTMX swaps the create/edit form in here -->
             </div>

@@ -6,7 +6,8 @@
     <div class="row mb-3">
         <div class="col-md-5">
             {% if article.thumbnail_url %}
-                <img src="{{ article.thumbnail_url }}" class="img-fluid rounded" alt="{{ article.title }}">
+                <img src="{{ article.thumbnail_url }}" class="img-fluid rounded" alt="{{ article.title }}"
+                     role="button" style="cursor: zoom-in;" onclick="openLightbox('{{ article.thumbnail_url|escapejs }}')">
             {% else %}
                 <div class="bg-light rounded d-flex align-items-center justify-content-center" style="aspect-ratio: 1;">
                     <i class="bi bi-image text-muted fs-1"></i>
@@ -95,34 +96,34 @@
 
         <div class="tab-pane fade" id="pill-lager" role="tabpanel">
             <div class="row">
-                <div class="col-md-6">
+                <div class="col-md-4">
                     <h6 class="text-muted text-uppercase small">Lager</h6>
-                    <dl class="row mb-0">
-                        <dt class="col-6">Lagerbestand</dt>
+                    <dl class="row mb-0 g-2">
+                        <dt class="col-6">Lagerbestand:</dt>
                         <dd class="col-6" id="detail-stock">{{ article.stock_quantity }}</dd>
-                        <dt class="col-6">Soll-Bestand</dt>
+                        <dt class="col-6">Soll-Bestand:</dt>
                         <dd class="col-6" id="detail-min-stock">{{ article.minimum_stock_quantity|default:"–" }}</dd>
                     </dl>
                 </div>
-                <div class="col-md-6">
+                <div class="col-md-8">
                     <h6 class="text-muted text-uppercase small">Einkauf</h6>
-                    <dl class="row mb-0">
-                        <dt class="col-6">Lieferant</dt>
-                        <dd class="col-6">{{ article.supplier.full_name|default:"–" }}</dd>
-                        <dt class="col-6">Grundpreis</dt>
-                        <dd class="col-6" id="detail-unit-price">
+                    <dl class="row mb-0 g-2 text-break">
+                        <dt class="col-5">Lieferant:</dt>
+                        <dd class="col-7">{{ article.supplier.full_name|default:"–" }}</dd>
+                        <dt class="col-5">Grundpreis:</dt>
+                        <dd class="col-7" id="detail-unit-price">
                             {% if article.purchase_price_per_unit %}
                                 {{ article.purchase_price_per_unit }} € / {{ article.purchase_price_unit_label }}
                             {% else %}
                                 –
                             {% endif %}
                         </dd>
-                        <dt class="col-6">Einkaufspreis / Stück</dt>
-                        <dd class="col-6" id="detail-piece-price">{{ article.purchase_price_per_piece|default:"–" }}</dd>
-                        <dt class="col-6">Gesamt (aktueller Bestand)</dt>
-                        <dd class="col-6" id="detail-value-current">{{ article.purchase_value_current_stock|default:"–" }}</dd>
-                        <dt class="col-6">Gesamt (Soll-Bestand)</dt>
-                        <dd class="col-6" id="detail-value-target">{{ article.purchase_value_target_stock|default:"–" }}</dd>
+                        <dt class="col-5">Einkaufspreis / Stück:</dt>
+                        <dd class="col-7" id="detail-piece-price">{{ article.purchase_price_per_piece|default:"–" }}</dd>
+                        <dt class="col-5">Gesamt (aktueller Bestand):</dt>
+                        <dd class="col-7" id="detail-value-current">{{ article.purchase_value_current_stock|default:"–" }}</dd>
+                        <dt class="col-5">Gesamt (Soll-Bestand):</dt>
+                        <dd class="col-7" id="detail-value-target">{{ article.purchase_value_target_stock|default:"–" }}</dd>
                     </dl>
                 </div>
             </div>
@@ -149,9 +150,15 @@
     </div>
 </div>
 <div class="modal-footer">
+    {% if back_modal_id %}
+        <button type="button" class="btn btn-outline-secondary me-auto"
+                data-bs-toggle="modal" data-bs-target="#{{ back_modal_id }}" data-bs-dismiss="modal">
+            <i class="bi bi-arrow-left me-1"></i>Zurück
+        </button>
+    {% endif %}
     <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Schließen</button>
     <button type="button" class="btn btn-primary"
-            hx-get="{% url 'catalog:update' article.pk %}" hx-target="#articleModalContent">
+            hx-get="{% url 'catalog:update' article.pk %}{% if back_modal_id %}?zurueck_zu={{ back_modal_id }}{% endif %}" hx-target="#articleModalContent">
         <i class="bi bi-pencil me-1"></i>Bearbeiten
     </button>
 </div>

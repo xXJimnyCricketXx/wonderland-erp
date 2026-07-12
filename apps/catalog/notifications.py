@@ -15,9 +15,10 @@ def get_stock_notifications(request):
     if not request.user.is_authenticated:
         return []
 
-    problem_units = Article.objects.filter(is_archived=False, is_active=True).filter(
-        Q(stock_quantity=0)
-        | Q(minimum_stock_quantity__isnull=False, stock_quantity__lt=F("minimum_stock_quantity"))
+    # No Soll-Bestand set -> no warning at all, same rule as Article._is_low_stock.
+    problem_units = Article.objects.filter(
+        is_archived=False, is_active=True,
+        minimum_stock_quantity__isnull=False, stock_quantity__lt=F("minimum_stock_quantity"),
     ).select_related("parent_article")
 
     # Variants roll up into their parent's notification instead of getting
