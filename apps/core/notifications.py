@@ -37,6 +37,7 @@ def get_all_notifications(request):
     from appointments.notifications import get_reminder_notifications
     from catalog.notifications import get_stock_notifications
     from contacts.notifications import get_contact_notifications
+    from knowledge.notifications import get_license_submission_notifications
     from tasks.notifications import get_task_notifications
 
     return (
@@ -44,4 +45,5 @@ def get_all_notifications(request):
         + get_stock_notifications(request)
         + get_contact_notifications(request)
         + get_task_notifications(request)
+        + get_license_submission_notifications(request)
     )
