@@ -241,3 +241,25 @@ a:hover {
 .table-brand-header thead th a {
     color: var(--brand-white) !important;
 }
+
+/* Pinterest-style masonry via CSS columns - no JS library needed. Each item
+   keeps its natural image aspect ratio (no cropping) instead of a fixed-
+   height grid cell; break-inside:avoid keeps an item's image+caption from
+   being split across two columns. */
+.masonry {
+    column-count: 2;
+    column-gap: 1rem;
+}
+
+@media (min-width: 768px) {
+    .masonry { column-count: 3; }
+}
+
+@media (min-width: 1200px) {
+    .masonry { column-count: 4; }
+}
+
+.masonry-item {
+    break-inside: avoid;
+    margin-bottom: 1rem;
+}

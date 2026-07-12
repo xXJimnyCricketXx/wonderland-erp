@@ -43,6 +43,8 @@ INSTALLED_APPS = [
     "settings_hub",
     "data_import",
     "appointments",
+    "lexikon",
+    "documents",
 ]
 
 MIDDLEWARE = [
@@ -86,8 +88,19 @@ DATABASES = {
         "OPTIONS": {
             "init_command": "PRAGMA journal_mode=WAL;",
         },
-    }
+    },
+    # Self-contained/portable Heilstein-Lexikon dataset - kept in its own
+    # file on purpose so it could be reused standalone in other projects.
+    "lexikon": {
+        "ENGINE": "django.db.backends.sqlite3",
+        "NAME": config("LEXIKON_DB_PATH", default=str(BASE_DIR / "data" / "lexikon.sqlite3")),
+        "OPTIONS": {
+            "init_command": "PRAGMA journal_mode=WAL;",
+        },
+    },
 }
+
+DATABASE_ROUTERS = ["lexikon.router.LexikonRouter"]
 
 AUTH_PASSWORD_VALIDATORS = [
     {"NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator"},
