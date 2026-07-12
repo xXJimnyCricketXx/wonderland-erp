@@ -74,13 +74,13 @@ class Expense(Archivable):
     invoice_number = models.CharField("Rechnungsnummer", max_length=100, blank=True)
     invoice_date = models.DateField("Rechnungsdatum", blank=True, null=True)
     invoice_file = models.FileField(
-        "Rechnung (Datei)", upload_to="invoices/expenses/", blank=True, null=True
+        "Rechnung (Datei)", upload_to="documents/finanzen/eingangsrechnungen/", blank=True, null=True
     )
 
     is_cancelled = models.BooleanField("Storniert", default=False)
     cancelled_at = models.DateField("Storniert am", blank=True, null=True)
     cancellation_invoice_file = models.FileField(
-        "Stornorechnung (Datei)", upload_to="invoices/cancellations/", blank=True, null=True
+        "Stornorechnung (Datei)", upload_to="documents/finanzen/eingangsrechnungen/storno/", blank=True, null=True
     )
 
     # Free text, options managed via ReferenceOption(category="payment_account").
