@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load filters %}
 {% block title %}Infothek{% endblock %}
 {% block content %}
     <h1 class="mb-4">Infothek</h1>
@@ -12,19 +13,23 @@
     </ul>
 
     {% if active_tab == "verpackungslizenz" %}
-        <form method="get" class="row g-2 mb-3 align-items-end">
-            <input type="hidden" name="tab" value="verpackungslizenz">
+        <div class="row g-2 mb-3 align-items-end">
             <div class="col-md-3">
                 <label class="form-label small mb-1">Jahr (Rechner)</label>
-                <select name="jahr" class="form-select" onchange="this.form.submit()">
-                    {% for y in years %}
-                        <option value="{{ y }}" {% if y == selected_year %}selected{% endif %}>{{ y }}</option>
-                    {% empty %}
-                        <option value="{{ selected_year }}">{{ selected_year }}</option>
-                    {% endfor %}
-                </select>
+                <div class="dropdown">
+                    <button class="btn filter-dropdown-toggle dropdown-toggle w-100 text-start" type="button" data-bs-toggle="dropdown">
+                        {{ selected_year }}
+                    </button>
+                    <ul class="dropdown-menu">
+                        {% for y in years %}
+                            <li><a class="dropdown-item{% if y == selected_year %} active{% endif %}" href="{% filter_url 'jahr' y %}">{{ y }}</a></li>
+                        {% empty %}
+                            <li><a class="dropdown-item active" href="#">{{ selected_year }}</a></li>
+                        {% endfor %}
+                    </ul>
+                </div>
             </div>
-        </form>
+        </div>
 
         {% if rows %}
             <div class="table-responsive">

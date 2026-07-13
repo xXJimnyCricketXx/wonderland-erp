@@ -90,12 +90,33 @@ body {
     color: var(--brand-white);
 }
 
-/* Bootstrap's dropdown-item :active state (i.e. while clicking) defaults to
-   its blue, separate from the hover state which was already fine. */
+/* Bootstrap's dropdown-item :active/:hover states default to blue/gray -
+   retheme both to the brand green, everywhere a .dropdown-menu is used. */
 .dropdown-item.active,
-.dropdown-item:active {
+.dropdown-item:active,
+.dropdown-item:hover,
+.dropdown-item:focus {
     background-color: var(--brand-green);
     color: var(--brand-white);
+}
+
+/* Filter-Dropdown-Trigger (Bestellungen/Artikel/Kontakte/Finanzen/Berichte/
+   Bewertungen, ...) sollen wie ein .form-select aussehen - grüner Rahmen,
+   goldener Fokus - statt Bootstraps grauem .btn-outline-secondary. */
+.filter-dropdown-toggle {
+    border: 1px solid var(--brand-green);
+    background-color: var(--brand-white);
+}
+
+.filter-dropdown-toggle:hover,
+.filter-dropdown-toggle:focus,
+.filter-dropdown-toggle.show {
+    border-color: var(--brand-gold);
+    background-color: var(--brand-white);
+}
+
+.filter-dropdown-toggle:focus {
+    box-shadow: 0 0 0 .25rem rgba(244, 170, 27, .25);
 }
 
 .navbar .nav-link:hover,
@@ -304,4 +325,147 @@ a:hover {
 .masonry-item {
     break-inside: avoid;
     margin-bottom: 1rem;
+}
+
+/* ---------- Berichte ---------- */
+
+.report-page {
+    background: var(--brand-white);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 2rem clamp(1.25rem, 4vw, 3rem);
+    max-width: 900px;
+    margin: 0 auto;
+}
+
+.report-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    border-bottom: 2px solid #000;
+    padding-bottom: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.report-header h1 {
+    margin: 0;
+    font-size: 1.6rem;
+}
+
+.report-zeitraum {
+    font-size: 1.05rem;
+    color: var(--text-muted);
+    margin-top: 0.25rem;
+}
+
+.report-meta {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+}
+
+.report-stats {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 2rem;
+}
+
+.report-stat {
+    flex: 1;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 0.9rem 1.1rem;
+}
+
+.report-stat .label {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    color: var(--text-muted);
+}
+
+.report-stat .value {
+    font-size: 1.4rem;
+    font-weight: 700;
+    margin-top: 0.25rem;
+    font-variant-numeric: tabular-nums;
+}
+
+.report-page h2 {
+    font-size: 1.05rem;
+    margin: 1.75rem 0 0.75rem 0;
+    padding-bottom: 0.4rem;
+    border-bottom: 1px solid var(--border);
+}
+
+.report-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.85rem;
+}
+
+.report-table th, .report-table td {
+    text-align: left;
+    padding: 0.45rem 0.6rem;
+    border-bottom: 1px solid var(--border);
+}
+
+.report-table th {
+    color: var(--text-muted);
+    font-weight: 600;
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+}
+
+@media print {
+    .navbar, .sidebar-rail, .no-print { display: none !important; }
+    main { padding: 0 !important; }
+    .report-page {
+        border: none;
+        border-radius: 0;
+        max-width: none;
+        padding: 0;
+    }
+}
+
+/* SKR03-Übersicht (Finanzen) - eine Spalte pro genutztem SKR03-Konto, manche
+   Kontonamen sind sehr lang (z.B. "Innergemeinschaftlicher Erwerb 19%
+   Vorsteuer...") - kleinere Schrift + Zeilenumbruch im Spaltenkopf statt
+   erzwungener Breite hält die Tabelle kompakt. */
+/* table-layout:fixed stops long account names (e.g. "Innergemeinschaftlicher
+   Erwerb 19% Vorsteuer...") from stretching their whole column to fit on one
+   line - columns wrap and stay narrow/uniform instead. */
+.skr03-table {
+    table-layout: fixed;
+}
+
+.skr03-table th,
+.skr03-table td {
+    padding: 0.35rem 0.5rem;
+    overflow-wrap: break-word;
+}
+
+.skr03-table th {
+    white-space: normal;
+    max-width: 110px;
+}
+
+/* Bootstrap's expanded-accordion-button state ships hardcoded blue - not just
+   --bs-accordion-active-bg/-color, but also the little chevron icon, which
+   is a hardcoded-blue-stroke SVG data URI (--bs-accordion-btn-active-icon),
+   easy to miss since it's not a plain color property. Dokumente uses an
+   accordion for its folder tree, retheme all of it to the brand green. */
+.accordion-button:not(.collapsed) {
+    --bs-accordion-active-bg: var(--brand-green);
+    --bs-accordion-active-color: var(--brand-white);
+    --bs-accordion-btn-focus-box-shadow: 0 0 0 .25rem rgba(1, 57, 37, .25);
+    --bs-accordion-btn-active-icon: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='%23FEFEFE' stroke-linecap='round' stroke-linejoin='round'%3e%3cpath d='M2 5L8 11L14 5'/%3e%3c/svg%3e");
+}
+
+/* --bs-accordion-btn-focus-box-shadow ships hardcoded blue too, and it's
+   set on the .accordion-button base (not just the expanded state), so it
+   still shows a blue ring after collapsing a header back down. */
+.accordion-button:focus {
+    border-color: var(--brand-green);
+    --bs-accordion-btn-focus-box-shadow: 0 0 0 .25rem var(--brand-green);
 }

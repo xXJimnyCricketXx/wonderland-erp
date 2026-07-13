@@ -10,6 +10,7 @@ from django.views.generic.detail import SingleObjectMixin
 
 from contacts.models import Supplier
 from core.htmx_utils import htmx_redirect
+from core.models import ReferenceOption
 
 from orders.models import Order
 
@@ -66,14 +67,16 @@ class FinanceView(LoginRequiredMixin, View):
         if status:
             qs = qs.filter(status=status)
 
-        base_qs = Income.objects.filter(is_archived=False)
         return {
             "incomes": qs,
             "query": query or "",
             "selected_category": category or "",
             "selected_status": status or "",
-            "income_categories": base_qs.exclude(category="").order_by("category").values_list("category", flat=True).distinct(),
-            "income_statuses": base_qs.exclude(status="").order_by("status").values_list("status", flat=True).distinct(),
+            # Aus Referenzdaten, nicht aus den vorhandenen Einnahmen abgeleitet -
+            # sonst fehlen konfigurierte Werte im Filter, solange noch keine
+            # Einnahme diese Kategorie/diesen Status trägt.
+            "income_categories": ReferenceOption.objects.filter(category="income_category").order_by("order", "value"),
+            "income_statuses": ReferenceOption.objects.filter(category="income_status").order_by("order", "value"),
         }
 
     def _expense_context(self):
@@ -113,11 +116,15 @@ class FinanceView(LoginRequiredMixin, View):
             "selected_category": category or "",
             "selected_variant": variant or "",
             "selected_supplier": supplier or "",
+            "selected_supplier_obj": Supplier.objects.filter(pk=supplier).first() if supplier else None,
             "selected_status": status or "",
-            "expense_categories": base_qs.exclude(category="").order_by("category").values_list("category", flat=True).distinct(),
-            "expense_variants": base_qs.exclude(variant="").order_by("variant").values_list("variant", flat=True).distinct(),
+            # Aus Referenzdaten bzw. der Konten-Zuordnung, nicht aus den
+            # vorhandenen Ausgaben abgeleitet - sonst fehlen konfigurierte
+            # Werte im Filter, solange noch keine Ausgabe sie trägt.
+            "expense_categories": ReferenceOption.objects.filter(category="expense_category").order_by("order", "value"),
+            "expense_variants": AccountMapping.objects.exclude(variante="").order_by("variante").values_list("variante", flat=True).distinct(),
             "expense_suppliers": Supplier.objects.filter(pk__in=base_qs.exclude(supplier__isnull=True).values_list("supplier_id", flat=True)).order_by("last_name", "first_name", "company_name"),
-            "expense_statuses": base_qs.exclude(status="").order_by("status").values_list("status", flat=True).distinct(),
+            "expense_statuses": ReferenceOption.objects.filter(category="expense_status").order_by("order", "value"),
         }
 
     def _ledger_context(self):
@@ -149,6 +156,7 @@ class FinanceView(LoginRequiredMixin, View):
             "selected_entry_type": entry_type or "",
             "selected_year": year or "",
             "selected_month": month or "",
+            "selected_month_label": dict(MONTH_CHOICES).get(int(month), "") if month else "",
             # Freitext-Import-Feld (siehe LedgerEntry.entry_type - Etsy kann
             # jederzeit neue Typen einführen), daher Filter aus tatsächlich
             # vorhandenen Werten statt einer festen Referenzdaten-Liste.

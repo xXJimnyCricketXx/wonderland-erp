@@ -114,6 +114,12 @@
                         </a>
                     </li>
                     <li class="nav-item">
+                        {% url 'reports:index' as reports_url %}
+                        <a href="{{ reports_url }}" class="nav-link d-flex align-items-center justify-content-lg-center text-white{% if request.path == reports_url %} active{% endif %}" title="Berichte" data-bs-toggle="tooltip" data-bs-placement="right">
+                            <i class="bi bi-file-earmark-bar-graph"></i><span class="ms-2 d-lg-none">Berichte</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
                         {% url 'tasks:board' as tasks_url %}
                         <a href="{{ tasks_url }}" class="nav-link d-flex align-items-center justify-content-lg-center text-white{% if request.path == tasks_url %} active{% endif %}" title="Aufgaben" data-bs-toggle="tooltip" data-bs-placement="right">
                             <i class="bi bi-check2-square"></i><span class="ms-2 d-lg-none">Aufgaben</span>

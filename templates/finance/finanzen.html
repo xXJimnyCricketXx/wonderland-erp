@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load filters %}
 {% block title %}Finanzen{% endblock %}
 {% block content %}
     <div class="d-flex justify-content-between align-items-center mb-3">
@@ -58,26 +59,38 @@
     {% if active_tab == "einnahmen" %}
         <form method="get" class="row g-2 mb-3 align-items-end">
             <input type="hidden" name="tab" value="einnahmen">
+            <input type="hidden" name="category" value="{{ selected_category }}">
+            <input type="hidden" name="status" value="{{ selected_status }}">
             <div class="col-md-4">
                 {% include "components/search_box.html" with query=query placeholder="Rechnungsnummer, Bestellung oder Kunde suchen" %}
             </div>
             <div class="col-md-3">
                 <label class="form-label small mb-1">Kategorie</label>
-                <select name="category" class="form-select" onchange="this.form.submit()">
-                    <option value="">Alle</option>
-                    {% for c in income_categories %}
-                        <option value="{{ c }}" {% if selected_category == c %}selected{% endif %}>{{ c }}</option>
-                    {% endfor %}
-                </select>
+                <div class="dropdown">
+                    <button class="btn filter-dropdown-toggle dropdown-toggle w-100 text-start" type="button" data-bs-toggle="dropdown">
+                        {{ selected_category|default:"Alle" }}
+                    </button>
+                    <ul class="dropdown-menu">
+                        <li><a class="dropdown-item{% if not selected_category %} active{% endif %}" href="{% filter_url 'category' None %}">Alle</a></li>
+                        {% for c in income_categories %}
+                            <li><a class="dropdown-item{% if selected_category == c.value %} active{% endif %}" href="{% filter_url 'category' c.value %}">{{ c.value }}</a></li>
+                        {% endfor %}
+                    </ul>
+                </div>
             </div>
             <div class="col-md-3">
                 <label class="form-label small mb-1">Status</label>
-                <select name="status" class="form-select" onchange="this.form.submit()">
-                    <option value="">Alle</option>
-                    {% for s in income_statuses %}
-                        <option value="{{ s }}" {% if selected_status == s %}selected{% endif %}>{{ s }}</option>
-                    {% endfor %}
-                </select>
+                <div class="dropdown">
+                    <button class="btn filter-dropdown-toggle dropdown-toggle w-100 text-start" type="button" data-bs-toggle="dropdown">
+                        {{ selected_status|default:"Alle" }}
+                    </button>
+                    <ul class="dropdown-menu">
+                        <li><a class="dropdown-item{% if not selected_status %} active{% endif %}" href="{% filter_url 'status' None %}">Alle</a></li>
+                        {% for s in income_statuses %}
+                            <li><a class="dropdown-item{% if selected_status == s.value %} active{% endif %}" href="{% filter_url 'status' s.value %}">{{ s.value }}</a></li>
+                        {% endfor %}
+                    </ul>
+                </div>
             </div>
         </form>
         {% if incomes %}
@@ -133,44 +146,68 @@
     {% elif active_tab == "ausgaben" %}
         <form method="get" class="row g-2 mb-3 align-items-end">
             <input type="hidden" name="tab" value="ausgaben">
-            <div class="col-md-4">
+            <input type="hidden" name="category" value="{{ selected_category }}">
+            <input type="hidden" name="variant" value="{{ selected_variant }}">
+            <input type="hidden" name="supplier" value="{{ selected_supplier }}">
+            <input type="hidden" name="status" value="{{ selected_status }}">
+            <div class="col-md-3">
                 {% include "components/search_box.html" with query=query placeholder="ID, Rechnungsnummer, Beschreibung oder Lieferant suchen" %}
             </div>
-            <div class="col-md-4">
+            <div class="col-md-2">
                 <label class="form-label small mb-1">Art</label>
-                <select name="category" class="form-select" onchange="this.form.submit()">
-                    <option value="">Alle</option>
-                    {% for c in expense_categories %}
-                        <option value="{{ c }}" {% if selected_category == c %}selected{% endif %}>{{ c }}</option>
-                    {% endfor %}
-                </select>
+                <div class="dropdown">
+                    <button class="btn filter-dropdown-toggle dropdown-toggle w-100 text-start" type="button" data-bs-toggle="dropdown">
+                        {{ selected_category|default:"Alle" }}
+                    </button>
+                    <ul class="dropdown-menu">
+                        <li><a class="dropdown-item{% if not selected_category %} active{% endif %}" href="{% filter_url 'category' None %}">Alle</a></li>
+                        {% for c in expense_categories %}
+                            <li><a class="dropdown-item{% if selected_category == c.value %} active{% endif %}" href="{% filter_url 'category' c.value %}">{{ c.value }}</a></li>
+                        {% endfor %}
+                    </ul>
+                </div>
             </div>
-            <div class="col-md-4">
+            <div class="col-md-2">
                 <label class="form-label small mb-1">Variante</label>
-                <select name="variant" class="form-select" onchange="this.form.submit()">
-                    <option value="">Alle</option>
-                    {% for v in expense_variants %}
-                        <option value="{{ v }}" {% if selected_variant == v %}selected{% endif %}>{{ v }}</option>
-                    {% endfor %}
-                </select>
+                <div class="dropdown">
+                    <button class="btn filter-dropdown-toggle dropdown-toggle w-100 text-start" type="button" data-bs-toggle="dropdown">
+                        {{ selected_variant|default:"Alle" }}
+                    </button>
+                    <ul class="dropdown-menu">
+                        <li><a class="dropdown-item{% if not selected_variant %} active{% endif %}" href="{% filter_url 'variant' None %}">Alle</a></li>
+                        {% for v in expense_variants %}
+                            <li><a class="dropdown-item{% if selected_variant == v %} active{% endif %}" href="{% filter_url 'variant' v %}">{{ v }}</a></li>
+                        {% endfor %}
+                    </ul>
+                </div>
             </div>
-            <div class="col-md-6">
+            <div class="col-md-3">
                 <label class="form-label small mb-1">Lieferant</label>
-                <select name="supplier" class="form-select" onchange="this.form.submit()">
-                    <option value="">Alle</option>
-                    {% for sup in expense_suppliers %}
-                        <option value="{{ sup.pk }}" {% if selected_supplier == sup.pk|stringformat:"s" %}selected{% endif %}>{{ sup.full_name }}</option>
-                    {% endfor %}
-                </select>
+                <div class="dropdown">
+                    <button class="btn filter-dropdown-toggle dropdown-toggle w-100 text-start" type="button" data-bs-toggle="dropdown">
+                        {{ selected_supplier_obj.full_name|default:"Alle" }}
+                    </button>
+                    <ul class="dropdown-menu">
+                        <li><a class="dropdown-item{% if not selected_supplier %} active{% endif %}" href="{% filter_url 'supplier' None %}">Alle</a></li>
+                        {% for sup in expense_suppliers %}
+                            <li><a class="dropdown-item{% if selected_supplier == sup.pk|stringformat:"s" %} active{% endif %}" href="{% filter_url 'supplier' sup.pk %}">{{ sup.full_name }}</a></li>
+                        {% endfor %}
+                    </ul>
+                </div>
             </div>
-            <div class="col-md-6">
+            <div class="col-md-2">
                 <label class="form-label small mb-1">Status</label>
-                <select name="status" class="form-select" onchange="this.form.submit()">
-                    <option value="">Alle</option>
-                    {% for s in expense_statuses %}
-                        <option value="{{ s }}" {% if selected_status == s %}selected{% endif %}>{{ s }}</option>
-                    {% endfor %}
-                </select>
+                <div class="dropdown">
+                    <button class="btn filter-dropdown-toggle dropdown-toggle w-100 text-start" type="button" data-bs-toggle="dropdown">
+                        {{ selected_status|default:"Alle" }}
+                    </button>
+                    <ul class="dropdown-menu">
+                        <li><a class="dropdown-item{% if not selected_status %} active{% endif %}" href="{% filter_url 'status' None %}">Alle</a></li>
+                        {% for s in expense_statuses %}
+                            <li><a class="dropdown-item{% if selected_status == s.value %} active{% endif %}" href="{% filter_url 'status' s.value %}">{{ s.value }}</a></li>
+                        {% endfor %}
+                    </ul>
+                </div>
             </div>
         </form>
         {% if expenses %}
@@ -228,35 +265,53 @@
     {% elif active_tab == "rohdaten" %}
         <form method="get" class="row g-2 mb-3 align-items-end">
             <input type="hidden" name="tab" value="rohdaten">
+            <input type="hidden" name="entry_type" value="{{ selected_entry_type }}">
+            <input type="hidden" name="year" value="{{ selected_year }}">
+            <input type="hidden" name="month" value="{{ selected_month }}">
             <div class="col-md-5">
                 {% include "components/search_box.html" with query=query placeholder="Titel, Info oder Bestellung suchen" %}
             </div>
             <div class="col-md-3">
                 <label class="form-label small mb-1">Art</label>
-                <select name="entry_type" class="form-select" onchange="this.form.submit()">
-                    <option value="">Alle</option>
-                    {% for t in ledger_entry_types %}
-                        <option value="{{ t }}" {% if selected_entry_type == t %}selected{% endif %}>{{ t }}</option>
-                    {% endfor %}
-                </select>
+                <div class="dropdown">
+                    <button class="btn filter-dropdown-toggle dropdown-toggle w-100 text-start" type="button" data-bs-toggle="dropdown">
+                        {{ selected_entry_type|default:"Alle" }}
+                    </button>
+                    <ul class="dropdown-menu">
+                        <li><a class="dropdown-item{% if not selected_entry_type %} active{% endif %}" href="{% filter_url 'entry_type' None %}">Alle</a></li>
+                        {% for t in ledger_entry_types %}
+                            <li><a class="dropdown-item{% if selected_entry_type == t %} active{% endif %}" href="{% filter_url 'entry_type' t %}">{{ t }}</a></li>
+                        {% endfor %}
+                    </ul>
+                </div>
             </div>
             <div class="col-md-2">
                 <label class="form-label small mb-1">Jahr</label>
-                <select name="year" class="form-select" onchange="this.form.submit()">
-                    <option value="">Alle</option>
-                    {% for y in ledger_years %}
-                        <option value="{{ y }}" {% if selected_year == y|stringformat:"s" %}selected{% endif %}>{{ y }}</option>
-                    {% endfor %}
-                </select>
+                <div class="dropdown">
+                    <button class="btn filter-dropdown-toggle dropdown-toggle w-100 text-start" type="button" data-bs-toggle="dropdown">
+                        {{ selected_year|default:"Alle" }}
+                    </button>
+                    <ul class="dropdown-menu">
+                        <li><a class="dropdown-item{% if not selected_year %} active{% endif %}" href="{% filter_url 'year' None %}">Alle</a></li>
+                        {% for y in ledger_years %}
+                            <li><a class="dropdown-item{% if selected_year == y|stringformat:"s" %} active{% endif %}" href="{% filter_url 'year' y %}">{{ y }}</a></li>
+                        {% endfor %}
+                    </ul>
+                </div>
             </div>
             <div class="col-md-2">
                 <label class="form-label small mb-1">Monat</label>
-                <select name="month" class="form-select" onchange="this.form.submit()">
-                    <option value="">Alle</option>
-                    {% for m, label in ledger_months %}
-                        <option value="{{ m }}" {% if selected_month == m|stringformat:"s" %}selected{% endif %}>{{ label }}</option>
-                    {% endfor %}
-                </select>
+                <div class="dropdown">
+                    <button class="btn filter-dropdown-toggle dropdown-toggle w-100 text-start" type="button" data-bs-toggle="dropdown">
+                        {{ selected_month_label|default:"Alle" }}
+                    </button>
+                    <ul class="dropdown-menu">
+                        <li><a class="dropdown-item{% if not selected_month %} active{% endif %}" href="{% filter_url 'month' None %}">Alle</a></li>
+                        {% for m, label in ledger_months %}
+                            <li><a class="dropdown-item{% if selected_month == m|stringformat:"s" %} active{% endif %}" href="{% filter_url 'month' m %}">{{ label }}</a></li>
+                        {% endfor %}
+                    </ul>
+                </div>
             </div>
         </form>
         {% if ledger_entries %}
@@ -331,14 +386,14 @@
     {% elif active_tab == "skr03" %}
         {% if skr03_columns %}
             <div class="table-responsive">
-                <table class="table table-striped table-hover align-middle table-brand-header">
+                <table class="table table-sm table-striped table-hover align-middle table-brand-header skr03-table">
                     <thead>
                         <tr>
                             <th>ID</th>
                             <th>Datum</th>
                             <th>Lieferant</th>
                             {% for column in skr03_columns %}
-                                <th class="text-nowrap">{{ column.name }}</th>
+                                <th>{{ column.name }}</th>
                             {% endfor %}
                         </tr>
                     </thead>

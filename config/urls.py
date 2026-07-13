@@ -14,6 +14,7 @@ urlpatterns = [
     path("bewertungen/", ReviewListView.as_view(), name="review_list"),
     path("kontakte/", include("contacts.urls")),
     path("finanzen/", include("finance.urls")),
+    path("berichte/", include("reports.urls")),
     path("termine/", include("appointments.urls")),
     path("aufgaben/", include("tasks.urls")),
     path("infothek/", include("knowledge.urls")),

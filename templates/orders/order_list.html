@@ -1,11 +1,11 @@
 {% extends "base.html" %}
-{% load sortable %}
+{% load sortable filters %}
 {% block title %}Bestellungen{% endblock %}
 {% block content %}
     <div class="d-flex justify-content-between align-items-center mb-3">
         <h1 class="mb-0">Bestellungen</h1>
         <div class="d-flex gap-2">
-            <a href="{% url 'settings_hub:index' %}?tab=papierkorb&modul=bestellungen" class="btn btn-outline-secondary">
+            <a href="{% url 'settings_hub:index' %}?tab=papierkorb&modul=bestellungen" class="btn btn-outline-danger">
                 <i class="bi bi-trash me-1"></i>Papierkorb{% if trash_count %} ({{ trash_count }}){% endif %}
             </a>
             <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#orderModal"
@@ -16,26 +16,38 @@
     </div>
 
     <form method="get" class="row g-2 mb-3 align-items-end">
-        <div class="col-md-4">
+        <input type="hidden" name="status" value="{{ selected_status }}">
+        <input type="hidden" name="order_type" value="{{ selected_order_type }}">
+        <div class="col-md-6">
             {% include "components/search_box.html" with query=query placeholder="Bestell-ID, Etsy-Nr., Kunde, Käufername oder Sendungsnummer suchen" %}
         </div>
         <div class="col-md-3">
             <label class="form-label small mb-1">Status</label>
-            <select name="status" class="form-select" onchange="this.form.submit()">
-                <option value="">Alle</option>
-                {% for s in statuses %}
-                    <option value="{{ s }}" {% if selected_status == s %}selected{% endif %}>{{ s }}</option>
-                {% endfor %}
-            </select>
+            <div class="dropdown">
+                <button class="btn filter-dropdown-toggle dropdown-toggle w-100 text-start" type="button" data-bs-toggle="dropdown">
+                    {{ selected_status|default:"Alle" }}
+                </button>
+                <ul class="dropdown-menu">
+                    <li><a class="dropdown-item{% if not selected_status %} active{% endif %}" href="{% filter_url 'status' None %}">Alle</a></li>
+                    {% for s in statuses %}
+                        <li><a class="dropdown-item{% if selected_status == s.value %} active{% endif %}" href="{% filter_url 'status' s.value %}">{{ s.value }}</a></li>
+                    {% endfor %}
+                </ul>
+            </div>
         </div>
         <div class="col-md-3">
             <label class="form-label small mb-1">Bestellart</label>
-            <select name="order_type" class="form-select" onchange="this.form.submit()">
-                <option value="">Alle</option>
-                {% for t in order_types %}
-                    <option value="{{ t }}" {% if selected_order_type == t %}selected{% endif %}>{{ t }}</option>
-                {% endfor %}
-            </select>
+            <div class="dropdown">
+                <button class="btn filter-dropdown-toggle dropdown-toggle w-100 text-start" type="button" data-bs-toggle="dropdown">
+                    {{ selected_order_type|default:"Alle" }}
+                </button>
+                <ul class="dropdown-menu">
+                    <li><a class="dropdown-item{% if not selected_order_type %} active{% endif %}" href="{% filter_url 'order_type' None %}">Alle</a></li>
+                    {% for t in order_types %}
+                        <li><a class="dropdown-item{% if selected_order_type == t.value %} active{% endif %}" href="{% filter_url 'order_type' t.value %}">{{ t.value }}</a></li>
+                    {% endfor %}
+                </ul>
+            </div>
         </div>
     </form>
 

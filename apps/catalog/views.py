@@ -64,6 +64,9 @@ class ArticleListView(LoginRequiredMixin, ListView):
         context["query"] = self.request.GET.get("q", "")
         context["selected_is_active"] = self.request.GET.get("is_active", "")
         context["selected_supplier"] = self.request.GET.get("supplier", "")
+        context["selected_supplier_obj"] = (
+            Supplier.objects.filter(pk=context["selected_supplier"]).first() if context["selected_supplier"] else None
+        )
         context["selected_category"] = self.request.GET.get("category", "")
         context["trash_count"] = Article.objects.filter(
             is_archived=True, parent_article__isnull=True

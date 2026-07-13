@@ -1,12 +1,12 @@
 {% extends "base.html" %}
-{% load sortable %}
+{% load sortable filters %}
 {% block title %}Kontakte{% endblock %}
 {% block content %}
     <div class="d-flex justify-content-between align-items-center mb-3">
         <h1 class="mb-0">Kontakte</h1>
         <div class="d-flex gap-2">
             {% if active_tab == "kunden" %}
-                <a href="{% url 'settings_hub:index' %}?tab=papierkorb&modul=kunden" class="btn btn-outline-secondary">
+                <a href="{% url 'settings_hub:index' %}?tab=papierkorb&modul=kunden" class="btn btn-outline-danger">
                     <i class="bi bi-trash me-1"></i>Papierkorb{% if trash_count %} ({{ trash_count }}){% endif %}
                 </a>
                 <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#contactModal"
@@ -14,7 +14,7 @@
                     <i class="bi bi-plus-lg me-1"></i>Neuer Kunde
                 </button>
             {% else %}
-                <a href="{% url 'settings_hub:index' %}?tab=papierkorb&modul=lieferanten" class="btn btn-outline-secondary">
+                <a href="{% url 'settings_hub:index' %}?tab=papierkorb&modul=lieferanten" class="btn btn-outline-danger">
                     <i class="bi bi-trash me-1"></i>Papierkorb{% if trash_count %} ({{ trash_count }}){% endif %}
                 </a>
                 <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#contactModal"
@@ -41,25 +41,37 @@
     {% if active_tab == "kunden" %}
         <form method="get" class="row g-2 mb-3 align-items-end">
             <input type="hidden" name="tab" value="kunden">
+            <input type="hidden" name="status" value="{{ selected_status }}">
+            <input type="hidden" name="is_returning_customer" value="{{ selected_returning }}">
             <div class="col-md-5">
                 {% include "components/search_box.html" with query=query placeholder="Name, Firma oder E-Mail suchen" %}
             </div>
             <div class="col-md-3">
                 <label class="form-label small mb-1">Status</label>
-                <select name="status" class="form-select" onchange="this.form.submit()">
-                    <option value="">Alle</option>
-                    {% for s in statuses %}
-                        <option value="{{ s.value }}" {% if selected_status == s.value %}selected{% endif %}>{{ s.value }}</option>
-                    {% endfor %}
-                </select>
+                <div class="dropdown">
+                    <button class="btn filter-dropdown-toggle dropdown-toggle w-100 text-start" type="button" data-bs-toggle="dropdown">
+                        {{ selected_status|default:"Alle" }}
+                    </button>
+                    <ul class="dropdown-menu">
+                        <li><a class="dropdown-item{% if not selected_status %} active{% endif %}" href="{% filter_url 'status' None %}">Alle</a></li>
+                        {% for s in statuses %}
+                            <li><a class="dropdown-item{% if selected_status == s.value %} active{% endif %}" href="{% filter_url 'status' s.value %}">{{ s.value }}</a></li>
+                        {% endfor %}
+                    </ul>
+                </div>
             </div>
             <div class="col-md-3">
                 <label class="form-label small mb-1">Stammkunde</label>
-                <select name="is_returning_customer" class="form-select" onchange="this.form.submit()">
-                    <option value="">Alle</option>
-                    <option value="1" {% if selected_returning == "1" %}selected{% endif %}>Ja</option>
-                    <option value="0" {% if selected_returning == "0" %}selected{% endif %}>Nein</option>
-                </select>
+                <div class="dropdown">
+                    <button class="btn filter-dropdown-toggle dropdown-toggle w-100 text-start" type="button" data-bs-toggle="dropdown">
+                        {% if selected_returning == "1" %}Ja{% elif selected_returning == "0" %}Nein{% else %}Alle{% endif %}
+                    </button>
+                    <ul class="dropdown-menu">
+                        <li><a class="dropdown-item{% if not selected_returning %} active{% endif %}" href="{% filter_url 'is_returning_customer' None %}">Alle</a></li>
+                        <li><a class="dropdown-item{% if selected_returning == "1" %} active{% endif %}" href="{% filter_url 'is_returning_customer' '1' %}">Ja</a></li>
+                        <li><a class="dropdown-item{% if selected_returning == "0" %} active{% endif %}" href="{% filter_url 'is_returning_customer' '0' %}">Nein</a></li>
+                    </ul>
+                </div>
             </div>
         </form>
 
@@ -121,17 +133,23 @@
     {% else %}
         <form method="get" class="row g-2 mb-3 align-items-end">
             <input type="hidden" name="tab" value="lieferanten">
+            <input type="hidden" name="status" value="{{ selected_status }}">
             <div class="col-md-6">
                 {% include "components/search_box.html" with query=query placeholder="Name, Firma oder Kundennummer suchen" %}
             </div>
             <div class="col-md-4">
                 <label class="form-label small mb-1">Status</label>
-                <select name="status" class="form-select" onchange="this.form.submit()">
-                    <option value="">Alle</option>
-                    {% for s in statuses %}
-                        <option value="{{ s.value }}" {% if selected_status == s.value %}selected{% endif %}>{{ s.value }}</option>
-                    {% endfor %}
-                </select>
+                <div class="dropdown">
+                    <button class="btn filter-dropdown-toggle dropdown-toggle w-100 text-start" type="button" data-bs-toggle="dropdown">
+                        {{ selected_status|default:"Alle" }}
+                    </button>
+                    <ul class="dropdown-menu">
+                        <li><a class="dropdown-item{% if not selected_status %} active{% endif %}" href="{% filter_url 'status' None %}">Alle</a></li>
+                        {% for s in statuses %}
+                            <li><a class="dropdown-item{% if selected_status == s.value %} active{% endif %}" href="{% filter_url 'status' s.value %}">{{ s.value }}</a></li>
+                        {% endfor %}
+                    </ul>
+                </div>
             </div>
         </form>
 

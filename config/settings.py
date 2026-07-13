@@ -45,6 +45,7 @@ INSTALLED_APPS = [
     "appointments",
     "lexikon",
     "documents",
+    "reports",
 ]
 
 MIDDLEWARE = [

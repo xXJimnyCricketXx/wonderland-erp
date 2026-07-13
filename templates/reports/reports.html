@@ -1,0 +1,153 @@
+{% extends "base.html" %}
+{% load filters %}
+{% block title %}Berichte{% endblock %}
+{% block content %}
+    <div class="d-flex justify-content-between align-items-center mb-3 no-print">
+        <h1 class="mb-0">Berichte</h1>
+        <button type="button" class="btn btn-primary" onclick="window.print()">
+            <i class="bi bi-printer me-1"></i>Drucken / Als PDF speichern
+        </button>
+    </div>
+
+    <div class="row g-2 mb-4 align-items-end no-print">
+        <div class="col-md-2">
+            <label class="form-label small mb-1">Jahr</label>
+            <div class="dropdown">
+                <button class="btn filter-dropdown-toggle dropdown-toggle w-100 text-start" type="button" data-bs-toggle="dropdown">
+                    {{ year }}
+                </button>
+                <ul class="dropdown-menu">
+                    {% for y in available_years %}
+                        <li><a class="dropdown-item{% if year == y %} active{% endif %}" href="{% filter_url 'jahr' y %}">{{ y }}</a></li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <label class="form-label small mb-1">Zeitraum</label>
+            <div class="dropdown">
+                <button class="btn filter-dropdown-toggle dropdown-toggle w-100 text-start" type="button" data-bs-toggle="dropdown">
+                    {% if period_type == "halbjahr" %}Halbjahr{% elif period_type == "quartal" %}Quartal{% else %}Ganzes Jahr{% endif %}
+                </button>
+                <ul class="dropdown-menu">
+                    <li><a class="dropdown-item{% if period_type == "jahr" %} active{% endif %}" href="{% filter_url 'zeitraum' 'jahr' clear='teilzeitraum' %}">Ganzes Jahr</a></li>
+                    <li><a class="dropdown-item{% if period_type == "halbjahr" %} active{% endif %}" href="{% filter_url 'zeitraum' 'halbjahr' clear='teilzeitraum' %}">Halbjahr</a></li>
+                    <li><a class="dropdown-item{% if period_type == "quartal" %} active{% endif %}" href="{% filter_url 'zeitraum' 'quartal' clear='teilzeitraum' %}">Quartal</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="col-md-3">
+            {% if period_type == "halbjahr" %}
+                <label class="form-label small mb-1">Halbjahr</label>
+                <div class="dropdown">
+                    <button class="btn filter-dropdown-toggle dropdown-toggle w-100 text-start" type="button" data-bs-toggle="dropdown">
+                        {% if period_value == 1 %}1. Halbjahr (Jan–Jun){% elif period_value == 2 %}2. Halbjahr (Jul–Dez){% else %}Bitte wählen{% endif %}
+                    </button>
+                    <ul class="dropdown-menu">
+                        <li><a class="dropdown-item{% if period_value == 1 %} active{% endif %}" href="{% filter_url 'teilzeitraum' 1 %}">1. Halbjahr (Jan–Jun)</a></li>
+                        <li><a class="dropdown-item{% if period_value == 2 %} active{% endif %}" href="{% filter_url 'teilzeitraum' 2 %}">2. Halbjahr (Jul–Dez)</a></li>
+                    </ul>
+                </div>
+            {% elif period_type == "quartal" %}
+                <label class="form-label small mb-1">Quartal</label>
+                <div class="dropdown">
+                    <button class="btn filter-dropdown-toggle dropdown-toggle w-100 text-start" type="button" data-bs-toggle="dropdown">
+                        {% if period_value %}Q{{ period_value }}{% else %}Bitte wählen{% endif %}
+                    </button>
+                    <ul class="dropdown-menu">
+                        <li><a class="dropdown-item{% if period_value == 1 %} active{% endif %}" href="{% filter_url 'teilzeitraum' 1 %}">Q1 (Jan–Mrz)</a></li>
+                        <li><a class="dropdown-item{% if period_value == 2 %} active{% endif %}" href="{% filter_url 'teilzeitraum' 2 %}">Q2 (Apr–Jun)</a></li>
+                        <li><a class="dropdown-item{% if period_value == 3 %} active{% endif %}" href="{% filter_url 'teilzeitraum' 3 %}">Q3 (Jul–Sep)</a></li>
+                        <li><a class="dropdown-item{% if period_value == 4 %} active{% endif %}" href="{% filter_url 'teilzeitraum' 4 %}">Q4 (Okt–Dez)</a></li>
+                    </ul>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="report-page">
+        <div class="report-header">
+            <div>
+                <h1>Bericht</h1>
+                <div class="report-zeitraum">
+                    {% if period_type == "halbjahr" %}{{ period_value }}. Halbjahr {{ year }}
+                    {% elif period_type == "quartal" %}Q{{ period_value }} {{ year }}
+                    {% else %}Jahr {{ year }}{% endif %}
+                </div>
+            </div>
+            <div class="report-meta text-end">
+                <div>{{ company.company_name }}</div>
+                <div>{{ company.street1 }}{% if company.street2 %}, {{ company.street2 }}{% endif %}</div>
+                <div>{{ company.zipcode }} {{ company.city }}</div>
+                {% if company.tax_number %}<div>Steuernummer: {{ company.tax_number }}</div>{% endif %}
+                <div>Erstellt am {{ today|date:"d.m.Y" }}</div>
+            </div>
+        </div>
+
+        <div class="report-stats">
+            <div class="report-stat">
+                <div class="label">Einnahmen (Zahlungen)</div>
+                <div class="value">{{ income_total|floatformat:2 }} €</div>
+            </div>
+            <div class="report-stat">
+                <div class="label">Ausgaben</div>
+                <div class="value">{{ expense_total|floatformat:2 }} €</div>
+            </div>
+            <div class="report-stat">
+                <div class="label">Gewinn/Verlust</div>
+                <div class="value">{{ profit|floatformat:2 }} €</div>
+            </div>
+        </div>
+
+        <h2>Ausgaben nach SKR03-Konto</h2>
+        <table class="report-table">
+            <thead><tr><th>Konto</th><th>Betrag</th></tr></thead>
+            <tbody>
+                {% for konto, betrag in expense_by_account %}
+                    <tr><td>{{ konto }}</td><td>{{ betrag|floatformat:2 }} €</td></tr>
+                {% empty %}
+                    <tr><td colspan="2">Keine Ausgaben im Zeitraum.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <h2>Einnahmen im Zeitraum</h2>
+        <table class="report-table">
+            <thead>
+                <tr><th>Datum</th><th>Rechnungsnummer</th><th>Kategorie</th><th>Betrag</th></tr>
+            </thead>
+            <tbody>
+                {% for income in income_rows %}
+                    <tr>
+                        <td>{{ income.paid_date|default:income.date|date:"d.m.Y" }}</td>
+                        <td>{{ income.invoice_number }}</td>
+                        <td>{{ income.category }}</td>
+                        <td>{{ income.amount|floatformat:2 }} €</td>
+                    </tr>
+                {% empty %}
+                    <tr><td colspan="4">Keine Einnahmen im Zeitraum.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <h2>Ausgaben im Zeitraum</h2>
+        <table class="report-table">
+            <thead>
+                <tr><th>Datum</th><th>Lieferant</th><th>Art</th><th>Rechnungsnummer</th><th>Betrag</th></tr>
+            </thead>
+            <tbody>
+                {% for expense in expense_rows %}
+                    <tr>
+                        <td>{{ expense.paid_date|default:expense.date|date:"d.m.Y" }}</td>
+                        <td>{{ expense.supplier.full_name|default:"–" }}</td>
+                        <td>{{ expense.category }}</td>
+                        <td>{{ expense.invoice_number|default:"–" }}</td>
+                        <td>{{ expense.account_debit_display|floatformat:2 }} €</td>
+                    </tr>
+                {% empty %}
+                    <tr><td colspan="5">Keine Ausgaben im Zeitraum.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+{% endblock %}

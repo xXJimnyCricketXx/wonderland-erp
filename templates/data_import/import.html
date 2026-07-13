@@ -5,13 +5,13 @@
 
     <ul class="nav nav-pills mb-4" role="tablist">
         <li class="nav-item" role="presentation">
-            <button class="nav-link active" data-bs-toggle="pill" data-bs-target="#pill-statement" type="button" role="tab">
-                <i class="bi bi-cash-coin me-1"></i>Etsy-Statement
+            <button class="nav-link active" data-bs-toggle="pill" data-bs-target="#pill-orders" type="button" role="tab">
+                <i class="bi bi-cart3 me-1"></i>Bestellungen
             </button>
         </li>
         <li class="nav-item" role="presentation">
-            <button class="nav-link" data-bs-toggle="pill" data-bs-target="#pill-orders" type="button" role="tab">
-                <i class="bi bi-cart3 me-1"></i>Bestellungen
+            <button class="nav-link" data-bs-toggle="pill" data-bs-target="#pill-reviews" type="button" role="tab">
+                <i class="bi bi-star me-1"></i>Bewertungen
             </button>
         </li>
         <li class="nav-item" role="presentation">
@@ -20,8 +20,8 @@
             </button>
         </li>
         <li class="nav-item" role="presentation">
-            <button class="nav-link" data-bs-toggle="pill" data-bs-target="#pill-reviews" type="button" role="tab">
-                <i class="bi bi-star me-1"></i>Bewertungen
+            <button class="nav-link" data-bs-toggle="pill" data-bs-target="#pill-statement" type="button" role="tab">
+                <i class="bi bi-cash-coin me-1"></i>Etsy-Statement
             </button>
         </li>
         <li class="nav-item" role="presentation">
@@ -32,7 +32,59 @@
     </ul>
 
     <div class="tab-content">
-        <div class="tab-pane fade show active" id="pill-statement" role="tabpanel">
+        <div class="tab-pane fade show active" id="pill-orders" role="tabpanel">
+            <div class="row">
+                <div class="col-md-6 d-flex">
+                    <div class="card h-100">
+                        <div class="card-body">
+                            <h6 class="text-uppercase text-muted small mb-3">Etsy-Sold-Orders-CSV importieren</h6>
+                            <p class="text-muted small">
+                                Legt neue Bestellungen an bzw. aktualisiert bestehende (Abgleich über Etsys Order-ID).
+                                Kunden werden automatisch angelegt bzw. über die Etsy-Käufer-ID wiedererkannt.
+                                Die SKU-Spalte wird nur als Rohwert je Bestellposition übernommen (keine automatische
+                                Artikel-Zuordnung, da diese Angabe bei Etsy-Exporten historisch unzuverlässig ist).
+                                Jede Jahres-CSV einzeln hochladen.
+                            </p>
+                            <form method="post" action="{% url 'data_import:order_import' %}" enctype="multipart/form-data">
+                                {% csrf_token %}
+                                <div class="mb-3">
+                                    {{ order_import_form.file }}
+                                    {% include "components/field_errors.html" with field=order_import_form.file %}
+                                </div>
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="bi bi-upload me-1"></i>Importieren
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6 d-flex">
+                    <div class="card h-100">
+                        <div class="card-body">
+                            <h6 class="text-uppercase text-muted small mb-3">Etsy-Sold-Order-Items-CSV importieren</h6>
+                            <p class="text-muted small">
+                                Ergänzt die Bestellungen um die echten Positionen (Etsy-Artikelname, Listing-ID, Variante,
+                                Menge, Preis) statt nur dem rohen SKU-Feld - <strong>zuerst die Sold-Orders-CSV für den
+                                gleichen Zeitraum importieren</strong>, sonst werden die Zeilen übersprungen. Über die
+                                Listing-ID lässt sich unter Artikel → Etsy-Zuordnung einmalig festlegen, welcher Artikel
+                                gemeint ist - das gilt dann automatisch für alle Bestellungen mit dieser Listing-ID.
+                            </p>
+                            <form method="post" action="{% url 'data_import:order_item_import' %}" enctype="multipart/form-data">
+                                {% csrf_token %}
+                                <div class="mb-3">
+                                    {{ order_item_import_form.file }}
+                                    {% include "components/field_errors.html" with field=order_item_import_form.file %}
+                                </div>
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="bi bi-upload me-1"></i>Importieren
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="tab-pane fade" id="pill-statement" role="tabpanel">
             <div class="card" style="max-width: 500px;">
                 <div class="card-body">
                     <h6 class="text-uppercase text-muted small mb-3">Etsy-Statement-CSV importieren</h6>
@@ -48,53 +100,6 @@
                         <div class="mb-3">
                             {{ statement_import_form.file }}
                             {% include "components/field_errors.html" with field=statement_import_form.file %}
-                        </div>
-                        <button type="submit" class="btn btn-primary">
-                            <i class="bi bi-upload me-1"></i>Importieren
-                        </button>
-                    </form>
-                </div>
-            </div>
-        </div>
-        <div class="tab-pane fade" id="pill-orders" role="tabpanel">
-            <div class="card" style="max-width: 500px;">
-                <div class="card-body">
-                    <h6 class="text-uppercase text-muted small mb-3">Etsy-Sold-Orders-CSV importieren</h6>
-                    <p class="text-muted small">
-                        Legt neue Bestellungen an bzw. aktualisiert bestehende (Abgleich über Etsys Order-ID).
-                        Kunden werden automatisch angelegt bzw. über die Etsy-Käufer-ID wiedererkannt.
-                        Die SKU-Spalte wird nur als Rohwert je Bestellposition übernommen (keine automatische
-                        Artikel-Zuordnung, da diese Angabe bei Etsy-Exporten historisch unzuverlässig ist).
-                        Jede Jahres-CSV einzeln hochladen.
-                    </p>
-                    <form method="post" action="{% url 'data_import:order_import' %}" enctype="multipart/form-data">
-                        {% csrf_token %}
-                        <div class="mb-3">
-                            {{ order_import_form.file }}
-                            {% include "components/field_errors.html" with field=order_import_form.file %}
-                        </div>
-                        <button type="submit" class="btn btn-primary">
-                            <i class="bi bi-upload me-1"></i>Importieren
-                        </button>
-                    </form>
-                </div>
-            </div>
-
-            <div class="card mt-3" style="max-width: 500px;">
-                <div class="card-body">
-                    <h6 class="text-uppercase text-muted small mb-3">Etsy-Sold-Order-Items-CSV importieren</h6>
-                    <p class="text-muted small">
-                        Ergänzt die Bestellungen um die echten Positionen (Etsy-Artikelname, Listing-ID, Variante,
-                        Menge, Preis) statt nur dem rohen SKU-Feld - <strong>zuerst die Sold-Orders-CSV für den
-                        gleichen Zeitraum importieren</strong>, sonst werden die Zeilen übersprungen. Über die
-                        Listing-ID lässt sich unter Artikel → Etsy-Zuordnung einmalig festlegen, welcher Artikel
-                        gemeint ist - das gilt dann automatisch für alle Bestellungen mit dieser Listing-ID.
-                    </p>
-                    <form method="post" action="{% url 'data_import:order_item_import' %}" enctype="multipart/form-data">
-                        {% csrf_token %}
-                        <div class="mb-3">
-                            {{ order_item_import_form.file }}
-                            {% include "components/field_errors.html" with field=order_item_import_form.file %}
                         </div>
                         <button type="submit" class="btn btn-primary">
                             <i class="bi bi-upload me-1"></i>Importieren

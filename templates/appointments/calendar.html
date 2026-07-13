@@ -23,11 +23,16 @@
             {% endif %}
         </div>
         <div class="d-flex align-items-center gap-2">
-            <select class="form-select" style="width: auto;" onchange="window.location.href=this.value">
-                <option value="?view=month&date={{ ref_date_iso }}" {% if view_mode == "month" %}selected{% endif %}>Monat</option>
-                <option value="?view=week&date={{ ref_date_iso }}" {% if view_mode == "week" %}selected{% endif %}>Woche</option>
-                <option value="?view=list" {% if view_mode == "list" %}selected{% endif %}>Liste</option>
-            </select>
+            <div class="dropdown">
+                <button class="btn filter-dropdown-toggle dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                    {% if view_mode == "month" %}Monat{% elif view_mode == "week" %}Woche{% else %}Liste{% endif %}
+                </button>
+                <ul class="dropdown-menu dropdown-menu-end">
+                    <li><a class="dropdown-item{% if view_mode == "month" %} active{% endif %}" href="?view=month&date={{ ref_date_iso }}">Monat</a></li>
+                    <li><a class="dropdown-item{% if view_mode == "week" %} active{% endif %}" href="?view=week&date={{ ref_date_iso }}">Woche</a></li>
+                    <li><a class="dropdown-item{% if view_mode == "list" %} active{% endif %}" href="?view=list">Liste</a></li>
+                </ul>
+            </div>
             <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#appointmentModal"
                     hx-get="{% url 'appointments:create' %}?return_view={{ view_mode }}&return_date={{ ref_date_iso }}" hx-target="#appointmentModalContent">
                 <i class="bi bi-plus-lg me-1"></i>Neu

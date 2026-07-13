@@ -8,9 +8,9 @@ from django.views.generic import CreateView, UpdateView, View
 from django.views.generic.detail import SingleObjectMixin
 
 from catalog.models import Article
-from core.htmx_utils import htmx_redirect
+from core.htmx_utils import htmx_redirect_fixed
 from core.models import ReferenceOption
-from core.reference_data import CATEGORY_GROUPS, CATEGORY_LABELS
+from core.reference_data import CATEGORY_GROUPS, CATEGORY_LABELS, group_slug_for_category
 from finance.models import AccountMapping, SKR03Account
 from knowledge.models import MaterialCategory, PackagingType
 from orders.models import Order
@@ -97,13 +97,17 @@ class ReferenceOptionAddView(LoginRequiredMixin, View):
         value = request.POST.get("value", "").strip()
         if category and value:
             ReferenceOption.objects.get_or_create(category=category, value=value)
-        return redirect(reverse("settings_hub:index") + "?tab=referenzdaten")
+        modul = group_slug_for_category(category) if category else "sonstiges"
+        return redirect(reverse("settings_hub:index") + f"?tab=referenzdaten&modul={modul}")
 
 
 class ReferenceOptionDeleteView(LoginRequiredMixin, View):
     def post(self, request, pk):
-        ReferenceOption.objects.filter(pk=pk).delete()
-        return redirect(reverse("settings_hub:index") + "?tab=referenzdaten")
+        option = ReferenceOption.objects.filter(pk=pk).first()
+        modul = group_slug_for_category(option.category) if option else "sonstiges"
+        if option:
+            option.delete()
+        return redirect(reverse("settings_hub:index") + f"?tab=referenzdaten&modul={modul}")
 
 
 class TrashRestoreView(LoginRequiredMixin, View):
@@ -259,7 +263,7 @@ class PackagingTypeModalMixin(LoginRequiredMixin):
 
     def form_valid(self, form):
         self.object = form.save()
-        return htmx_redirect(self.request, reverse("settings_hub:index") + "?tab=referenzdaten")
+        return htmx_redirect_fixed(reverse("settings_hub:index") + "?tab=referenzdaten&modul=infothek")
 
 
 class PackagingTypeCreateView(PackagingTypeModalMixin, CreateView):
@@ -275,7 +279,7 @@ class PackagingTypeDeleteView(LoginRequiredMixin, SingleObjectMixin, View):
 
     def post(self, request, *args, **kwargs):
         self.get_object().delete()
-        return htmx_redirect(request, reverse("settings_hub:index") + "?tab=referenzdaten")
+        return htmx_redirect_fixed(reverse("settings_hub:index") + "?tab=referenzdaten&modul=infothek")
 
 
 class MaterialCategoryModalMixin(LoginRequiredMixin):
@@ -285,7 +289,7 @@ class MaterialCategoryModalMixin(LoginRequiredMixin):
 
     def form_valid(self, form):
         self.object = form.save()
-        return htmx_redirect(self.request, reverse("settings_hub:index") + "?tab=referenzdaten")
+        return htmx_redirect_fixed(reverse("settings_hub:index") + "?tab=referenzdaten&modul=infothek")
 
 
 class MaterialCategoryCreateView(MaterialCategoryModalMixin, CreateView):
@@ -301,7 +305,7 @@ class MaterialCategoryDeleteView(LoginRequiredMixin, SingleObjectMixin, View):
 
     def post(self, request, *args, **kwargs):
         self.get_object().delete()
-        return htmx_redirect(request, reverse("settings_hub:index") + "?tab=referenzdaten")
+        return htmx_redirect_fixed(reverse("settings_hub:index") + "?tab=referenzdaten&modul=infothek")
 
 
 class SKR03AccountCreateView(LoginRequiredMixin, View):
@@ -314,7 +318,7 @@ class SKR03AccountCreateView(LoginRequiredMixin, View):
         name = request.POST.get("name", "").strip()
         if number and name:
             SKR03Account.objects.get_or_create(number=number, defaults={"name": name})
-        return redirect(reverse("settings_hub:index") + "?tab=referenzdaten")
+        return redirect(reverse("settings_hub:index") + "?tab=referenzdaten&modul=finanzen")
 
 
 class SKR03AccountUpdateView(LoginRequiredMixin, UpdateView):
@@ -324,7 +328,7 @@ class SKR03AccountUpdateView(LoginRequiredMixin, UpdateView):
 
     def form_valid(self, form):
         self.object = form.save()
-        return htmx_redirect(self.request, reverse("settings_hub:index") + "?tab=referenzdaten")
+        return htmx_redirect_fixed(reverse("settings_hub:index") + "?tab=referenzdaten&modul=finanzen")
 
 
 class SKR03AccountDeleteView(LoginRequiredMixin, SingleObjectMixin, View):
@@ -332,7 +336,7 @@ class SKR03AccountDeleteView(LoginRequiredMixin, SingleObjectMixin, View):
 
     def post(self, request, *args, **kwargs):
         self.get_object().delete()
-        return htmx_redirect(request, reverse("settings_hub:index") + "?tab=referenzdaten")
+        return htmx_redirect_fixed(reverse("settings_hub:index") + "?tab=referenzdaten&modul=finanzen")
 
 
 class AccountMappingCreateView(LoginRequiredMixin, View):
@@ -346,7 +350,7 @@ class AccountMappingCreateView(LoginRequiredMixin, View):
             AccountMapping.objects.get_or_create(
                 art=art, variante=variante, defaults={"skr03_account_id": skr03_account_id}
             )
-        return redirect(reverse("settings_hub:index") + "?tab=referenzdaten")
+        return redirect(reverse("settings_hub:index") + "?tab=referenzdaten&modul=finanzen")
 
 
 class AccountMappingUpdateView(LoginRequiredMixin, UpdateView):
@@ -356,7 +360,7 @@ class AccountMappingUpdateView(LoginRequiredMixin, UpdateView):
 
     def form_valid(self, form):
         self.object = form.save()
-        return htmx_redirect(self.request, reverse("settings_hub:index") + "?tab=referenzdaten")
+        return htmx_redirect_fixed(reverse("settings_hub:index") + "?tab=referenzdaten&modul=finanzen")
 
 
 class AccountMappingDeleteView(LoginRequiredMixin, SingleObjectMixin, View):
@@ -364,4 +368,4 @@ class AccountMappingDeleteView(LoginRequiredMixin, SingleObjectMixin, View):
 
     def post(self, request, *args, **kwargs):
         self.get_object().delete()
-        return htmx_redirect(request, reverse("settings_hub:index") + "?tab=referenzdaten")
+        return htmx_redirect_fixed(reverse("settings_hub:index") + "?tab=referenzdaten&modul=finanzen")

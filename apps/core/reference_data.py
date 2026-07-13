@@ -56,6 +56,17 @@ CATEGORY_GROUPS = [
     },
 ]
 
+def group_slug_for_category(category):
+    """Which Referenzdaten sub-pill (client-side only, never in the URL) a
+    given ReferenceOption category lives under - lets a save/delete redirect
+    land back on the right sub-pill instead of just the right top-level tab.
+    Falls back to the catch-all "sonstiges" group used for unlisted categories."""
+    for group in CATEGORY_GROUPS:
+        if category in group["categories"]:
+            return group["slug"]
+    return "sonstiges"
+
+
 DEFAULT_SEED_DATA = {
     "contact_status": ["Aktiv", "Lead", "Pausiert", "Abgeschlossen"],
     "preferred_contact_method": ["E-Mail", "Telefon", "Etsy-Nachricht", "Post"],

@@ -9,6 +9,7 @@ from django.views.generic.base import View
 
 from core.htmx_utils import htmx_redirect
 from core.mixins import BackModalMixin
+from core.models import ReferenceOption
 from core.sorting import resolve_sort
 
 from .forms import OrderForm, OrderItemFormSet
@@ -53,13 +54,11 @@ class OrderListView(LoginRequiredMixin, ListView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        base_qs = Order.objects.filter(is_archived=False)
-        context["statuses"] = (
-            base_qs.exclude(status="").order_by("status").values_list("status", flat=True).distinct()
-        )
-        context["order_types"] = (
-            base_qs.exclude(order_type="").order_by("order_type").values_list("order_type", flat=True).distinct()
-        )
+        # Aus Referenzdaten, nicht aus den vorhandenen Bestellungen abgeleitet -
+        # sonst fehlen konfigurierte Werte im Filter, solange noch keine
+        # Bestellung diesen Status/Typ trägt.
+        context["statuses"] = ReferenceOption.objects.filter(category="order_status").order_by("order", "value")
+        context["order_types"] = ReferenceOption.objects.filter(category="order_type").order_by("order", "value")
         context["query"] = self.request.GET.get("q", "")
         context["selected_status"] = self.request.GET.get("status", "")
         context["selected_order_type"] = self.request.GET.get("order_type", "")
