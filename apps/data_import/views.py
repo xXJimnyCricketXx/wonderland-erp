@@ -7,11 +7,13 @@ from django.views.generic import TemplateView, View
 from .article_import import import_articles_from_csv
 from .forms import (
     ArticleImportForm, OrderImportForm, OrderItemImportForm, PackagingLicenseXmlImportForm, ReviewImportForm,
+    StatementImportForm,
 )
 from .order_import import import_orders_from_csv
 from .order_item_import import import_order_items_from_csv
 from .packaging_license_import import PackagingLicenseImportError, import_packaging_license_xml
 from .review_import import import_reviews_from_json
+from .statement_import import import_statement_from_csv
 
 
 class ImportView(LoginRequiredMixin, TemplateView):
@@ -24,6 +26,7 @@ class ImportView(LoginRequiredMixin, TemplateView):
         context["order_item_import_form"] = OrderItemImportForm()
         context["review_import_form"] = ReviewImportForm()
         context["packaging_license_xml_import_form"] = PackagingLicenseXmlImportForm()
+        context["statement_import_form"] = StatementImportForm()
         return context
 
 
@@ -140,3 +143,23 @@ class PackagingLicenseXmlImportView(LoginRequiredMixin, View):
             f"{materials_created} Materialzeile(n).",
         )
         return redirect(reverse("data_import:index") + "?tab=verpackungslizenz")
+
+
+class StatementImportView(LoginRequiredMixin, View):
+    def post(self, request):
+        form = StatementImportForm(request.POST, request.FILES)
+        if not form.is_valid():
+            messages.error(request, "Bitte eine gültige CSV-Datei auswählen.")
+            return redirect(reverse("data_import:index") + "?tab=statement")
+
+        result = import_statement_from_csv(form.cleaned_data["file"])
+
+        summary = f"Statement-Import: {result.created} neu, {result.skipped_duplicates} bereits vorhanden."
+        if result.errors:
+            summary += f" {len(result.errors)} Zeile(n) mit Fehlern."
+        messages.success(request, summary)
+
+        for line_number, reason in result.errors[:20]:
+            messages.warning(request, f"Zeile {line_number}: {reason}")
+
+        return redirect(reverse("data_import:index") + "?tab=statement")

@@ -10,7 +10,11 @@ CATEGORY_LABELS = {
     "wishlist_status": "Inspirationboard-Status",
     "wishlist_tag": "Inspirationboard-Tags",
     "task_tag": "Aufgaben-Tags",
+    "income_category": "Einnahmen-Kategorien",
+    "income_status": "Einnahmen-Status",
+    "income_payment_method": "Einnahmen-Zahlungsart",
     "expense_category": "Ausgaben-Kategorien",
+    "expense_payment_method": "Ausgaben-Zahlungsart",
     "payment_account": "Zahlungskonto",
     "expense_status": "Ausgaben-Status",
     "vat_rate": "USt-Sätze",
@@ -38,7 +42,10 @@ CATEGORY_GROUPS = [
     },
     {
         "slug": "finanzen", "label": "Finanzen", "icon": "bi-cash-coin",
-        "categories": ["expense_category", "payment_account", "expense_status", "vat_rate"],
+        "categories": [
+            "income_category", "income_status", "income_payment_method", "expense_category",
+            "expense_payment_method", "payment_account", "expense_status", "vat_rate",
+        ],
     },
     {"slug": "aufgaben", "label": "Aufgaben", "icon": "bi-check2-square", "categories": ["task_tag"]},
     {"slug": "termine", "label": "Termine", "icon": "bi-calendar3", "categories": ["appointment_type"]},
@@ -53,10 +60,21 @@ DEFAULT_SEED_DATA = {
     "contact_status": ["Aktiv", "Lead", "Pausiert", "Abgeschlossen"],
     "preferred_contact_method": ["E-Mail", "Telefon", "Etsy-Nachricht", "Post"],
     "wishlist_status": ["Idee", "In Erwägung", "Bestellt", "Verworfen"],
+    "income_category": ["Verkauf Bar", "Verkauf sonstige Plattform", "Zinsen", "Sonstige Einnahmen"],
+    "income_status": ["Offen", "Bezahlt"],
+    "income_payment_method": ["PayPal", "Überweisung", "Etsy Payments", "Bar"],
+    # Deckt sich 1:1 mit den "Art"-Werten in der SKR03-Konten-Zuordnung
+    # (Referenzdaten → Finanzen → Konten-Zuordnung) - siehe finance/
+    # migrations/0009_replace_skr03_seed_data.py (Quelle: testdata/skr03_mapping.json).
     "expense_category": [
-        "Handelsware", "Verbrauchsware", "Porto", "Büro", "Kleinzeug",
-        "GWG", "Deko/Werbung", "Gebühren", "Sonstiges",
+        "Waren / Handel", "Waren / Verbrauch", "Verpackung / Porto", "Bürobedarf",
+        "Kleinmaterialien / Werkstattbedarf", "GWG", "Dekomaterial / Werbekosten",
+        "Gebühren", "Sonstiges", "Reisekosten Unternehmer", "Kfz-Kosten",
+        "Telefon/Internet", "Software/EDV", "Fortbildung", "Fachliteratur",
+        "Beratungskosten", "Versicherung", "Arbeitszimmer",
+        "Betriebsausstattung (Anlagevermögen)",
     ],
+    "expense_payment_method": ["Kreditkarte", "PayPal", "Überweisung", "Lastschrift", "Bar"],
     "payment_account": ["Bank", "Kasse", "KG", "Bank-Direktkauf"],
     "expense_status": ["Offen", "Bezahlt"],
     "vat_rate": ["0", "7", "19"],

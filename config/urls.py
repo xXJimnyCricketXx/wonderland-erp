@@ -13,6 +13,7 @@ urlpatterns = [
     path("bestellungen/", include("orders.urls")),
     path("bewertungen/", ReviewListView.as_view(), name="review_list"),
     path("kontakte/", include("contacts.urls")),
+    path("finanzen/", include("finance.urls")),
     path("termine/", include("appointments.urls")),
     path("aufgaben/", include("tasks.urls")),
     path("infothek/", include("knowledge.urls")),

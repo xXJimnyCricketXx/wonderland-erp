@@ -4,6 +4,8 @@
     --brand-rust: #CF6C36;
     --brand-green: #013925;
     --rail-size: 4.5rem;
+    --text-muted: var(--bs-secondary-color, #6c757d);
+    --border: var(--bs-border-color, #dee2e6);
 }
 
 html, body {
@@ -15,7 +17,7 @@ body {
     flex-direction: column;
     min-height: 100vh;
     background-color: var(--brand-white);
-    font-family: 'Roboto', sans-serif;
+    font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
 }
 
 .app-shell {
@@ -136,6 +138,46 @@ body {
 .form-select:focus {
     border-color: var(--brand-gold);
     box-shadow: 0 0 0 .25rem rgba(244, 170, 27, .25);
+}
+
+.form-label {
+    font-size: 12px;
+}
+
+.form-control,
+.form-select {
+    font-size: 15px;
+}
+
+/* Reusable read-only detail-page components (label-over-value field grid +
+   header block) - see e.g. templates/finance/_expense_detail_modal.html. */
+.detail-field .label {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+}
+
+.detail-field .value {
+    font-size: 0.95rem;
+    margin-top: 0.15rem;
+}
+
+.detail-header {
+    display: flex;
+    gap: 1.5rem;
+    align-items: flex-start;
+    margin-bottom: 1.75rem;
+    padding-bottom: 1.25rem;
+    border-bottom: 1px solid var(--border);
+}
+
+/* Finanzen-Modal (Einnahmen/Ausgaben) soll eine feste Größe haben statt sich
+   je nach aktivem Pill/Inhalt zu verändern - nur der Body-Bereich bekommt
+   eine feste Höhe (Header/Footer bleiben normal groß) und scrollt intern. */
+#financeModal .modal-body {
+    height: 650px;
+    overflow-y: auto;
 }
 
 a {

@@ -1,0 +1,398 @@
+{% extends "base.html" %}
+{% block title %}Finanzen{% endblock %}
+{% block content %}
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h1 class="mb-0">Finanzen</h1>
+        <div class="d-flex gap-2">
+            {% if active_tab == "einnahmen" %}
+                <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#financeModal"
+                        hx-get="{% url 'finance:income_create' %}" hx-target="#financeModalContent">
+                    <i class="bi bi-plus-lg me-1"></i>Neue Einnahme
+                </button>
+            {% elif active_tab == "ausgaben" %}
+                <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#financeModal"
+                        hx-get="{% url 'finance:expense_create' %}" hx-target="#financeModalContent">
+                    <i class="bi bi-plus-lg me-1"></i>Neue Ausgabe
+                </button>
+            {% elif active_tab == "rohdaten" %}
+                <a href="{% url 'data_import:index' %}?tab=statement" class="btn btn-outline-secondary">
+                    <i class="bi bi-upload me-1"></i>Statement importieren
+                </a>
+            {% elif active_tab == "ustberichte" %}
+                <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#financeModal"
+                        hx-get="{% url 'finance:tax_report_create' %}" hx-target="#financeModalContent">
+                    <i class="bi bi-plus-lg me-1"></i>Neuer USt-Bericht
+                </button>
+            {% endif %}
+        </div>
+    </div>
+
+    <ul class="nav nav-pills mb-4">
+        <li class="nav-item">
+            <a class="nav-link{% if active_tab == "einnahmen" %} active{% endif %}" href="?tab=einnahmen">
+                <i class="bi bi-graph-up-arrow me-1"></i>Einnahmen
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link{% if active_tab == "ausgaben" %} active{% endif %}" href="?tab=ausgaben">
+                <i class="bi bi-graph-down-arrow me-1"></i>Ausgaben
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link{% if active_tab == "rohdaten" %} active{% endif %}" href="?tab=rohdaten">
+                <i class="bi bi-cloud-download me-1"></i>Etsy-Rohdaten
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link{% if active_tab == "ustberichte" %} active{% endif %}" href="?tab=ustberichte">
+                <i class="bi bi-file-earmark-pdf me-1"></i>USt-Berichte
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link{% if active_tab == "skr03" %} active{% endif %}" href="?tab=skr03">
+                <i class="bi bi-table me-1"></i>SKR03-Übersicht
+            </a>
+        </li>
+    </ul>
+
+    {% if active_tab == "einnahmen" %}
+        <form method="get" class="row g-2 mb-3 align-items-end">
+            <input type="hidden" name="tab" value="einnahmen">
+            <div class="col-md-4">
+                {% include "components/search_box.html" with query=query placeholder="Rechnungsnummer, Bestellung oder Kunde suchen" %}
+            </div>
+            <div class="col-md-3">
+                <label class="form-label small mb-1">Kategorie</label>
+                <select name="category" class="form-select" onchange="this.form.submit()">
+                    <option value="">Alle</option>
+                    {% for c in income_categories %}
+                        <option value="{{ c }}" {% if selected_category == c %}selected{% endif %}>{{ c }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label small mb-1">Status</label>
+                <select name="status" class="form-select" onchange="this.form.submit()">
+                    <option value="">Alle</option>
+                    {% for s in income_statuses %}
+                        <option value="{{ s }}" {% if selected_status == s %}selected{% endif %}>{{ s }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+        </form>
+        {% if incomes %}
+            <div class="table-responsive">
+                <table class="table table-striped table-hover align-middle table-brand-header">
+                    <thead>
+                        <tr>
+                            <th>Rechnungsnummer</th>
+                            <th>Datum</th>
+                            <th>Bestellung</th>
+                            <th>Kunde</th>
+                            <th>Kategorie</th>
+                            <th>Rechnungsbetrag</th>
+                            <th>Status</th>
+                            <th class="text-nowrap">Aktionen</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for income in incomes %}
+                            <tr>
+                                <td>{{ income.invoice_number }}</td>
+                                <td>{{ income.date|date:"d.m.Y" }}</td>
+                                <td>{{ income.order.order_id|default:"–" }}</td>
+                                <td>{{ income.customer.full_name|default:"–" }}</td>
+                                <td>{{ income.category }}</td>
+                                <td>{{ income.amount }} €</td>
+                                <td>{{ income.status|default:"–" }}</td>
+                                <td class="text-nowrap">
+                                    <div class="btn-group">
+                                        <button type="button" class="btn btn-sm btn-outline-secondary" title="Ansehen" data-bs-toggle="modal" data-bs-target="#financeModal"
+                                                hx-get="{% url 'finance:income_detail' income.pk %}" hx-target="#financeModalContent">
+                                            <i class="bi bi-eye"></i>
+                                        </button>
+                                        <button type="button" class="btn btn-sm btn-outline-secondary" title="Bearbeiten" data-bs-toggle="modal" data-bs-target="#financeModal"
+                                                hx-get="{% url 'finance:income_update' income.pk %}" hx-target="#financeModalContent">
+                                            <i class="bi bi-pencil"></i>
+                                        </button>
+                                        <button type="button" class="btn btn-sm btn-outline-danger" title="Löschen"
+                                                hx-post="{% url 'finance:income_archive' income.pk %}"
+                                                hx-confirm="Einnahme „{{ income.invoice_number }}“ wirklich löschen?">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            {% include "components/empty_state.html" with message="Noch keine Einnahmen erfasst." %}
+        {% endif %}
+    {% elif active_tab == "ausgaben" %}
+        <form method="get" class="row g-2 mb-3 align-items-end">
+            <input type="hidden" name="tab" value="ausgaben">
+            <div class="col-md-4">
+                {% include "components/search_box.html" with query=query placeholder="ID, Rechnungsnummer, Beschreibung oder Lieferant suchen" %}
+            </div>
+            <div class="col-md-4">
+                <label class="form-label small mb-1">Art</label>
+                <select name="category" class="form-select" onchange="this.form.submit()">
+                    <option value="">Alle</option>
+                    {% for c in expense_categories %}
+                        <option value="{{ c }}" {% if selected_category == c %}selected{% endif %}>{{ c }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-4">
+                <label class="form-label small mb-1">Variante</label>
+                <select name="variant" class="form-select" onchange="this.form.submit()">
+                    <option value="">Alle</option>
+                    {% for v in expense_variants %}
+                        <option value="{{ v }}" {% if selected_variant == v %}selected{% endif %}>{{ v }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-6">
+                <label class="form-label small mb-1">Lieferant</label>
+                <select name="supplier" class="form-select" onchange="this.form.submit()">
+                    <option value="">Alle</option>
+                    {% for sup in expense_suppliers %}
+                        <option value="{{ sup.pk }}" {% if selected_supplier == sup.pk|stringformat:"s" %}selected{% endif %}>{{ sup.full_name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-6">
+                <label class="form-label small mb-1">Status</label>
+                <select name="status" class="form-select" onchange="this.form.submit()">
+                    <option value="">Alle</option>
+                    {% for s in expense_statuses %}
+                        <option value="{{ s }}" {% if selected_status == s %}selected{% endif %}>{{ s }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+        </form>
+        {% if expenses %}
+            <div class="table-responsive">
+                <table class="table table-striped table-hover align-middle table-brand-header">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Datum</th>
+                            <th>Lieferant</th>
+                            <th>Art</th>
+                            <th>Variante</th>
+                            <th>SKR03-Konto</th>
+                            <th>Kontobelastung</th>
+                            <th>Status</th>
+                            <th class="text-nowrap">Aktionen</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for expense in expenses %}
+                            <tr>
+                                <td>{{ expense.expense_id }}</td>
+                                <td>{{ expense.date|date:"d.m.Y" }}</td>
+                                <td>{{ expense.supplier.full_name|default:"–" }}</td>
+                                <td>{{ expense.category }}</td>
+                                <td>{{ expense.variant|default:"–" }}</td>
+                                <td>{{ expense.skr03_account.name|default:"–" }}</td>
+                                <td>{% if expense.account_debit_display is not None %}{{ expense.account_debit_display }} €{% else %}–{% endif %}</td>
+                                <td>{{ expense.status|default:"–" }}</td>
+                                <td class="text-nowrap">
+                                    <div class="btn-group">
+                                        <button type="button" class="btn btn-sm btn-outline-secondary" title="Ansehen" data-bs-toggle="modal" data-bs-target="#financeModal"
+                                                hx-get="{% url 'finance:expense_detail' expense.pk %}" hx-target="#financeModalContent">
+                                            <i class="bi bi-eye"></i>
+                                        </button>
+                                        <button type="button" class="btn btn-sm btn-outline-secondary" title="Bearbeiten" data-bs-toggle="modal" data-bs-target="#financeModal"
+                                                hx-get="{% url 'finance:expense_update' expense.pk %}" hx-target="#financeModalContent">
+                                            <i class="bi bi-pencil"></i>
+                                        </button>
+                                        <button type="button" class="btn btn-sm btn-outline-danger" title="Löschen"
+                                                hx-post="{% url 'finance:expense_archive' expense.pk %}"
+                                                hx-confirm="Ausgabe „{{ expense.description }}“ wirklich löschen?">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            {% include "components/empty_state.html" with message="Noch keine Ausgaben erfasst." %}
+        {% endif %}
+    {% elif active_tab == "rohdaten" %}
+        <form method="get" class="row g-2 mb-3 align-items-end">
+            <input type="hidden" name="tab" value="rohdaten">
+            <div class="col-md-5">
+                {% include "components/search_box.html" with query=query placeholder="Titel, Info oder Bestellung suchen" %}
+            </div>
+            <div class="col-md-3">
+                <label class="form-label small mb-1">Art</label>
+                <select name="entry_type" class="form-select" onchange="this.form.submit()">
+                    <option value="">Alle</option>
+                    {% for t in ledger_entry_types %}
+                        <option value="{{ t }}" {% if selected_entry_type == t %}selected{% endif %}>{{ t }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label small mb-1">Jahr</label>
+                <select name="year" class="form-select" onchange="this.form.submit()">
+                    <option value="">Alle</option>
+                    {% for y in ledger_years %}
+                        <option value="{{ y }}" {% if selected_year == y|stringformat:"s" %}selected{% endif %}>{{ y }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label small mb-1">Monat</label>
+                <select name="month" class="form-select" onchange="this.form.submit()">
+                    <option value="">Alle</option>
+                    {% for m, label in ledger_months %}
+                        <option value="{{ m }}" {% if selected_month == m|stringformat:"s" %}selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+        </form>
+        {% if ledger_entries %}
+            <div class="table-responsive">
+                <table class="table table-striped table-hover align-middle table-brand-header">
+                    <thead>
+                        <tr>
+                            <th>Datum</th>
+                            <th>Art</th>
+                            <th>Titel</th>
+                            <th>Info</th>
+                            <th>Betrag</th>
+                            <th>Gebühren &amp; Steuern</th>
+                            <th>Netto</th>
+                            <th>Bestellung</th>
+                            <th>Quelle</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for entry in ledger_entries %}
+                            <tr>
+                                <td>{{ entry.date|date:"d.m.Y" }}</td>
+                                <td>{{ entry.entry_type }}</td>
+                                <td>{{ entry.title }}</td>
+                                <td>{{ entry.info|default:"–" }}</td>
+                                <td>{% if entry.amount %}<span class="{% if entry.amount < 0 %}text-danger{% else %}text-success{% endif %}">{{ entry.amount }} {{ entry.currency }}</span>{% else %}–{% endif %}</td>
+                                <td>{% if entry.fees_taxes %}<span class="{% if entry.fees_taxes < 0 %}text-danger{% else %}text-success{% endif %}">{{ entry.fees_taxes }} {{ entry.currency }}</span>{% else %}–{% endif %}</td>
+                                <td>{% if entry.net %}<span class="{% if entry.net < 0 %}text-danger{% else %}text-success{% endif %}">{{ entry.net }} {{ entry.currency }}</span>{% else %}–{% endif %}</td>
+                                <td>{{ entry.order.order_id|default:"–" }}</td>
+                                <td>{{ entry.get_source_display }}</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            {% include "components/empty_state.html" with message="Noch keine Etsy-Rohdaten importiert." %}
+        {% endif %}
+    {% elif active_tab == "ustberichte" %}
+        {% if tax_reports %}
+            <div class="table-responsive">
+                <table class="table table-striped table-hover align-middle table-brand-header">
+                    <thead>
+                        <tr>
+                            <th>Jahr</th>
+                            <th>Zeitraum</th>
+                            <th>Datei</th>
+                            <th class="text-nowrap">Aktionen</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for report in tax_reports %}
+                            <tr>
+                                <td>{{ report.year }}</td>
+                                <td>{{ report.period_label }}</td>
+                                <td><a href="{{ report.file.url }}" target="_blank" rel="noopener">Öffnen</a></td>
+                                <td class="text-nowrap">
+                                    <button type="button" class="btn btn-sm btn-outline-danger" title="Löschen"
+                                            hx-post="{% url 'finance:tax_report_delete' report.pk %}"
+                                            hx-confirm="USt-Bericht „{{ report.period_label }} {{ report.year }}“ wirklich löschen?">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            {% include "components/empty_state.html" with message="Noch keine USt-Berichte hochgeladen." %}
+        {% endif %}
+    {% elif active_tab == "skr03" %}
+        {% if skr03_columns %}
+            <div class="table-responsive">
+                <table class="table table-striped table-hover align-middle table-brand-header">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Datum</th>
+                            <th>Lieferant</th>
+                            {% for column in skr03_columns %}
+                                <th class="text-nowrap">{{ column.name }}</th>
+                            {% endfor %}
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for row in skr03_rows %}
+                            <tr>
+                                <td>{{ row.expense.expense_id }}</td>
+                                <td>{{ row.expense.date|date:"d.m.Y" }}</td>
+                                <td>{{ row.expense.supplier.full_name|default:"–" }}</td>
+                                {% for cell in row.cells %}
+                                    <td>{% if cell is not None %}{{ cell|floatformat:2 }} €{% else %}–{% endif %}</td>
+                                {% endfor %}
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                    <tfoot>
+                        <tr class="fw-bold">
+                            <td colspan="3">Summe</td>
+                            {% for total in skr03_totals %}
+                                <td>{{ total|floatformat:2 }} €</td>
+                            {% endfor %}
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+        {% else %}
+            {% include "components/empty_state.html" with message="Noch keine Ausgaben mit aufgelöstem SKR03-Konto vorhanden." %}
+        {% endif %}
+    {% endif %}
+
+    <div class="modal fade" id="financeModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
+        <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-xl">
+            <div class="modal-content" id="financeModalContent">
+                <!-- HTMX swaps the create/edit form in here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick-view modals for eine Einnahme's Bestellung/Kunde, reuse the
+         same #orderModal/#contactModal ids as their home pages (orders/
+         order_list.html, contacts/kontakte.html) - see review_list.html for
+         the same pattern. -->
+    <div class="modal fade" id="orderModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
+        <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-xl">
+            <div class="modal-content" id="orderModalContent">
+                <!-- HTMX swaps the Bestellungs-Detailansicht in here -->
+            </div>
+        </div>
+    </div>
+    <div class="modal fade" id="contactModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
+        <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-xl">
+            <div class="modal-content" id="contactModalContent">
+                <!-- HTMX swaps the Kontakt-Detailansicht in here -->
+            </div>
+        </div>
+    </div>
+{% endblock %}

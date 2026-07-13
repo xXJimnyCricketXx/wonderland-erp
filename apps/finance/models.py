@@ -2,7 +2,7 @@ from decimal import Decimal
 
 from django.db import models
 
-from contacts.models import Supplier
+from contacts.models import Customer, Supplier
 from core.models import Archivable
 from orders.models import Order
 
@@ -47,29 +47,110 @@ class AccountMapping(models.Model):
         return mapping.skr03_account if mapping else None
 
 
+class Income(Archivable):
+    """Manually recorded income outside the Etsy order flow (Order/
+    LedgerEntry already cover Etsy sales) - e.g. a private/cash sale not run
+    through Etsy, interest, or other one-off income. Kein SKR03-Bezug (anders
+    als Expense) - Erlöskonten werden für Einnahmen bewusst nicht angezeigt.
+    Storno-Rechnungen (Gutschriften) werden als eigene Income-Zeile mit
+    negativem Rechnungsbetrag erfasst, nicht als Expense."""
+
+    date = models.DateField("Datum")
+
+    # Free text, options managed via ReferenceOption(category="income_category").
+    category = models.CharField("Kategorie", max_length=100)
+
+    notes = models.TextField("Notizen", blank=True)
+
+    amount = models.DecimalField("Rechnungsbetrag (brutto)", max_digits=10, decimal_places=2)
+    VAT_RATE_CHOICES = [(0, "0%"), (7, "7%"), (19, "19%")]
+    vat_rate = models.PositiveSmallIntegerField("USt-Satz", choices=VAT_RATE_CHOICES, default=19)
+
+    # Optional - manuell erfasste Einnahmen (z.B. Barverkauf) haben keine
+    # Bestellung. Ist eine Bestellung verknüpft, wird Kunde im Formular per
+    # JS automatisch von deren Kunde übernommen (bleibt aber ein normales,
+    # überschreibbares Feld - siehe _income_modal.html).
+    order = models.ForeignKey(
+        Order, verbose_name="Bestellung", on_delete=models.SET_NULL,
+        null=True, blank=True, related_name="incomes",
+    )
+    customer = models.ForeignKey(
+        Customer, verbose_name="Kunde", on_delete=models.SET_NULL,
+        null=True, blank=True, related_name="incomes",
+    )
+
+    invoice_number = models.CharField("Rechnungsnummer", max_length=100)
+    invoice_date = models.DateField("Rechnungsdatum", blank=True, null=True)
+    invoice_file = models.FileField(
+        "Rechnung (Datei)", upload_to="documents/finanzen/ausgangsrechnungen/", blank=True, null=True
+    )
+
+    # Free text, options managed via ReferenceOption(category="income_payment_method")
+    # - wie der Kunde bezahlt hat (PayPal/Überweisung/Etsy Payments/Bar),
+    # nicht zu verwechseln mit payment_account (unser eigenes Konto).
+    payment_method = models.CharField("Zahlungsart", max_length=50, blank=True)
+    paid_date = models.DateField("Geldeingang", blank=True, null=True)
+    # Free text, options managed via ReferenceOption(category="payment_account").
+    payment_account = models.CharField("Zahlungskonto", max_length=50, blank=True)
+    # Free text, options managed via ReferenceOption(category="income_status")
+    # - Einnahmen-exclusive (Expense has its own "expense_status" category).
+    status = models.CharField("Status", max_length=50, blank=True, default="Offen")
+
+    created_at = models.DateTimeField("Erstellt am", auto_now_add=True)
+    updated_at = models.DateTimeField("Aktualisiert am", auto_now=True)
+
+    class Meta:
+        verbose_name = "Einnahme"
+        verbose_name_plural = "Einnahmen"
+        ordering = ["-date"]
+
+    def __str__(self):
+        return f"{self.invoice_number} ({self.date})"
+
+    @property
+    def net_amount(self):
+        return self.amount / (1 + Decimal(self.vat_rate) / Decimal("100"))
+
+    @property
+    def vat_amount(self):
+        return self.amount - self.net_amount
+
+
 class Expense(Archivable):
+    """Ausgaben-Erfassung mit Fremdwährungs-Umrechnung und USt-Aufschlüsselung
+    nach Satz, damit eine einzelne Rechnung mit gemischten Steuersätzen (z.B.
+    7% Bücher + 19% Zubehör) korrekt abgebildet werden kann, statt nur einen
+    einzigen pauschalen USt-Satz je Ausgabe anzunehmen."""
+
+    # Sequential "A-0001" id, assigned once on first save - same scheme as
+    # Order.order_id's "B-0001" (see orders.models.Order).
+    expense_id = models.CharField("Ausgaben-ID", max_length=20, unique=True, blank=True)
+
     date = models.DateField("Datum")
 
     # Free text, options managed via ReferenceOption(category="expense_category")
     # - matches AccountMapping.art for the SKR03 lookup.
-    category = models.CharField("Kategorie", max_length=100)
+    category = models.CharField("Art", max_length=100)
     variant = models.CharField("Variante", max_length=100, blank=True)
 
-    description = models.CharField("Beschreibung", max_length=255)
+    description = models.CharField("Beschreibung", max_length=255, blank=True)
     notes = models.TextField("Notizen", blank=True)
-
-    # Gross amount + VAT rate - net/VAT amounts are derived, not stored
-    # redundantly (see net_amount/vat_amount below).
-    amount = models.DecimalField("Betrag (brutto)", max_digits=10, decimal_places=2)
-    vat_rate = models.DecimalField(
-        "USt-Satz (%)", max_digits=4, decimal_places=2, default=Decimal("19.00")
-    )
 
     supplier = models.ForeignKey(
         Supplier, verbose_name="Lieferant", on_delete=models.SET_NULL,
         null=True, blank=True, related_name="expenses",
     )
-    supplier_order_number = models.CharField("Bestell-Nr. beim Lieferanten", max_length=100, blank=True)
+
+    is_eu = models.BooleanField("EU", default=False)
+    is_third_country = models.BooleanField("Drittland", default=False)
+
+    # Free text, options managed via ReferenceOption(category="expense_payment_method")
+    # - deliberately its own category, not shared with Order's "payment_method".
+    payment_method = models.CharField("Zahlungsart", max_length=50, blank=True)
+    paid_date = models.DateField("Zahlungsdatum (Bezahlt)", blank=True, null=True)
+    # Free text, options managed via ReferenceOption(category="expense_status")
+    # - Ausgaben-exclusive (Income has its own "income_status" category).
+    status = models.CharField("Status", max_length=50, blank=True, default="Offen")
 
     invoice_number = models.CharField("Rechnungsnummer", max_length=100, blank=True)
     invoice_date = models.DateField("Rechnungsdatum", blank=True, null=True)
@@ -77,16 +158,40 @@ class Expense(Archivable):
         "Rechnung (Datei)", upload_to="documents/finanzen/eingangsrechnungen/", blank=True, null=True
     )
 
-    is_cancelled = models.BooleanField("Storniert", default=False)
-    cancelled_at = models.DateField("Storniert am", blank=True, null=True)
-    cancellation_invoice_file = models.FileField(
-        "Stornorechnung (Datei)", upload_to="documents/finanzen/eingangsrechnungen/storno/", blank=True, null=True
+    # --- Betrag & FX ---
+    amount = models.DecimalField("Betrag (Original)", max_digits=12, decimal_places=2)
+    currency = models.CharField("Währung (Original)", max_length=3, default="EUR")
+    fx_rate_eur_per_original = models.DecimalField(
+        "FX-Kurs (EUR je 1 Original)", max_digits=14, decimal_places=6, default=Decimal("1"), blank=True
     )
+    fx_rate_original_per_eur = models.DecimalField(
+        "FX-Kurs (Original je 1 EUR)", max_digits=14, decimal_places=6, default=Decimal("1"), blank=True
+    )
+    fx_fee_percent = models.DecimalField("FX-Gebühr (%)", max_digits=5, decimal_places=2, default=0, blank=True)
+    fx_fee_fixed_eur = models.DecimalField("FX-Gebühr Fix (EUR)", max_digits=10, decimal_places=2, default=0, blank=True)
+    # Rechnungsbetrag (EUR), FX-Gebühr (EUR, berechnet), Netto/USt/Brutto
+    # Gesamt (EUR) und Konto-Belastung (Soll, EUR) sind bewusst KEINE
+    # Datenbankfelder - alle werden aus amount/fx_rate/gross_X/vat_rate
+    # berechnet (siehe Properties unten), damit nie zwei widersprüchliche
+    # Werte für dieselbe Zahl im Formular stehen können.
 
-    # Free text, options managed via ReferenceOption(category="payment_account").
-    payment_account = models.CharField("Zahlungskonto", max_length=50, blank=True)
-    # Free text, options managed via ReferenceOption(category="expense_status").
-    status = models.CharField("Status", max_length=50, blank=True, default="Offen")
+    VAT_RATE_CHOICES = [(0, "0%"), (7, "7%"), (19, "19%")]
+    vat_rate = models.PositiveSmallIntegerField("USt-Satz", choices=VAT_RATE_CHOICES, default=19)
+
+    # --- USt-Aufschlüsselung ---
+    # Nur der Brutto-Betrag je Satz wird erfasst - Netto und "USt (lt.
+    # Rechnung)" werden für den unter vat_rate gewählten Satz automatisch aus
+    # dem jeweiligen Brutto-Betrag errechnet (siehe net_7/vat_7_invoice/
+    # net_19/vat_19_invoice unten). Alle drei Brutto-Felder bleiben editierbar,
+    # falls eine Rechnung ausnahmsweise mehrere Sätze gleichzeitig enthält.
+    gross_7 = models.DecimalField("Brutto 7%", max_digits=10, decimal_places=2, default=0, blank=True)
+    gross_19 = models.DecimalField("Brutto 19%", max_digits=10, decimal_places=2, default=0, blank=True)
+    gross_0 = models.DecimalField("Brutto 0%", max_digits=10, decimal_places=2, default=0, blank=True)
+
+    # --- Kontobelastung ---
+    account_debit_actual_eur = models.DecimalField(
+        "Konto-Belastung (Ist, EUR)", max_digits=12, decimal_places=2, blank=True, null=True
+    )
 
     created_at = models.DateTimeField("Erstellt am", auto_now_add=True)
     updated_at = models.DateTimeField("Aktualisiert am", auto_now=True)
@@ -97,15 +202,91 @@ class Expense(Archivable):
         ordering = ["-date"]
 
     def __str__(self):
-        return f"{self.description} ({self.date})"
+        return f"{self.expense_id} - {self.description}"
+
+    def save(self, *args, **kwargs):
+        if not self.expense_id:
+            last = Expense.objects.exclude(expense_id="").order_by("-expense_id").first()
+            next_number = 1
+            if last:
+                try:
+                    next_number = int(last.expense_id.split("-")[1]) + 1
+                except (ValueError, IndexError):
+                    pass
+            self.expense_id = f"A-{next_number:04d}"
+        super().save(*args, **kwargs)
 
     @property
-    def net_amount(self):
-        return self.amount / (1 + self.vat_rate / Decimal("100"))
+    def amount_eur(self):
+        """Rechnungsbetrag (EUR) - Original-Betrag umgerechnet zum FX-Kurs."""
+        return self.amount * self.fx_rate_eur_per_original
 
     @property
-    def vat_amount(self):
-        return self.amount - self.net_amount
+    def fx_fee_calculated_eur(self):
+        return (self.amount_eur * self.fx_fee_percent / Decimal("100")) + self.fx_fee_fixed_eur
+
+    @property
+    def net_7(self):
+        if self.vat_rate != 7:
+            return Decimal("0")
+        return self.gross_7 / Decimal("1.07")
+
+    @property
+    def vat_7_invoice(self):
+        return self.gross_7 - self.net_7
+
+    @property
+    def vat_7(self):
+        return self.vat_7_invoice
+
+    @property
+    def net_19(self):
+        if self.vat_rate != 19:
+            return Decimal("0")
+        return self.gross_19 / Decimal("1.19")
+
+    @property
+    def vat_19_invoice(self):
+        return self.gross_19 - self.net_19
+
+    @property
+    def vat_19(self):
+        return self.vat_19_invoice
+
+    @property
+    def net_0(self):
+        # 0 % USt: Netto entspricht immer dem Brutto-Betrag.
+        return self.gross_0
+
+    @property
+    def net_total_eur(self):
+        return self.net_7 + self.net_19 + self.net_0
+
+    @property
+    def vat_total_eur(self):
+        return self.vat_7 + self.vat_19
+
+    @property
+    def gross_total_eur(self):
+        return self.gross_7 + self.gross_19 + self.gross_0
+
+    @property
+    def account_debit_target_eur(self):
+        """Konto-Belastung (Soll, EUR) - Rechnungsbetrag (EUR) plus die
+        berechnete FX-Gebühr, also die erwartete Kontobelastung."""
+        return self.amount_eur + self.fx_fee_calculated_eur
+
+    @property
+    def account_debit_deviation(self):
+        if self.account_debit_actual_eur is None:
+            return None
+        return self.account_debit_actual_eur - self.account_debit_target_eur
+
+    @property
+    def account_debit_display(self):
+        """Best-known account-debit figure for list display - the actual
+        (reconciled) amount once known, otherwise the planned/target one."""
+        return self.account_debit_actual_eur if self.account_debit_actual_eur is not None else self.account_debit_target_eur
 
     @property
     def skr03_account(self):
@@ -158,3 +339,26 @@ class LedgerEntry(models.Model):
     @property
     def skr03_account(self):
         return AccountMapping.account_for(self.entry_type)
+
+
+def tax_report_path(instance, filename):
+    return f"documents/finanzen/ust-berichte/{instance.year}/{filename}"
+
+
+class TaxReport(models.Model):
+    """Periodische USt-/Steuerberichte, die Etsy als PDF bereitstellt - nicht
+    an eine einzelne Bestellung/Ausgabe/Einnahme gebunden, daher ein eigenes
+    kleines Modell (mirrors PackagingLicenseDocument in knowledge/models.py)."""
+
+    year = models.PositiveIntegerField("Jahr")
+    period_label = models.CharField("Zeitraum", max_length=50, help_text="z.B. Q1, Juni, Jahresbericht")
+    file = models.FileField("Datei", upload_to=tax_report_path)
+    uploaded_at = models.DateTimeField("Hochgeladen am", auto_now_add=True)
+
+    class Meta:
+        verbose_name = "USt-Bericht"
+        verbose_name_plural = "USt-Berichte"
+        ordering = ["-year", "period_label"]
+
+    def __str__(self):
+        return f"{self.period_label} {self.year}"

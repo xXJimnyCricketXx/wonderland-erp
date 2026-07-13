@@ -11,4 +11,5 @@ urlpatterns = [
     path("bestellungen/positionen/", views.OrderItemImportView.as_view(), name="order_item_import"),
     path("bewertungen/", views.ReviewImportView.as_view(), name="review_import"),
     path("verpackungslizenz/", views.PackagingLicenseXmlImportView.as_view(), name="packaging_license_xml_import"),
+    path("statement/", views.StatementImportView.as_view(), name="statement_import"),
 ]

@@ -31,6 +31,13 @@ class ReviewImportForm(forms.Form):
     )
 
 
+class StatementImportForm(forms.Form):
+    file = forms.FileField(
+        label="Etsy-Statement-CSV",
+        widget=forms.ClearableFileInput(attrs={"class": "form-control", "accept": ".csv"}),
+    )
+
+
 class PackagingLicenseXmlImportForm(forms.Form):
     recipient = forms.ChoiceField(
         label="Empfänger", choices=PackagingLicenseDataReport.RECIPIENT_CHOICES,

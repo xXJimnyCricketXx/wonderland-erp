@@ -1,0 +1,417 @@
+<div class="modal-header bg-brand text-white">
+    <h5 class="modal-title">{% if object %}Ausgabe bearbeiten{% else %}Neue Ausgabe{% endif %}</h5>
+    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Schließen"></button>
+</div>
+<form hx-post="{{ request.path }}" hx-target="#financeModalContent" enctype="multipart/form-data">
+    {% csrf_token %}
+    <div class="modal-body">
+        {% if form.non_field_errors %}
+            <div class="alert alert-danger">{{ form.non_field_errors }}</div>
+        {% endif %}
+
+        <ul class="nav nav-pills mb-3" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" data-bs-toggle="pill" data-bs-target="#pill-form-stammdaten" type="button" role="tab">Stammdaten</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" data-bs-toggle="pill" data-bs-target="#pill-form-fx" type="button" role="tab">Betrag &amp; FX</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" data-bs-toggle="pill" data-bs-target="#pill-form-ust" type="button" role="tab">USt-Aufschlüsselung</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" data-bs-toggle="pill" data-bs-target="#pill-form-konto" type="button" role="tab">Kontobelastung &amp; SKR03</button>
+            </li>
+        </ul>
+
+        <div class="tab-content">
+            <div class="tab-pane fade show active" id="pill-form-stammdaten" role="tabpanel">
+                <div class="row mb-3">
+                    <div class="col-md-3">
+                        <label class="form-label">Datum</label>
+                        {{ form.date }}
+                        {% include "components/field_errors.html" with field=form.date %}
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Rechnungsnummer</label>
+                        {{ form.invoice_number }}
+                        {% include "components/field_errors.html" with field=form.invoice_number %}
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Rechnungsdatum</label>
+                        {{ form.invoice_date }}
+                        {% include "components/field_errors.html" with field=form.invoice_date %}
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Rechnung (Datei)</label>
+                        {{ form.invoice_file }}
+                        {% include "components/field_errors.html" with field=form.invoice_file %}
+                    </div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-md-3">
+                        <label class="form-label">Lieferant</label>
+                        {{ form.supplier }}
+                        {% include "components/field_errors.html" with field=form.supplier %}
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Art</label>
+                        {{ form.category }}
+                        {% include "components/field_errors.html" with field=form.category %}
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Variante</label>
+                        {{ form.variant }}
+                        {% include "components/field_errors.html" with field=form.variant %}
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Beschreibung</label>
+                        {{ form.description }}
+                        {% include "components/field_errors.html" with field=form.description %}
+                    </div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-md-3 d-flex align-items-end">
+                        <div class="form-check">
+                            {{ form.is_eu }}
+                            <label class="form-check-label" for="{{ form.is_eu.id_for_label }}">EU</label>
+                        </div>
+                    </div>
+                    <div class="col-md-3 d-flex align-items-end">
+                        <div class="form-check">
+                            {{ form.is_third_country }}
+                            <label class="form-check-label" for="{{ form.is_third_country.id_for_label }}">Drittland</label>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Zahlungsart</label>
+                        {{ form.payment_method }}
+                        {% include "components/field_errors.html" with field=form.payment_method %}
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Zahlungsdatum (Bezahlt)</label>
+                        {{ form.paid_date }}
+                        {% include "components/field_errors.html" with field=form.paid_date %}
+                    </div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-md-3">
+                        <label class="form-label">Status</label>
+                        {{ form.status }}
+                        {% include "components/field_errors.html" with field=form.status %}
+                    </div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-12">
+                        <label class="form-label">Notizen</label>
+                        {{ form.notes }}
+                        {% include "components/field_errors.html" with field=form.notes %}
+                    </div>
+                </div>
+            </div>
+
+            <div class="tab-pane fade" id="pill-form-fx" role="tabpanel">
+                <div class="row mb-3">
+                    <div class="col-md-3">
+                        <label class="form-label">Betrag (Original)</label>
+                        {{ form.amount }}
+                        {% include "components/field_errors.html" with field=form.amount %}
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Währung (Original)</label>
+                        {{ form.currency }}
+                        {% include "components/field_errors.html" with field=form.currency %}
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">FX-Kurs (EUR je 1 Original)</label>
+                        {{ form.fx_rate_eur_per_original }}
+                        {% include "components/field_errors.html" with field=form.fx_rate_eur_per_original %}
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">FX-Kurs (Original je 1 EUR)</label>
+                        {{ form.fx_rate_original_per_eur }}
+                        {% include "components/field_errors.html" with field=form.fx_rate_original_per_eur %}
+                    </div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-md-3">
+                        <label class="form-label">FX-Gebühr (%)</label>
+                        {{ form.fx_fee_percent }}
+                        {% include "components/field_errors.html" with field=form.fx_fee_percent %}
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">FX-Gebühr Fix (EUR)</label>
+                        {{ form.fx_fee_fixed_eur }}
+                        {% include "components/field_errors.html" with field=form.fx_fee_fixed_eur %}
+                    </div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-md-3">
+                        <label class="form-label">Rechnungsbetrag (EUR, berechnet)</label>
+                        <input type="text" id="calc_amount_eur" class="form-control" value="{{ object.amount_eur|floatformat:2|default:"0,00" }} €" disabled>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">FX-Gebühr (EUR, berechnet)</label>
+                        <input type="text" id="calc_fx_fee" class="form-control" value="{{ object.fx_fee_calculated_eur|floatformat:2|default:"0,00" }} €" disabled>
+                    </div>
+                </div>
+            </div>
+
+            <div class="tab-pane fade" id="pill-form-ust" role="tabpanel">
+                <div class="row mb-3">
+                    <div class="col-md-3">
+                        <label class="form-label">USt-Satz</label>
+                        {{ form.vat_rate }}
+                        {% include "components/field_errors.html" with field=form.vat_rate %}
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Brutto 7%</label>
+                        {{ form.gross_7 }}
+                        {% include "components/field_errors.html" with field=form.gross_7 %}
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Brutto 19%</label>
+                        {{ form.gross_19 }}
+                        {% include "components/field_errors.html" with field=form.gross_19 %}
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Brutto 0%</label>
+                        {{ form.gross_0 }}
+                        {% include "components/field_errors.html" with field=form.gross_0 %}
+                    </div>
+                </div>
+                <p class="text-muted small">
+                    Netto und USt (lt. Rechnung) werden für den oben gewählten USt-Satz automatisch aus dem
+                    jeweiligen Brutto-Betrag berechnet - hier nur die Brutto-Beträge lt. Rechnung eintragen.
+                </p>
+                <div class="row mb-3">
+                    <div class="col-md-4">
+                        <label class="form-label">Netto 7% (berechnet)</label>
+                        <input type="text" id="calc_net_7" class="form-control" value="{{ object.net_7|floatformat:2|default:"0,00" }} €" disabled>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">USt 7% (berechnet)</label>
+                        <input type="text" id="calc_vat_7" class="form-control" value="{{ object.vat_7_invoice|floatformat:2|default:"0,00" }} €" disabled>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Netto 19% (berechnet)</label>
+                        <input type="text" id="calc_net_19" class="form-control" value="{{ object.net_19|floatformat:2|default:"0,00" }} €" disabled>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">USt 19% (berechnet)</label>
+                        <input type="text" id="calc_vat_19" class="form-control" value="{{ object.vat_19_invoice|floatformat:2|default:"0,00" }} €" disabled>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Netto Gesamt (EUR, berechnet)</label>
+                        <input type="text" id="calc_net_total" class="form-control" value="{{ object.net_total_eur|floatformat:2|default:"0,00" }} €" disabled>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Brutto Gesamt (EUR, berechnet)</label>
+                        <input type="text" id="calc_gross_total" class="form-control" value="{{ object.gross_total_eur|floatformat:2|default:"0,00" }} €" disabled>
+                    </div>
+                </div>
+            </div>
+
+            <div class="tab-pane fade" id="pill-form-konto" role="tabpanel">
+                <div class="row mb-3">
+                    <div class="col-md-4">
+                        <label class="form-label">Konto-Belastung (Ist, EUR)</label>
+                        {{ form.account_debit_actual_eur }}
+                        {% include "components/field_errors.html" with field=form.account_debit_actual_eur %}
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Konto-Belastung (Soll, EUR, berechnet)</label>
+                        <input type="text" id="calc_debit_target" class="form-control" value="{{ object.account_debit_target_eur|floatformat:2|default:"0,00" }} €" disabled>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Abweichung (berechnet)</label>
+                        <input type="text" id="calc_deviation" class="form-control" value="{% if object.account_debit_deviation is not None %}{{ object.account_debit_deviation|floatformat:2 }} €{% else %}–{% endif %}" disabled>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-4">
+                        <label class="form-label">SKR03-Nr. (berechnet)</label>
+                        <input type="text" id="calc_skr03_nr" class="form-control" value="{{ object.skr03_account.number|default:"–" }}" disabled>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">SKR03-Konto (berechnet)</label>
+                        <input type="text" id="calc_skr03_name" class="form-control" value="{{ object.skr03_account.name|default:"–" }}" disabled>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal-footer">
+        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Abbrechen</button>
+        <button type="submit" class="btn btn-primary">Speichern</button>
+    </div>
+</form>
+<script>
+    (function () {
+        var ACCOUNT_MAPPING = {{ account_mapping_json|safe }};
+
+        var artSelect = document.getElementById('id_category');
+        var variantSelect = document.getElementById('id_variant');
+
+        function filterVariants(resetValue) {
+            if (!artSelect || !variantSelect) return;
+            var selectedArt = artSelect.value;
+            var groups = variantSelect.querySelectorAll('optgroup');
+            groups.forEach(function (g) {
+                g.style.display = (g.label === selectedArt) ? '' : 'none';
+            });
+            if (resetValue) {
+                variantSelect.value = '';
+            }
+        }
+
+        function updateSkr03() {
+            if (!artSelect || !variantSelect) return;
+            var entry = (ACCOUNT_MAPPING[artSelect.value] || {})[variantSelect.value];
+            setVal('calc_skr03_nr', entry ? entry.nr : '–');
+            setVal('calc_skr03_name', entry ? entry.name : '–');
+        }
+
+        function num(id) {
+            var el = document.getElementById(id);
+            if (!el || el.value === '') return 0;
+            var v = parseFloat(String(el.value).replace(',', '.'));
+            return isNaN(v) ? 0 : v;
+        }
+
+        function fmt(n) {
+            return n.toFixed(2).replace('.', ',') + ' €';
+        }
+
+        function setVal(id, text) {
+            var el = document.getElementById(id);
+            if (el) el.value = text;
+        }
+
+        var GROSS_IDS_BY_RATE = { '7': 'id_gross_7', '19': 'id_gross_19', '0': 'id_gross_0' };
+
+        function markManual(id) {
+            // Sobald der Nutzer selbst in ein Brutto-Feld tippt, gilt es als
+            // manuell gepflegt - autofillGross() darf es danach nie wieder
+            // anfassen, auch nicht beim Wechsel des USt-Satzes.
+            var el = document.getElementById(id);
+            if (el) el.dataset.autofilled = 'false';
+        }
+
+        function autofillGross() {
+            // Betrag (Original) und das Brutto-Feld des gewählten USt-Satzes
+            // müssen bei einer normalen EUR-Rechnung ohne FX-Umrechnung auf
+            // denselben Wert kommen. Nur automatisch befüllte Felder (nicht
+            // manuell editierte) werden hier geschrieben bzw. beim Wechsel
+            // des Satzes wieder auf 0 zurückgesetzt.
+            var vatRateEl = document.getElementById('id_vat_rate');
+            if (!vatRateEl) return;
+            var targetId = GROSS_IDS_BY_RATE[vatRateEl.value] || 'id_gross_0';
+            var amountEur = num('id_amount') * (num('id_fx_rate_eur_per_original') || 1);
+
+            Object.keys(GROSS_IDS_BY_RATE).forEach(function (rate) {
+                var id = GROSS_IDS_BY_RATE[rate];
+                var el = document.getElementById(id);
+                if (!el) return;
+                if (id === targetId) {
+                    if (el.dataset.autofilled === 'true' || num(id) === 0) {
+                        el.value = amountEur.toFixed(2);
+                        el.dataset.autofilled = 'true';
+                    }
+                } else if (el.dataset.autofilled === 'true') {
+                    el.value = '0.00';
+                    el.dataset.autofilled = 'false';
+                }
+            });
+        }
+
+        function recalc() {
+            var amount = num('id_amount');
+            var fxRate = num('id_fx_rate_eur_per_original') || 1;
+            var feePercent = num('id_fx_fee_percent');
+            var feeFixed = num('id_fx_fee_fixed_eur');
+            var vatRateEl = document.getElementById('id_vat_rate');
+            var vatRate = vatRateEl ? vatRateEl.value : '19';
+            var gross7 = num('id_gross_7');
+            var gross19 = num('id_gross_19');
+            var gross0 = num('id_gross_0');
+            var actualDebitEl = document.getElementById('id_account_debit_actual_eur');
+            var actualDebitRaw = actualDebitEl ? actualDebitEl.value : '';
+
+            var amountEur = amount * fxRate;
+            var fxFee = (amountEur * feePercent / 100) + feeFixed;
+
+            var net7 = vatRate === '7' ? gross7 / 1.07 : 0;
+            var vat7 = gross7 - net7;
+            var net19 = vatRate === '19' ? gross19 / 1.19 : 0;
+            var vat19 = gross19 - net19;
+            var net0 = gross0;
+
+            var netTotal = net7 + net19 + net0;
+            var grossTotal = gross7 + gross19 + gross0;
+            var debitTarget = amountEur + fxFee;
+
+            setVal('calc_amount_eur', fmt(amountEur));
+            setVal('calc_fx_fee', fmt(fxFee));
+            setVal('calc_net_7', fmt(net7));
+            setVal('calc_vat_7', fmt(vat7));
+            setVal('calc_net_19', fmt(net19));
+            setVal('calc_vat_19', fmt(vat19));
+            setVal('calc_net_total', fmt(netTotal));
+            setVal('calc_gross_total', fmt(grossTotal));
+            setVal('calc_debit_target', fmt(debitTarget));
+
+            if (actualDebitRaw !== '') {
+                var actualDebit = parseFloat(String(actualDebitRaw).replace(',', '.'));
+                setVal('calc_deviation', isNaN(actualDebit) ? '–' : fmt(actualDebit - debitTarget));
+            } else {
+                setVal('calc_deviation', '–');
+            }
+
+            updateSkr03();
+        }
+
+        var driverIds = [
+            'id_fx_rate_original_per_eur', 'id_fx_fee_percent', 'id_fx_fee_fixed_eur',
+            'id_account_debit_actual_eur'
+        ];
+        driverIds.forEach(function (id) {
+            var el = document.getElementById(id);
+            if (!el) return;
+            el.addEventListener('input', recalc);
+            el.addEventListener('change', recalc);
+        });
+
+        // Direktes Tippen in ein Brutto-Feld zählt als manuelle Eingabe -
+        // markManual() vor recalc(), damit autofillGross() es danach in Ruhe lässt.
+        Object.keys(GROSS_IDS_BY_RATE).forEach(function (rate) {
+            var id = GROSS_IDS_BY_RATE[rate];
+            var el = document.getElementById(id);
+            if (!el) return;
+            el.addEventListener('input', function () { markManual(id); recalc(); });
+            el.addEventListener('change', function () { markManual(id); recalc(); });
+        });
+
+        // Diese drei lösen zusätzlich autofillGross() aus, bevor neu
+        // berechnet wird (siehe autofillGross-Kommentar oben).
+        ['id_amount', 'id_fx_rate_eur_per_original', 'id_vat_rate'].forEach(function (id) {
+            var el = document.getElementById(id);
+            if (!el) return;
+            el.addEventListener('input', function () { autofillGross(); recalc(); });
+            el.addEventListener('change', function () { autofillGross(); recalc(); });
+        });
+
+        if (artSelect) {
+            artSelect.addEventListener('change', function () {
+                filterVariants(true);
+                updateSkr03();
+            });
+        }
+        if (variantSelect) {
+            variantSelect.addEventListener('change', updateSkr03);
+        }
+
+        filterVariants(false);
+        recalc();
+    })();
+</script>

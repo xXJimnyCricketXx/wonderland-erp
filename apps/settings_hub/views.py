@@ -11,11 +11,12 @@ from catalog.models import Article
 from core.htmx_utils import htmx_redirect
 from core.models import ReferenceOption
 from core.reference_data import CATEGORY_GROUPS, CATEGORY_LABELS
+from finance.models import AccountMapping, SKR03Account
 from knowledge.models import MaterialCategory, PackagingType
 from orders.models import Order
 
 from . import backup_utils
-from .forms import CompanyProfileForm, MaterialCategoryForm, PackagingTypeForm
+from .forms import AccountMappingForm, CompanyProfileForm, MaterialCategoryForm, PackagingTypeForm, SKR03AccountForm
 from .models import BackupSettings, CompanyProfile
 from .reset_registry import RESET_MODEL_ORDER
 from .trash_registry import TRASH_REGISTRY, TRASH_REGISTRY_BY_SLUG
@@ -84,6 +85,8 @@ class SettingsView(LoginRequiredMixin, View):
                 "article_reset_confirm_phrase": ARTICLE_RESET_CONFIRM_PHRASE,
                 "packaging_types": PackagingType.objects.all().order_by("name"),
                 "material_categories": MaterialCategory.objects.all().order_by("name"),
+                "skr03_accounts": SKR03Account.objects.all().order_by("number"),
+                "account_mappings": AccountMapping.objects.select_related("skr03_account").order_by("art", "variante"),
             },
         )
 
@@ -295,6 +298,69 @@ class MaterialCategoryUpdateView(MaterialCategoryModalMixin, UpdateView):
 
 class MaterialCategoryDeleteView(LoginRequiredMixin, SingleObjectMixin, View):
     model = MaterialCategory
+
+    def post(self, request, *args, **kwargs):
+        self.get_object().delete()
+        return htmx_redirect(request, reverse("settings_hub:index") + "?tab=referenzdaten")
+
+
+class SKR03AccountCreateView(LoginRequiredMixin, View):
+    """Plain inline-add (same pattern as ReferenceOptionAddView) - no modal,
+    matches the "neuer Wert + Hinzufügen" row every other Referenzdaten
+    category uses."""
+
+    def post(self, request):
+        number = request.POST.get("number", "").strip()
+        name = request.POST.get("name", "").strip()
+        if number and name:
+            SKR03Account.objects.get_or_create(number=number, defaults={"name": name})
+        return redirect(reverse("settings_hub:index") + "?tab=referenzdaten")
+
+
+class SKR03AccountUpdateView(LoginRequiredMixin, UpdateView):
+    model = SKR03Account
+    form_class = SKR03AccountForm
+    template_name = "settings_hub/_skr03_account_modal.html"
+
+    def form_valid(self, form):
+        self.object = form.save()
+        return htmx_redirect(self.request, reverse("settings_hub:index") + "?tab=referenzdaten")
+
+
+class SKR03AccountDeleteView(LoginRequiredMixin, SingleObjectMixin, View):
+    model = SKR03Account
+
+    def post(self, request, *args, **kwargs):
+        self.get_object().delete()
+        return htmx_redirect(request, reverse("settings_hub:index") + "?tab=referenzdaten")
+
+
+class AccountMappingCreateView(LoginRequiredMixin, View):
+    """Plain inline-add (same pattern as ReferenceOptionAddView) - no modal."""
+
+    def post(self, request):
+        art = request.POST.get("art", "").strip()
+        variante = request.POST.get("variante", "").strip()
+        skr03_account_id = request.POST.get("skr03_account", "").strip()
+        if art and skr03_account_id:
+            AccountMapping.objects.get_or_create(
+                art=art, variante=variante, defaults={"skr03_account_id": skr03_account_id}
+            )
+        return redirect(reverse("settings_hub:index") + "?tab=referenzdaten")
+
+
+class AccountMappingUpdateView(LoginRequiredMixin, UpdateView):
+    model = AccountMapping
+    form_class = AccountMappingForm
+    template_name = "settings_hub/_account_mapping_modal.html"
+
+    def form_valid(self, form):
+        self.object = form.save()
+        return htmx_redirect(self.request, reverse("settings_hub:index") + "?tab=referenzdaten")
+
+
+class AccountMappingDeleteView(LoginRequiredMixin, SingleObjectMixin, View):
+    model = AccountMapping
 
     def post(self, request, *args, **kwargs):
         self.get_object().delete()

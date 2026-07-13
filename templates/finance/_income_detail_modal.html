@@ -1,0 +1,61 @@
+<div class="modal-header bg-brand text-white">
+    <h5 class="modal-title">{{ income.invoice_number }}</h5>
+    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Schließen"></button>
+</div>
+<div class="modal-body">
+    <div class="detail-header">
+        <div>
+            <h4 class="mb-1">{{ income.category }}</h4>
+            <p class="text-muted mb-2">{{ income.date|date:"d.m.Y" }}</p>
+            <span class="badge rounded-pill text-bg-success bg-opacity-25 text-success border border-success-subtle">{{ income.status|default:"–" }}</span>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-4 mb-3 detail-field"><div class="label">Rechnungsnummer</div><div class="value">{{ income.invoice_number }}</div></div>
+        <div class="col-md-4 mb-3 detail-field"><div class="label">Rechnungsdatum</div><div class="value">{{ income.invoice_date|date:"d.m.Y"|default:"–" }}</div></div>
+        <div class="col-md-4 mb-3 detail-field">
+            <div class="label">Rechnung (Datei)</div>
+            <div class="value">{% if income.invoice_file %}<a href="{{ income.invoice_file.url }}" target="_blank" rel="noopener">Öffnen</a>{% else %}–{% endif %}</div>
+        </div>
+        <div class="col-md-4 mb-3 detail-field">
+            <div class="label">Bestellung</div>
+            <div class="value">
+                {% if income.order %}
+                    <a href="#" data-bs-toggle="modal" data-bs-target="#orderModal" data-bs-dismiss="modal"
+                       hx-get="{% url 'orders:detail' income.order.pk %}?zurueck_zu=financeModal" hx-target="#orderModalContent">
+                        {{ income.order.order_id }}
+                    </a>
+                {% else %}–{% endif %}
+            </div>
+        </div>
+        <div class="col-md-4 mb-3 detail-field">
+            <div class="label">Kunde</div>
+            <div class="value">
+                {% if income.customer %}
+                    <a href="#" data-bs-toggle="modal" data-bs-target="#contactModal" data-bs-dismiss="modal"
+                       hx-get="{% url 'contacts:customer_detail' income.customer.pk %}?zurueck_zu=financeModal" hx-target="#contactModalContent">
+                        {{ income.customer.full_name }}
+                    </a>
+                {% else %}–{% endif %}
+            </div>
+        </div>
+        <div class="col-md-4 mb-3 detail-field"><div class="label">Kategorie</div><div class="value">{{ income.category|default:"–" }}</div></div>
+        <div class="col-md-4 mb-3 detail-field"><div class="label">Rechnungsbetrag (brutto)</div><div class="value">{{ income.amount }} €</div></div>
+        <div class="col-md-4 mb-3 detail-field"><div class="label">USt-Satz</div><div class="value">{{ income.get_vat_rate_display }}</div></div>
+        <div class="col-md-4 mb-3 detail-field"><div class="label">Netto (berechnet)</div><div class="value">{{ income.net_amount|floatformat:2 }} €</div></div>
+        <div class="col-md-4 mb-3 detail-field"><div class="label">USt (berechnet)</div><div class="value">{{ income.vat_amount|floatformat:2 }} €</div></div>
+        <div class="col-md-4 mb-3 detail-field"><div class="label">Zahlungsart</div><div class="value">{{ income.payment_method|default:"–" }}</div></div>
+        <div class="col-md-4 mb-3 detail-field"><div class="label">Geldeingang</div><div class="value">{{ income.paid_date|date:"d.m.Y"|default:"–" }}</div></div>
+        <div class="col-md-4 mb-3 detail-field"><div class="label">Zahlungskonto</div><div class="value">{{ income.payment_account|default:"–" }}</div></div>
+        <div class="col-md-4 mb-3 detail-field"><div class="label">Status</div><div class="value">{{ income.status|default:"–" }}</div></div>
+        <div class="col-12 mb-3 detail-field"><div class="label">Notizen</div><div class="value">{{ income.notes|default:"–"|linebreaksbr }}</div></div>
+    </div>
+</div>
+<div class="modal-footer">
+    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Schließen</button>
+    <button type="button" class="btn btn-primary"
+            hx-get="{% url 'finance:income_update' income.pk %}" hx-target="#financeModalContent">
+        <i class="bi bi-pencil me-1"></i>Bearbeiten
+    </button>
+</div>

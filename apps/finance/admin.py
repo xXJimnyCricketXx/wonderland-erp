@@ -19,11 +19,11 @@ class AccountMappingAdmin(admin.ModelAdmin):
 @admin.register(Expense)
 class ExpenseAdmin(admin.ModelAdmin):
     list_display = [
-        "date", "description", "category", "amount", "vat_rate", "supplier",
-        "status", "is_cancelled", "is_archived",
+        "expense_id", "date", "description", "category", "amount", "supplier",
+        "status", "is_archived",
     ]
-    list_filter = ["category", "status", "is_cancelled", "is_archived", "supplier"]
-    search_fields = ["description", "invoice_number", "supplier_order_number"]
+    list_filter = ["category", "status", "is_archived", "supplier"]
+    search_fields = ["expense_id", "description", "invoice_number"]
 
 
 @admin.register(LedgerEntry)

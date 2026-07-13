@@ -2,7 +2,7 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.shortcuts import render
 from django.views.generic import View
 
-from finance.models import Expense
+from finance.models import Expense, Income, TaxReport
 from knowledge.models import PackagingLicenseDocument
 from orders.models import Order
 
@@ -18,18 +18,20 @@ class DocumentBrowserView(LoginRequiredMixin, View):
 
     def get(self, request):
         bestellungen = self._order_files("etsy_receipt_file")
-        # Einnahmen/Ausgangsrechnungen has no source model/UI yet (Finanzen ->
-        # Einnahmen doesn't exist yet, same gap as Ausgaben) - folder stays
-        # empty until that module gets built.
-        ausgangsrechnungen = []
+
+        ausgangsrechnungen = [
+            {"label": f"{i.invoice_number} ({i.date})", "file": i.invoice_file, "date": i.date}
+            for i in Income.objects.filter(is_archived=False).exclude(invoice_file="").order_by("-date")
+        ]
 
         eingangsrechnungen = [
-            {"label": f"{e.description} ({e.date})", "file": e.invoice_file, "date": e.date}
+            {"label": f"{e.expense_id} ({e.date})", "file": e.invoice_file, "date": e.date}
             for e in Expense.objects.filter(is_archived=False).exclude(invoice_file="").order_by("-date")
         ]
-        eingangsrechnungen += [
-            {"label": f"Storno: {e.description} ({e.cancelled_at})", "file": e.cancellation_invoice_file, "date": e.cancelled_at}
-            for e in Expense.objects.filter(is_archived=False).exclude(cancellation_invoice_file="").order_by("-date")
+
+        ust_berichte = [
+            {"label": f"{t.period_label} {t.year}", "file": t.file, "date": t.uploaded_at}
+            for t in TaxReport.objects.all()
         ]
 
         license_docs_by_type = {}
@@ -48,6 +50,7 @@ class DocumentBrowserView(LoginRequiredMixin, View):
                 "subfolders": [
                     {"name": "Eingangsrechnungen", "entries": eingangsrechnungen},
                     {"name": "Ausgangsrechnungen", "entries": ausgangsrechnungen},
+                    {"name": "USt-Berichte", "entries": ust_berichte},
                 ],
             },
             {

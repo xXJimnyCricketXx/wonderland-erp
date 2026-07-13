@@ -33,7 +33,28 @@
 
     <div class="tab-content">
         <div class="tab-pane fade show active" id="pill-statement" role="tabpanel">
-            <p class="text-muted">Import der Etsy-Zahlungskonto-Abrechnung (Statement-CSV) folgt.</p>
+            <div class="card" style="max-width: 500px;">
+                <div class="card-body">
+                    <h6 class="text-uppercase text-muted small mb-3">Etsy-Statement-CSV importieren</h6>
+                    <p class="text-muted small">
+                        Importiert die Zahlungskonto-Abrechnung (Fees, Sales, Refunds, ...) als Buchungen -
+                        append-only, wie ein echtes Kassenbuch: bereits importierte Zeilen werden bei einem
+                        erneuten Import übersprungen statt dupliziert, Korrekturen laufen über eine neue
+                        Gegenbuchung statt über nachträgliches Ändern. Zeilen mit "Order #..." werden
+                        automatisch der passenden Bestellung zugeordnet, sofern diese bereits importiert ist.
+                    </p>
+                    <form method="post" action="{% url 'data_import:statement_import' %}" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            {{ statement_import_form.file }}
+                            {% include "components/field_errors.html" with field=statement_import_form.file %}
+                        </div>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-upload me-1"></i>Importieren
+                        </button>
+                    </form>
+                </div>
+            </div>
         </div>
         <div class="tab-pane fade" id="pill-orders" role="tabpanel">
             <div class="card" style="max-width: 500px;">

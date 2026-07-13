@@ -1,5 +1,6 @@
 from django import forms
 
+from finance.models import AccountMapping, SKR03Account
 from knowledge.models import MaterialCategory, PackagingType, PackagingTypeMaterial
 
 from .models import CompanyProfile
@@ -57,6 +58,27 @@ class MaterialCategoryForm(forms.ModelForm):
         widgets = {
             "name": forms.TextInput(attrs={"class": "form-control"}),
             "price_per_kg": forms.NumberInput(attrs={"class": "form-control", "step": "0.0001"}),
+        }
+
+
+class SKR03AccountForm(forms.ModelForm):
+    class Meta:
+        model = SKR03Account
+        fields = ["number", "name"]
+        widgets = {
+            "number": forms.TextInput(attrs={"class": "form-control"}),
+            "name": forms.TextInput(attrs={"class": "form-control"}),
+        }
+
+
+class AccountMappingForm(forms.ModelForm):
+    class Meta:
+        model = AccountMapping
+        fields = ["art", "variante", "skr03_account"]
+        widgets = {
+            "art": forms.TextInput(attrs={"class": "form-control"}),
+            "variante": forms.TextInput(attrs={"class": "form-control"}),
+            "skr03_account": forms.Select(attrs={"class": "form-select"}),
         }
 
 

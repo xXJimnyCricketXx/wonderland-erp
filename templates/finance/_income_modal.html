@@ -1,0 +1,157 @@
+<div class="modal-header bg-brand text-white">
+    <h5 class="modal-title">{% if object %}Einnahme bearbeiten{% else %}Neue Einnahme{% endif %}</h5>
+    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Schließen"></button>
+</div>
+<form hx-post="{{ request.path }}" hx-target="#financeModalContent" enctype="multipart/form-data">
+    {% csrf_token %}
+    <div class="modal-body">
+        {% if form.non_field_errors %}
+            <div class="alert alert-danger">{{ form.non_field_errors }}</div>
+        {% endif %}
+        <div class="row mb-3">
+            <div class="col-md-3">
+                <label class="form-label">Rechnungsnummer</label>
+                {{ form.invoice_number }}
+                {% include "components/field_errors.html" with field=form.invoice_number %}
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">Rechnungsdatum</label>
+                {{ form.invoice_date }}
+                {% include "components/field_errors.html" with field=form.invoice_date %}
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">Rechnung (Datei)</label>
+                {{ form.invoice_file }}
+                {% include "components/field_errors.html" with field=form.invoice_file %}
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">Datum</label>
+                {{ form.date }}
+                {% include "components/field_errors.html" with field=form.date %}
+            </div>
+        </div>
+        <div class="row mb-3">
+            <div class="col-md-3">
+                <label class="form-label">Bestellung</label>
+                {{ form.order }}
+                {% include "components/field_errors.html" with field=form.order %}
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">Kunde</label>
+                {{ form.customer }}
+                {% include "components/field_errors.html" with field=form.customer %}
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">Kategorie</label>
+                {{ form.category }}
+                {% include "components/field_errors.html" with field=form.category %}
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">Status</label>
+                {{ form.status }}
+                {% include "components/field_errors.html" with field=form.status %}
+            </div>
+        </div>
+        <div class="row mb-3">
+            <div class="col-md-3">
+                <label class="form-label">Rechnungsbetrag (brutto)</label>
+                {{ form.amount }}
+                {% include "components/field_errors.html" with field=form.amount %}
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">USt-Satz</label>
+                {{ form.vat_rate }}
+                {% include "components/field_errors.html" with field=form.vat_rate %}
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">Netto (berechnet)</label>
+                <input type="text" id="calc_net_amount" class="form-control" value="{{ object.net_amount|floatformat:2|default:"0,00" }} €" disabled>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">USt (berechnet)</label>
+                <input type="text" id="calc_vat_amount" class="form-control" value="{{ object.vat_amount|floatformat:2|default:"0,00" }} €" disabled>
+            </div>
+        </div>
+        <div class="row mb-3">
+            <div class="col-md-3">
+                <label class="form-label">Zahlungsart</label>
+                {{ form.payment_method }}
+                {% include "components/field_errors.html" with field=form.payment_method %}
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">Geldeingang</label>
+                {{ form.paid_date }}
+                {% include "components/field_errors.html" with field=form.paid_date %}
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">Zahlungskonto</label>
+                {{ form.payment_account }}
+                {% include "components/field_errors.html" with field=form.payment_account %}
+            </div>
+        </div>
+        <div class="row mb-3">
+            <div class="col-12">
+                <label class="form-label">Notizen</label>
+                {{ form.notes }}
+                {% include "components/field_errors.html" with field=form.notes %}
+            </div>
+        </div>
+    </div>
+    <div class="modal-footer">
+        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Abbrechen</button>
+        <button type="submit" class="btn btn-primary">Speichern</button>
+    </div>
+</form>
+<script>
+    (function () {
+        var ORDER_CUSTOMER = {{ order_customer_json|safe }};
+
+        var orderSelect = document.getElementById('id_order');
+        var customerSelect = document.getElementById('id_customer');
+
+        if (orderSelect && customerSelect) {
+            orderSelect.addEventListener('change', function () {
+                if (!orderSelect.value) return;
+                var customerId = ORDER_CUSTOMER[orderSelect.value];
+                if (customerId !== undefined && customerId !== null) {
+                    customerSelect.value = String(customerId);
+                }
+            });
+        }
+
+        function num(id) {
+            var el = document.getElementById(id);
+            if (!el || el.value === '') return 0;
+            var v = parseFloat(String(el.value).replace(',', '.'));
+            return isNaN(v) ? 0 : v;
+        }
+
+        function fmt(n) {
+            return n.toFixed(2).replace('.', ',') + ' €';
+        }
+
+        function setVal(id, text) {
+            var el = document.getElementById(id);
+            if (el) el.value = text;
+        }
+
+        function recalc() {
+            var amount = num('id_amount');
+            var vatRateEl = document.getElementById('id_vat_rate');
+            var vatRate = vatRateEl ? parseFloat(vatRateEl.value || '0') : 0;
+            var netAmount = amount / (1 + vatRate / 100);
+            var vatAmount = amount - netAmount;
+            setVal('calc_net_amount', fmt(netAmount));
+            setVal('calc_vat_amount', fmt(vatAmount));
+        }
+
+        ['id_amount', 'id_vat_rate'].forEach(function (id) {
+            var el = document.getElementById(id);
+            if (!el) return;
+            el.addEventListener('input', recalc);
+            el.addEventListener('change', recalc);
+        });
+
+        recalc();
+    })();
+</script>

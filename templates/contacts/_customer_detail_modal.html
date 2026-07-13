@@ -93,6 +93,12 @@
     </div>
 </div>
 <div class="modal-footer">
+    {% if back_modal_id %}
+        <button type="button" class="btn btn-outline-secondary me-auto"
+                data-bs-toggle="modal" data-bs-target="#{{ back_modal_id }}" data-bs-dismiss="modal">
+            <i class="bi bi-arrow-left me-1"></i>Zurück
+        </button>
+    {% endif %}
     <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Schließen</button>
     <button type="button" class="btn btn-primary"
             hx-get="{% url 'contacts:customer_update' customer.pk %}" hx-target="#contactModalContent">

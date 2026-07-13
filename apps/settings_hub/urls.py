@@ -24,4 +24,10 @@ urlpatterns = [
     path("materialkategorien/neu/", views.MaterialCategoryCreateView.as_view(), name="material_category_create"),
     path("materialkategorien/<int:pk>/bearbeiten/", views.MaterialCategoryUpdateView.as_view(), name="material_category_update"),
     path("materialkategorien/<int:pk>/loeschen/", views.MaterialCategoryDeleteView.as_view(), name="material_category_delete"),
+    path("skr03-konten/neu/", views.SKR03AccountCreateView.as_view(), name="skr03_account_create"),
+    path("skr03-konten/<int:pk>/bearbeiten/", views.SKR03AccountUpdateView.as_view(), name="skr03_account_update"),
+    path("skr03-konten/<int:pk>/loeschen/", views.SKR03AccountDeleteView.as_view(), name="skr03_account_delete"),
+    path("konten-zuordnungen/neu/", views.AccountMappingCreateView.as_view(), name="account_mapping_create"),
+    path("konten-zuordnungen/<int:pk>/bearbeiten/", views.AccountMappingUpdateView.as_view(), name="account_mapping_update"),
+    path("konten-zuordnungen/<int:pk>/loeschen/", views.AccountMappingDeleteView.as_view(), name="account_mapping_delete"),
 ]
