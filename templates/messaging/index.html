@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block title %}Nachrichten{% endblock %}
+{% block content %}
+    <h1 class="mb-4">Nachrichten</h1>
+    <div class="row g-0 border rounded" style="height: 70vh;">
+        <div class="col-md-4 border-end overflow-auto p-0" id="contact-list"
+             hx-get="{% url 'messaging:contact_list' %}{% if active_user %}?active={{ active_user.pk }}{% endif %}"
+             hx-trigger="every 5s" hx-swap="innerHTML">
+            {% include "messaging/_contact_list.html" %}
+        </div>
+        <div class="col-md-8 p-0" id="conversation-panel">
+            {% if active_user %}
+                {% include "messaging/_conversation_full.html" %}
+            {% else %}
+                <div class="d-flex align-items-center justify-content-center h-100 text-muted">
+                    Wähle links eine Unterhaltung aus.
+                </div>
+            {% endif %}
+        </div>
+    </div>
+{% endblock %}

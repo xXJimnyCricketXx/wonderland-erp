@@ -29,7 +29,13 @@
         </form>
         <ul class="navbar-nav flex-row align-items-center gap-3 ms-auto">
             <li class="nav-item">
-                <a href="#" class="nav-link"><i class="bi bi-chat-dots fs-5"></i></a>
+                <a href="{% url 'messaging:index' %}" class="nav-link">
+                    <span class="position-relative d-inline-block" id="message-badge-wrapper"
+                          hx-get="{% url 'messaging:badge' %}" hx-trigger="load, every 5s" hx-swap="innerHTML">
+                        <i class="bi bi-chat-dots fs-5"></i>
+                        <span id="message-badge" class="badge rounded-pill bg-danger position-absolute top-0 start-100 translate-middle{% if not unread_message_count %} d-none{% endif %}" style="font-size: .65rem;">{{ unread_message_count }}</span>
+                    </span>
+                </a>
             </li>
             <li class="nav-item">
                 <a href="#" class="nav-link" data-bs-toggle="modal" data-bs-target="#notificationsModal">

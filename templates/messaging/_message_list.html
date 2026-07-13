@@ -1,0 +1,19 @@
+{% for m in conversation_messages %}
+    <div class="d-flex mb-2 {% if m.sender_id == request.user.id %}justify-content-end{% endif %}">
+        <div class="p-2 rounded-3 {% if m.sender_id == request.user.id %}bg-brand text-white{% else %}bg-light{% endif %}" style="max-width: 70%;">
+            <div style="white-space: pre-wrap;">{{ m.body }}</div>
+            <div class="small {% if m.sender_id == request.user.id %}text-white-50{% else %}text-muted{% endif %}">
+                {{ m.created_at|date:"d.m. H:i" }}
+                {% if m.sender_id == request.user.id %}<i class="bi bi-check ms-1" title="Gesendet"></i>{% if m.read_at %}<i class="bi bi-check" style="margin-left: -0.35em;" title="Gelesen am {{ m.read_at|date:'d.m. H:i' }}"></i>{% endif %}{% endif %}
+            </div>
+        </div>
+    </div>
+{% empty %}
+    <div class="text-muted small text-center mt-3">Noch keine Nachrichten - schreib die erste.</div>
+{% endfor %}
+<script>
+    (function () {
+        var list = document.getElementById('message-list');
+        if (list) list.scrollTop = list.scrollHeight;
+    })();
+</script>

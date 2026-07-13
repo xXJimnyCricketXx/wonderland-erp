@@ -1,0 +1,85 @@
+<div class="border-top p-2">
+    <div class="form-check mb-1">
+        <input class="form-check-input" type="checkbox" id="enter-sends-toggle">
+        <label class="form-check-label small text-muted" for="enter-sends-toggle">
+            Enter sendet (sonst Zeilenumbruch, Senden über Button)
+        </label>
+    </div>
+    <form id="message-form" hx-post="{% url 'messaging:send' active_user.pk %}" hx-target="#message-list" hx-swap="innerHTML"
+          hx-on::after-request="this.reset(); document.getElementById('message-input').style.height='auto'; document.getElementById('message-input').focus()"
+          class="d-flex gap-2 align-items-end">
+        {% csrf_token %}
+        <textarea name="body" id="message-input" class="form-control" placeholder="Nachricht schreiben..." rows="1"
+                  style="resize: none; max-height: 120px; overflow-y: auto;" required autofocus></textarea>
+        <div class="dropdown">
+        <button type="button" class="btn btn-outline-secondary" data-bs-toggle="dropdown" title="Emoji einfügen">
+            <i class="bi bi-emoji-smile"></i>
+        </button>
+        <ul class="dropdown-menu dropdown-menu-end p-2" style="min-width: 240px;">
+            <div class="d-flex flex-wrap" style="gap: .15rem;">
+                <button type="button" class="btn btn-sm btn-light fs-5" onclick="messagingInsertEmoji('😀')">😀</button>
+                <button type="button" class="btn btn-sm btn-light fs-5" onclick="messagingInsertEmoji('😂')">😂</button>
+                <button type="button" class="btn btn-sm btn-light fs-5" onclick="messagingInsertEmoji('😅')">😅</button>
+                <button type="button" class="btn btn-sm btn-light fs-5" onclick="messagingInsertEmoji('😊')">😊</button>
+                <button type="button" class="btn btn-sm btn-light fs-5" onclick="messagingInsertEmoji('😍')">😍</button>
+                <button type="button" class="btn btn-sm btn-light fs-5" onclick="messagingInsertEmoji('😘')">😘</button>
+                <button type="button" class="btn btn-sm btn-light fs-5" onclick="messagingInsertEmoji('🤔')">🤔</button>
+                <button type="button" class="btn btn-sm btn-light fs-5" onclick="messagingInsertEmoji('😢')">😢</button>
+                <button type="button" class="btn btn-sm btn-light fs-5" onclick="messagingInsertEmoji('😮')">😮</button>
+                <button type="button" class="btn btn-sm btn-light fs-5" onclick="messagingInsertEmoji('😎')">😎</button>
+                <button type="button" class="btn btn-sm btn-light fs-5" onclick="messagingInsertEmoji('🙌')">🙌</button>
+                <button type="button" class="btn btn-sm btn-light fs-5" onclick="messagingInsertEmoji('👍')">👍</button>
+                <button type="button" class="btn btn-sm btn-light fs-5" onclick="messagingInsertEmoji('👎')">👎</button>
+                <button type="button" class="btn btn-sm btn-light fs-5" onclick="messagingInsertEmoji('🙏')">🙏</button>
+                <button type="button" class="btn btn-sm btn-light fs-5" onclick="messagingInsertEmoji('👏')">👏</button>
+                <button type="button" class="btn btn-sm btn-light fs-5" onclick="messagingInsertEmoji('🔥')">🔥</button>
+                <button type="button" class="btn btn-sm btn-light fs-5" onclick="messagingInsertEmoji('🎉')">🎉</button>
+                <button type="button" class="btn btn-sm btn-light fs-5" onclick="messagingInsertEmoji('❤️')">❤️</button>
+                <button type="button" class="btn btn-sm btn-light fs-5" onclick="messagingInsertEmoji('💪')">💪</button>
+                <button type="button" class="btn btn-sm btn-light fs-5" onclick="messagingInsertEmoji('✅')">✅</button>
+                <button type="button" class="btn btn-sm btn-light fs-5" onclick="messagingInsertEmoji('❌')">❌</button>
+                <button type="button" class="btn btn-sm btn-light fs-5" onclick="messagingInsertEmoji('🎂')">🎂</button>
+                <button type="button" class="btn btn-sm btn-light fs-5" onclick="messagingInsertEmoji('☕')">☕</button>
+                <button type="button" class="btn btn-sm btn-light fs-5" onclick="messagingInsertEmoji('📦')">📦</button>
+            </div>
+        </ul>
+    </div>
+        <button type="submit" class="btn btn-primary"><i class="bi bi-send"></i></button>
+    </form>
+</div>
+<script>
+    function messagingInsertEmoji(emoji) {
+        var input = document.getElementById('message-input');
+        if (!input) return;
+        var start = input.selectionStart !== null ? input.selectionStart : input.value.length;
+        var end = input.selectionEnd !== null ? input.selectionEnd : input.value.length;
+        input.value = input.value.slice(0, start) + emoji + input.value.slice(end);
+        input.focus();
+        input.selectionStart = input.selectionEnd = start + emoji.length;
+    }
+
+    (function () {
+        var textarea = document.getElementById('message-input');
+        var form = document.getElementById('message-form');
+        var toggle = document.getElementById('enter-sends-toggle');
+        if (!textarea || !form || !toggle) return;
+
+        var STORAGE_KEY = 'wonderland_chat_enter_sends';
+        toggle.checked = localStorage.getItem(STORAGE_KEY) !== 'false';
+        toggle.addEventListener('change', function () {
+            localStorage.setItem(STORAGE_KEY, toggle.checked ? 'true' : 'false');
+        });
+
+        textarea.addEventListener('keydown', function (evt) {
+            if (evt.key === 'Enter' && !evt.shiftKey && toggle.checked) {
+                evt.preventDefault();
+                form.requestSubmit();
+            }
+        });
+
+        textarea.addEventListener('input', function () {
+            textarea.style.height = 'auto';
+            textarea.style.height = textarea.scrollHeight + 'px';
+        });
+    })();
+</script>

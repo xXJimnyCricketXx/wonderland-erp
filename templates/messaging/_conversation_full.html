@@ -1,0 +1,10 @@
+<div id="conversation-inner" class="d-flex flex-column h-100">
+    <div class="border-bottom p-3">
+        <strong>{{ active_user.username }}</strong>
+    </div>
+    <div class="flex-grow-1 overflow-auto p-3" id="message-list"
+         hx-get="{% url 'messaging:message_list' active_user.pk %}" hx-trigger="every 3s" hx-swap="innerHTML">
+        {% include "messaging/_message_list.html" %}
+    </div>
+    {% include "messaging/_message_form.html" %}
+</div>
