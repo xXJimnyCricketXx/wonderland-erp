@@ -13,7 +13,7 @@
   <Category>Tools: Productivity:</Category>
   <WebUI>http://[IP]:[PORT:8000]/</WebUI>
   <TemplateURL>https://raw.githubusercontent.com/xXJimnyCricketXx/wonderland-erp/main/unraid-template.xml</TemplateURL>
-  <Icon>https://raw.githubusercontent.com/xXJimnyCricketXx/wonderland-erp/main/static/img/Wonderland%20Diorama%20favicon.png</Icon>
+  <Icon>https://raw.githubusercontent.com/xXJimnyCricketXx/wonderland-erp/main/static/img/wonderland-erp-dockericon.png</Icon>
   <ExtraParams/>
   <PostArgs/>
   <CPUset/>

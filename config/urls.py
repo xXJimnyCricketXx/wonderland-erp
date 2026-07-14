@@ -1,7 +1,9 @@
+import re
+
 from django.conf import settings
-from django.conf.urls.static import static
 from django.contrib import admin
-from django.urls import include, path
+from django.urls import include, path, re_path
+from django.views.static import serve
 
 from orders.views import ReviewListView
 
@@ -27,5 +29,12 @@ urlpatterns = [
     path("", include("dashboard.urls")),
 ]
 
-if settings.DEBUG:
-    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+# Kein separater Webserver/Reverse-Proxy vor der App (Single-Container-
+# Deployment, siehe Dockerfile) - Medien-Dateien muessen daher auch mit
+# DEBUG=False (Produktion) ueber Django selbst ausgeliefert werden. Bewusst
+# nicht ueber django.conf.urls.static.static(), die trotz Aufruf ohne
+# DEBUG=True stets eine leere Liste liefert - hier direkt die Serve-View
+# registriert, die dieser Helper intern auch nur weiterreicht.
+urlpatterns += [
+    re_path(r"^%s(?P<path>.*)$" % re.escape(settings.MEDIA_URL.lstrip("/")), serve, {"document_root": settings.MEDIA_ROOT}),
+]
