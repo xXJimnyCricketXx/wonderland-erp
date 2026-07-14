@@ -15,5 +15,6 @@ urlpatterns = [
     path("ausgaben/<int:pk>/bearbeiten/", views.ExpenseUpdateView.as_view(), name="expense_update"),
     path("ausgaben/<int:pk>/loeschen/", views.ExpenseArchiveView.as_view(), name="expense_archive"),
     path("ust-berichte/neu/", views.TaxReportCreateView.as_view(), name="tax_report_create"),
+    path("ust-berichte/<int:pk>/bearbeiten/", views.TaxReportUpdateView.as_view(), name="tax_report_update"),
     path("ust-berichte/<int:pk>/loeschen/", views.TaxReportDeleteView.as_view(), name="tax_report_delete"),
 ]

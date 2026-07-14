@@ -109,11 +109,18 @@ class ExpenseForm(forms.ModelForm):
 
 
 class TaxReportForm(forms.ModelForm):
+    # Ueberschreibt das Model-Feld (dort null=True/blank=True wegen alter
+    # Freitext-Eintraege, die sich nicht automatisch zuordnen lassen) - beim
+    # Anlegen/Bearbeiten ueber das Formular ist der Zeitraum aber immer Pflicht.
+    period = forms.TypedChoiceField(
+        label="Zeitraum", choices=TaxReport._meta.get_field("period").choices,
+        coerce=int, required=True, widget=forms.Select(attrs={"class": "form-select"}),
+    )
+
     class Meta:
         model = TaxReport
-        fields = ["year", "period_label", "file"]
+        fields = ["year", "period", "file"]
         widgets = {
             "year": forms.NumberInput(attrs={"class": "form-control"}),
-            "period_label": forms.TextInput(attrs={"class": "form-control"}),
             "file": forms.ClearableFileInput(attrs={"class": "form-control"}),
         }

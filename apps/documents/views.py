@@ -30,7 +30,7 @@ class DocumentBrowserView(LoginRequiredMixin, View):
         ]
 
         ust_berichte = [
-            {"label": f"{t.period_label} {t.year}", "file": t.file, "date": t.uploaded_at}
+            {"label": f"{t.get_period_display() or '?'} {t.year}", "file": t.file, "date": t.uploaded_at}
             for t in TaxReport.objects.all()
         ]
 

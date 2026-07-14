@@ -366,14 +366,21 @@
                         {% for report in tax_reports %}
                             <tr>
                                 <td>{{ report.year }}</td>
-                                <td>{{ report.period_label }}</td>
+                                <td>{{ report.get_period_display|default:"–" }}</td>
                                 <td><a href="{{ report.file.url }}" target="_blank" rel="noopener">Öffnen</a></td>
                                 <td class="text-nowrap">
-                                    <button type="button" class="btn btn-sm btn-outline-danger" title="Löschen"
-                                            hx-post="{% url 'finance:tax_report_delete' report.pk %}"
-                                            hx-confirm="USt-Bericht „{{ report.period_label }} {{ report.year }}“ wirklich löschen?">
-                                        <i class="bi bi-trash"></i>
-                                    </button>
+                                    <div class="btn-group">
+                                        <button type="button" class="btn btn-sm btn-outline-secondary" title="Bearbeiten"
+                                                data-bs-toggle="modal" data-bs-target="#financeModal"
+                                                hx-get="{% url 'finance:tax_report_update' report.pk %}" hx-target="#financeModalContent">
+                                            <i class="bi bi-pencil"></i>
+                                        </button>
+                                        <button type="button" class="btn btn-sm btn-outline-danger" title="Löschen"
+                                                hx-post="{% url 'finance:tax_report_delete' report.pk %}"
+                                                hx-confirm="USt-Bericht „{{ report.get_period_display }} {{ report.year }}“ wirklich löschen?">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </div>
                                 </td>
                             </tr>
                         {% endfor %}

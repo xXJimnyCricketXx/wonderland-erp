@@ -345,20 +345,37 @@ def tax_report_path(instance, filename):
     return f"documents/finanzen/ust-berichte/{instance.year}/{filename}"
 
 
+# Feste Werte statt Freitext, jeweils mit fortlaufendem Sortier-Code, damit
+# "-year", "-period" eine echte chronologische Liste ergibt (neuester Bericht
+# oben) statt der alphabetischen Sortierung von vorher (die z.B. "Oktober"
+# vor "September" einordnete).
+PERIOD_CHOICES = [
+    (1, "Januar"), (2, "Februar"), (3, "März"), (4, "April"),
+    (5, "Mai"), (6, "Juni"), (7, "Juli"), (8, "August"),
+    (9, "September"), (10, "Oktober"), (11, "November"), (12, "Dezember"),
+    (13, "Q1 (Jan-Mrz)"), (14, "Q2 (Apr-Jun)"), (15, "Q3 (Jul-Sep)"), (16, "Q4 (Okt-Dez)"),
+    (17, "Jahresbericht"),
+]
+
+
 class TaxReport(models.Model):
     """Periodische USt-/Steuerberichte, die Etsy als PDF bereitstellt - nicht
     an eine einzelne Bestellung/Ausgabe/Einnahme gebunden, daher ein eigenes
     kleines Modell (mirrors PackagingLicenseDocument in knowledge/models.py)."""
 
     year = models.PositiveIntegerField("Jahr")
-    period_label = models.CharField("Zeitraum", max_length=50, help_text="z.B. Q1, Juni, Jahresbericht")
+    # null=True nur fuer die Migration von alten Freitext-Eintraegen, die
+    # sich nicht zuverlaessig automatisch zuordnen lassen (siehe Migration) -
+    # das Formular verlangt trotzdem immer einen Wert fuer neue/bearbeitete
+    # Eintraege.
+    period = models.PositiveSmallIntegerField("Zeitraum", choices=PERIOD_CHOICES, null=True, blank=True)
     file = models.FileField("Datei", upload_to=tax_report_path)
     uploaded_at = models.DateTimeField("Hochgeladen am", auto_now_add=True)
 
     class Meta:
         verbose_name = "USt-Bericht"
         verbose_name_plural = "USt-Berichte"
-        ordering = ["-year", "period_label"]
+        ordering = ["-year", "-period"]
 
     def __str__(self):
-        return f"{self.period_label} {self.year}"
+        return f"{self.get_period_display() or '?'} {self.year}"

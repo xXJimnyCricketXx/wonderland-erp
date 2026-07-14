@@ -287,7 +287,7 @@ class ExpenseArchiveView(LoginRequiredMixin, SingleObjectMixin, View):
         return htmx_redirect(request, reverse("finance:index") + "?tab=ausgaben")
 
 
-class TaxReportCreateView(LoginRequiredMixin, CreateView):
+class TaxReportModalMixin(LoginRequiredMixin):
     model = TaxReport
     form_class = TaxReportForm
     template_name = "finance/_tax_report_modal.html"
@@ -295,6 +295,14 @@ class TaxReportCreateView(LoginRequiredMixin, CreateView):
     def form_valid(self, form):
         self.object = form.save()
         return htmx_redirect(self.request, reverse("finance:index") + "?tab=ustberichte")
+
+
+class TaxReportCreateView(TaxReportModalMixin, CreateView):
+    pass
+
+
+class TaxReportUpdateView(TaxReportModalMixin, UpdateView):
+    pass
 
 
 class TaxReportDeleteView(LoginRequiredMixin, SingleObjectMixin, View):

@@ -1,5 +1,5 @@
 <div class="modal-header bg-brand text-white">
-    <h5 class="modal-title">Neuer USt-Bericht</h5>
+    <h5 class="modal-title">{% if object %}USt-Bericht bearbeiten{% else %}Neuer USt-Bericht{% endif %}</h5>
     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Schließen"></button>
 </div>
 <form hx-post="{{ request.path }}" hx-target="#financeModalContent" enctype="multipart/form-data">
@@ -16,8 +16,8 @@
             </div>
             <div class="col-md-4">
                 <label class="form-label">Zeitraum</label>
-                {{ form.period_label }}
-                {% include "components/field_errors.html" with field=form.period_label %}
+                {{ form.period }}
+                {% include "components/field_errors.html" with field=form.period %}
             </div>
             <div class="col-md-4">
                 <label class="form-label">Datei</label>
