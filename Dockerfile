@@ -7,16 +7,26 @@ WORKDIR /app
 
 # weasyprint (PDF reports) needs these system libs at runtime
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    libpango-1.0-0 libpangocairo-1.0-0 libgdk-pixbuf2.0-0 libffi-dev \
+    libpango-1.0-0 libpangoft2-1.0-0 libpangocairo-1.0-0 libgdk-pixbuf-2.0-0 \
+    shared-mime-info fonts-dejavu-core libffi-dev \
     && rm -rf /var/lib/apt/lists/*
 
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . .
+COPY docker/entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
 
-RUN mkdir -p /app/data /app/media /app/staticfiles
+# /data ist das einzige persistente Volume (Unraid-Appdata-Pfad): beide
+# SQLite-Datenbanken und alle hochgeladenen Dateien (Rechnungen, USt-Berichte,
+# Profilbilder) liegen darunter, damit ein einziger Volume-Mount reicht.
+ENV DB_PATH=/data/db.sqlite3 \
+    LEXIKON_DB_PATH=/data/lexikon.sqlite3 \
+    MEDIA_ROOT=/data/media \
+    DEBUG=False
 
+VOLUME ["/data"]
 EXPOSE 8000
 
-CMD ["sh", "-c", "python manage.py migrate --noinput && python manage.py collectstatic --noinput && gunicorn config.wsgi:application --bind 0.0.0.0:8000 --workers 3"]
+ENTRYPOINT ["/entrypoint.sh"]

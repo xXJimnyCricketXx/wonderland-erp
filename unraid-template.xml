@@ -1,0 +1,31 @@
+<?xml version="1.0"?>
+<Container version="2">
+  <Name>wonderland-erp</Name>
+  <Repository>ghcr.io/xxjimnycricketxx/wonderland-erp:latest</Repository>
+  <Registry>https://github.com/xXJimnyCricketXx/wonderland-erp/pkgs/container/wonderland-erp</Registry>
+  <Network>bridge</Network>
+  <MyIP/>
+  <Shell>sh</Shell>
+  <Privileged>false</Privileged>
+  <Support>https://github.com/xXJimnyCricketXx/wonderland-erp/issues</Support>
+  <Project>https://github.com/xXJimnyCricketXx/wonderland-erp</Project>
+  <Overview>Wonderland ERP - Internes Verwaltungstool fuer den Etsy-Shop Wonderland Diorama: Artikel, Bestellungen, Kontakte, Finanzen (SKR03), Aufgaben, Termine, Dashboard mit Auswertungen und Nachrichten zwischen Nutzern.</Overview>
+  <Category>Tools: Productivity:</Category>
+  <WebUI>http://[IP]:[PORT:8000]/</WebUI>
+  <TemplateURL>https://raw.githubusercontent.com/xXJimnyCricketXx/wonderland-erp/main/unraid-template.xml</TemplateURL>
+  <Icon>https://raw.githubusercontent.com/xXJimnyCricketXx/wonderland-erp/main/static/img/Wonderland%20Diorama%20favicon.png</Icon>
+  <ExtraParams/>
+  <PostArgs/>
+  <CPUset/>
+  <DateInstalled/>
+  <DonateText/>
+  <DonateLink/>
+  <Requires/>
+  <Config Name="WebUI Port" Target="8000" Default="18001" Mode="tcp" Description="Port fuer die Wonderland-ERP-Weboberflaeche" Type="Port" Display="always" Required="true" Mask="false">18001</Config>
+  <Config Name="Datenverzeichnis" Target="/data" Default="/mnt/user/appdata/wonderland-erp" Mode="rw" Description="Speichert beide Datenbanken (Haupt- und Heilstein-Lexikon-DB) sowie alle hochgeladenen Dateien (Rechnungen, USt-Berichte, Profilbilder) dauerhaft" Type="Path" Display="always" Required="true" Mask="false">/mnt/user/appdata/wonderland-erp</Config>
+  <Config Name="Secret Key" Target="SECRET_KEY" Default="" Mode="" Description="Zufaelliger geheimer Schluessel fuer Sessions/CSRF, z.B. erzeugt mit: openssl rand -hex 32" Type="Variable" Display="always" Required="true" Mask="true"></Config>
+  <Config Name="Allowed Hosts" Target="ALLOWED_HOSTS" Default="" Mode="" Description="Kommagetrennte Liste erlaubter Hostnamen/IPs, z.B. 192.168.1.10 (die IP dieses Unraid-Servers)" Type="Variable" Display="always" Required="true" Mask="false"></Config>
+  <Config Name="CSRF Trusted Origins" Target="CSRF_TRUSTED_ORIGINS" Default="" Mode="" Description="Kommagetrennte Liste vertrauenswuerdiger Origins inkl. Schema und Port, z.B. http://192.168.1.10:18001" Type="Variable" Display="always" Required="true" Mask="false"></Config>
+  <Config Name="Admin-Benutzername" Target="ADMIN_USERNAME" Default="admin" Mode="" Description="Benutzername fuer den beim ersten Start automatisch angelegten Admin-Account" Type="Variable" Display="always" Required="false" Mask="false">admin</Config>
+  <Config Name="Admin-Passwort" Target="ADMIN_PASSWORD" Default="" Mode="" Description="Passwort fuer den beim ersten Start automatisch angelegten Admin-Account. Leer lassen, um den Account stattdessen spaeter manuell per createsuperuser anzulegen." Type="Variable" Display="always" Required="false" Mask="true"></Config>
+</Container>
