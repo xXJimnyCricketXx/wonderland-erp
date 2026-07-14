@@ -4,7 +4,7 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.http import HttpResponse
 from django.shortcuts import render
 from django.urls import reverse
-from django.views.generic import CreateView, UpdateView, View
+from django.views.generic import CreateView, DetailView, UpdateView, View
 from django.views.generic.detail import SingleObjectMixin
 
 from core.htmx_utils import htmx_redirect
@@ -56,6 +56,11 @@ class TaskCreateView(TaskModalMixin, CreateView):
 
 class TaskUpdateView(TaskModalMixin, UpdateView):
     pass
+
+
+class TaskDetailView(LoginRequiredMixin, DetailView):
+    model = Task
+    template_name = "tasks/_task_detail_modal.html"
 
 
 class TaskStatusUpdateView(LoginRequiredMixin, SingleObjectMixin, View):

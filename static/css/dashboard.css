@@ -1,1 +1,37 @@
 /* dashboard-specific styles */
+
+.dashboard-greeting {
+    color: var(--brand-green);
+}
+
+.dashboard-accent-number {
+    color: var(--brand-green);
+}
+
+.dashboard-widget-link,
+.dashboard-widget-link:hover {
+    color: var(--brand-green);
+}
+
+.chip-toggle {
+    border: 1px solid var(--brand-green);
+    background-color: var(--brand-white);
+    color: var(--brand-green);
+}
+
+.chip-toggle:hover {
+    border-color: var(--brand-gold);
+    color: var(--brand-green);
+}
+
+.chip-toggle.active {
+    background-color: var(--brand-green);
+    border-color: var(--brand-green);
+    color: var(--brand-white);
+}
+
+/* jsvectormap ships a hardcoded blue (#5c5cff) tooltip background. */
+.jvm-tooltip {
+    background-color: var(--brand-green);
+    color: var(--brand-white);
+}

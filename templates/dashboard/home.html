@@ -1,10 +1,350 @@
 {% extends "base.html" %}
-{% load static %}
+{% load static filters %}
 {% block title %}Dashboard{% endblock %}
 {% block extra_css %}
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/jsvectormap@1.5.3/dist/css/jsvectormap.min.css">
     <link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
 {% endblock %}
 {% block content %}
-    <h1>Dashboard</h1>
-    <p>Willkommen, {{ user.username }}. Das Projekt-Grundgerüst steht.</p>
+    <h1 class="display-4 fw-bold dashboard-greeting text-center mb-4">{{ greeting }}</h1>
+
+    <div class="row g-3 mb-3">
+        <div class="col-md-6">
+            <div class="card h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <h6 class="text-uppercase text-muted small mb-0">Aufgaben{% if open_task_count %} ({{ open_task_count }}){% endif %}</h6>
+                        <a href="{% url 'tasks:board' %}" class="small dashboard-widget-link">Alle ansehen</a>
+                    </div>
+                    {% if open_tasks %}
+                        <ul class="list-unstyled mb-0">
+                            {% for task in open_tasks %}
+                                <li class="border-bottom">
+                                    <button type="button" class="btn btn-link p-0 d-flex justify-content-between align-items-center w-100 text-decoration-none py-1 dashboard-widget-link"
+                                            data-bs-toggle="modal" data-bs-target="#taskDetailModal"
+                                            hx-get="{% url 'tasks:detail' task.pk %}" hx-target="#taskDetailModalContent">
+                                        <span class="text-truncate">{{ task.title }}</span>
+                                        <span class="text-muted small text-nowrap ms-2">{{ task.due_date|date:"d.m.Y"|default:"–" }}</span>
+                                    </button>
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    {% else %}
+                        <p class="text-muted small mb-0">Keine offenen Aufgaben.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <h6 class="text-uppercase text-muted small mb-0">Termine{% if appointment_count %} ({{ appointment_count }}){% endif %}</h6>
+                        <a href="{% url 'appointments:calendar' %}" class="small dashboard-widget-link">Alle ansehen</a>
+                    </div>
+                    {% if upcoming_appointments %}
+                        <ul class="list-unstyled mb-0">
+                            {% for appt in upcoming_appointments %}
+                                <li class="border-bottom">
+                                    <button type="button" class="btn btn-link p-0 d-flex justify-content-between align-items-center w-100 text-decoration-none py-1 dashboard-widget-link"
+                                            data-bs-toggle="modal" data-bs-target="#appointmentModal"
+                                            hx-get="{% url 'appointments:update' appt.pk %}" hx-target="#appointmentModalContent">
+                                        <span class="text-truncate">{{ appt.title }}</span>
+                                        <span class="text-muted small text-nowrap ms-2">{{ appt.start_date|date:"d.m.Y" }}{% if not appt.is_all_day and appt.start_time %} {{ appt.start_time|time:"H:i" }}{% endif %}</span>
+                                    </button>
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    {% else %}
+                        <p class="text-muted small mb-0">Keine bevorstehenden Termine.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row row-cols-2 row-cols-md-3 row-cols-lg-5 g-3 mb-3">
+        <div class="col">
+            <div class="card h-100 text-center">
+                <div class="card-body">
+                    <div class="text-uppercase text-muted small">Einnahmen</div>
+                    <div class="fs-3 fw-bold text-success">{{ income_total|floatformat:2 }} €</div>
+                </div>
+            </div>
+        </div>
+        <div class="col">
+            <div class="card h-100 text-center">
+                <div class="card-body">
+                    <div class="text-uppercase text-muted small">Ausgaben</div>
+                    <div class="fs-3 fw-bold text-danger">{{ expense_total|floatformat:2 }} €</div>
+                </div>
+            </div>
+        </div>
+        <div class="col">
+            <div class="card h-100 text-center">
+                <div class="card-body">
+                    <div class="text-uppercase text-muted small">Gewinn</div>
+                    <div class="fs-3 fw-bold {% if profit_total >= 0 %}text-success{% else %}text-danger{% endif %}">{{ profit_total|floatformat:2 }} €</div>
+                </div>
+            </div>
+        </div>
+        <div class="col">
+            <div class="card h-100 text-center">
+                <div class="card-body">
+                    <div class="text-uppercase text-muted small">Artikel</div>
+                    <div class="fs-3 fw-bold dashboard-accent-number">{{ article_count }}</div>
+                </div>
+            </div>
+        </div>
+        <div class="col">
+            <div class="card h-100 text-center">
+                <div class="card-body">
+                    <div class="text-uppercase text-muted small">Bestellungen</div>
+                    <div class="fs-3 fw-bold dashboard-accent-number">{{ order_count }}</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card mb-3">
+        <div class="card-body d-flex flex-wrap justify-content-center align-items-center gap-2">
+            <span class="small text-muted fw-semibold">Jahr:</span>
+            <a class="btn btn-sm chip-toggle{% if not selected_jahre %} active{% endif %}" href="{% filter_url 'jahr' None %}">Alle</a>
+            {% for y in available_years %}
+                <a class="btn btn-sm chip-toggle{% if y in selected_jahre %} active{% endif %}" href="{% toggle_url 'jahr' y %}">{{ y }}</a>
+            {% endfor %}
+
+            <span class="border-start mx-2" style="align-self: stretch;"></span>
+
+            <span class="small text-muted fw-semibold">Quartal:</span>
+            {% for q, label in quarters %}
+                <a class="btn btn-sm chip-toggle{% if quarter_active|get_item:q %} active{% endif %}" href="{% toggle_quarter_url q %}" title="{{ label }}">Q{{ q }}</a>
+            {% endfor %}
+
+            <span class="border-start mx-2" style="align-self: stretch;"></span>
+
+            <span class="small text-muted fw-semibold">Monat:</span>
+            {% for m, label in months %}
+                <a class="btn btn-sm chip-toggle{% if m in selected_monate %} active{% endif %}" href="{% toggle_url 'monat' m %}">{{ label }}</a>
+            {% endfor %}
+        </div>
+    </div>
+
+    {{ charts_data|json_script:"dashboard-charts-data" }}
+
+    <div class="row g-3 mt-1">
+        <div class="col-12 col-lg-4">
+            <div class="card h-100">
+                <div class="card-body">
+                    <div class="text-uppercase text-muted small mb-2">Einnahmen (Zeitverlauf)</div>
+                    <div style="height: 220px;"><canvas id="chart-income"></canvas></div>
+                </div>
+            </div>
+        </div>
+        <div class="col-12 col-lg-4">
+            <div class="card h-100">
+                <div class="card-body">
+                    <div class="text-uppercase text-muted small mb-2">Ausgaben (Zeitverlauf)</div>
+                    <div style="height: 220px;"><canvas id="chart-expense"></canvas></div>
+                </div>
+            </div>
+        </div>
+        <div class="col-12 col-lg-4">
+            <div class="card h-100">
+                <div class="card-body">
+                    <div class="text-uppercase text-muted small mb-2">Ausgaben nach SKR03-Konto</div>
+                    <div style="height: 220px;"><canvas id="chart-skr03"></canvas></div>
+                </div>
+            </div>
+        </div>
+        <div class="col-12 col-lg-4">
+            <div class="card h-100">
+                <div class="card-body">
+                    <div class="text-uppercase text-muted small mb-0">Einnahmen / Ausgaben pro Monat</div>
+                    {% if chart_years_caption %}<div class="small text-muted mb-2">{{ chart_years_caption }}</div>{% endif %}
+                    <div style="height: 220px;"><canvas id="chart-income-expense-bar"></canvas></div>
+                </div>
+            </div>
+        </div>
+        <div class="col-12 col-lg-4">
+            <div class="card h-100">
+                <div class="card-body">
+                    <div class="text-uppercase text-muted small mb-0">Bestellungen pro Monat</div>
+                    {% if chart_years_caption %}<div class="small text-muted mb-2">{{ chart_years_caption }}</div>{% endif %}
+                    <div style="height: 220px;"><canvas id="chart-orders"></canvas></div>
+                </div>
+            </div>
+        </div>
+        <div class="col-12 col-lg-4">
+            <div class="card h-100">
+                <div class="card-body">
+                    <div class="text-uppercase text-muted small mb-2">Gewinn im Vorjahresvergleich</div>
+                    <div style="height: 220px;"><canvas id="chart-profit-comparison"></canvas></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-3 mt-1">
+        <div class="col-12 col-lg-4">
+            <div class="card mb-3">
+                <div class="card-body">
+                    <div class="text-uppercase text-muted small mb-2">Top 5 Artikel (verkaufte Einheiten)</div>
+                    <div style="height: 220px;"><canvas id="chart-top5-units"></canvas></div>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-body">
+                    <div class="text-uppercase text-muted small mb-2">Top 5 Artikel (Einnahmen)</div>
+                    <div style="height: 220px;"><canvas id="chart-top5-revenue"></canvas></div>
+                </div>
+            </div>
+        </div>
+        <div class="col-12 col-lg-8">
+            <div class="card h-100">
+                <div class="card-body">
+                    <div class="text-uppercase text-muted small mb-2">Kunden weltweit</div>
+                    <div id="customer-map" style="height: 460px;"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="taskDetailModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content" id="taskDetailModalContent">
+                <!-- HTMX swaps the read-only detail view in here -->
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="appointmentModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
+        <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-lg">
+            <div class="modal-content" id="appointmentModalContent">
+                <!-- HTMX swaps the create/edit form in here -->
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+    <script>
+        (function () {
+            var data = JSON.parse(document.getElementById('dashboard-charts-data').textContent);
+            var style = getComputedStyle(document.documentElement);
+            var green = style.getPropertyValue('--brand-green').trim();
+            var gold = style.getPropertyValue('--brand-gold').trim();
+            var rust = style.getPropertyValue('--brand-rust').trim();
+            var palette = [green, gold, rust, '#3B6EA5', '#7B5EA7', '#2E8B7A'];
+
+            Chart.defaults.font.family = getComputedStyle(document.body).fontFamily;
+
+            function yearLineDatasets(seriesByYear) {
+                var years = Object.keys(seriesByYear).sort();
+                return years.map(function (year, i) {
+                    return {
+                        label: year,
+                        data: seriesByYear[year],
+                        borderColor: palette[i % palette.length],
+                        backgroundColor: palette[i % palette.length],
+                        tension: .2,
+                    };
+                });
+            }
+
+            new Chart(document.getElementById('chart-income'), {
+                type: 'line',
+                data: { labels: data.monthAxisLabels, datasets: yearLineDatasets(data.incomeSeriesByYear) },
+                options: { plugins: { legend: { display: true, position: 'bottom' } }, maintainAspectRatio: false },
+            });
+
+            new Chart(document.getElementById('chart-expense'), {
+                type: 'line',
+                data: { labels: data.monthAxisLabels, datasets: yearLineDatasets(data.expenseSeriesByYear) },
+                options: { plugins: { legend: { display: true, position: 'bottom' } }, maintainAspectRatio: false },
+            });
+
+            new Chart(document.getElementById('chart-skr03'), {
+                type: 'doughnut',
+                data: {
+                    labels: data.skr03Labels,
+                    datasets: [{ data: data.skr03Values, backgroundColor: data.skr03Labels.map(function (_l, i) { return palette[i % palette.length]; }) }],
+                },
+                options: { plugins: { legend: { display: true, position: 'bottom', labels: { boxWidth: 12 } } }, maintainAspectRatio: false },
+            });
+
+            new Chart(document.getElementById('chart-income-expense-bar'), {
+                type: 'bar',
+                data: {
+                    labels: data.monthAxisLabels,
+                    datasets: [
+                        { label: 'Einnahmen', data: data.incomeBarSeries, backgroundColor: green },
+                        { label: 'Ausgaben', data: data.expenseBarSeries, backgroundColor: rust },
+                    ],
+                },
+                options: { plugins: { legend: { display: true, position: 'bottom' } }, maintainAspectRatio: false },
+            });
+
+            new Chart(document.getElementById('chart-orders'), {
+                type: 'bar',
+                data: {
+                    labels: data.monthAxisLabels,
+                    datasets: [{ label: 'Bestellungen', data: data.orderBarSeries, backgroundColor: gold }],
+                },
+                options: { plugins: { legend: { display: false } }, maintainAspectRatio: false },
+            });
+
+            new Chart(document.getElementById('chart-profit-comparison'), {
+                type: 'line',
+                data: {
+                    labels: data.monthAxisLabels,
+                    datasets: yearLineDatasets(data.profitSeriesByYear),
+                },
+                options: { plugins: { legend: { display: true, position: 'bottom' } }, maintainAspectRatio: false },
+            });
+
+            new Chart(document.getElementById('chart-top5-units'), {
+                type: 'bar',
+                data: {
+                    labels: data.top5UnitsLabels,
+                    datasets: [{ label: 'Einheiten', data: data.top5UnitsValues, backgroundColor: green }],
+                },
+                options: { indexAxis: 'y', plugins: { legend: { display: false } }, maintainAspectRatio: false },
+            });
+
+            new Chart(document.getElementById('chart-top5-revenue'), {
+                type: 'bar',
+                data: {
+                    labels: data.top5RevenueLabels,
+                    datasets: [{ label: 'Einnahmen', data: data.top5RevenueValues, backgroundColor: gold }],
+                },
+                options: { indexAxis: 'y', plugins: { legend: { display: false } }, maintainAspectRatio: false },
+            });
+        })();
+    </script>
+
+    <script src="https://cdn.jsdelivr.net/npm/jsvectormap@1.5.3/dist/js/jsvectormap.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jsvectormap@1.5.3/dist/maps/world.js"></script>
+    <script>
+        (function () {
+            var data = JSON.parse(document.getElementById('dashboard-charts-data').textContent);
+            var green = getComputedStyle(document.documentElement).getPropertyValue('--brand-green').trim();
+
+            var customerMarkers = data.customerMapMarkers;
+
+            new jsVectorMap({
+                selector: '#customer-map',
+                map: 'world',
+                zoomButtons: false,
+                markersSelectable: false,
+                markerStyle: { initial: { fill: green, stroke: '#FEFEFE', r: 6 } },
+                markers: customerMarkers.map(function (m) {
+                    return { name: m.name, coords: m.coords };
+                }),
+                onMarkerTooltipShow: function (event, tooltip, index) {
+                    var marker = customerMarkers[index];
+                    tooltip.text(marker.name + ' (' + marker.count + ' Kunden)', false);
+                },
+            });
+        })();
+    </script>
 {% endblock %}

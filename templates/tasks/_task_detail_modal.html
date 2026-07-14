@@ -1,0 +1,29 @@
+<div class="modal-header bg-brand text-white">
+    <h5 class="modal-title">{{ object.title }}</h5>
+    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Schließen"></button>
+</div>
+<div class="modal-body">
+    <div class="d-flex flex-wrap gap-2 mb-3">
+        <span class="badge text-bg-light border">{{ object.get_status_display }}</span>
+        {% if object.due_date %}<span class="badge text-bg-light border"><i class="bi bi-calendar3 me-1"></i>{{ object.due_date|date:"d.m.Y" }}</span>{% endif %}
+        {% if object.assigned_to %}<span class="badge text-bg-light border"><i class="bi bi-person me-1"></i>{{ object.assigned_to.username }}</span>{% endif %}
+        {% if object.related_order %}<span class="badge text-bg-light border"><i class="bi bi-bag me-1"></i>{{ object.related_order }}</span>{% endif %}
+    </div>
+    {% if object.tags.all %}
+        <div class="d-flex flex-wrap gap-1 mb-3">
+            {% for tag in object.tags.all %}<span class="badge text-bg-light border">{{ tag.value }}</span>{% endfor %}
+        </div>
+    {% endif %}
+    {% if object.description %}
+        <p style="white-space: pre-wrap;">{{ object.description }}</p>
+    {% else %}
+        <p class="text-muted small">Keine Beschreibung.</p>
+    {% endif %}
+    <div class="small text-muted border-top pt-2 mt-3">
+        Erstellt {% if object.created_by %}von {{ object.created_by.username }} {% endif %}am {{ object.created_at|date:"d.m.Y H:i" }}<br>
+        Zuletzt bearbeitet {% if object.updated_by %}von {{ object.updated_by.username }} {% endif %}am {{ object.updated_at|date:"d.m.Y H:i" }}
+    </div>
+</div>
+<div class="modal-footer">
+    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Schließen</button>
+</div>

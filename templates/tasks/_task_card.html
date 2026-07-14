@@ -1,6 +1,8 @@
 <div class="task-card{% if task.due_date and task.due_date < today and task.status != 'done' %} task-card-overdue{% endif %}" draggable="true" data-task-id="{{ task.pk }}">
     <div class="d-flex justify-content-between align-items-start">
-        <span class="task-card-title">{{ task.title }}</span>
+        <button type="button" class="btn btn-link p-0 text-start task-card-title task-card-title-link"
+                data-bs-toggle="modal" data-bs-target="#taskDetailModal"
+                hx-get="{% url 'tasks:detail' task.pk %}" hx-target="#taskDetailModalContent">{{ task.title }}</button>
         <div class="dropdown">
             <button type="button" class="btn btn-sm btn-link text-muted p-0" data-bs-toggle="dropdown" aria-expanded="false">
                 <i class="bi bi-three-dots"></i>

@@ -37,6 +37,14 @@
         </div>
     </div>
 
+    <div class="modal fade" id="taskDetailModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content" id="taskDetailModalContent">
+                <!-- HTMX swaps the read-only detail view in here -->
+            </div>
+        </div>
+    </div>
+
     <script>
         (function () {
             var board = document.getElementById('kanban-board');
@@ -48,14 +56,30 @@
             }
 
             board.querySelectorAll('.task-card').forEach(function (card) {
+                var dragging = false;
                 card.addEventListener('dragstart', function (e) {
+                    dragging = true;
                     e.dataTransfer.setData('text/plain', card.dataset.taskId);
                     e.dataTransfer.effectAllowed = 'move';
                     card.classList.add('dragging');
                 });
                 card.addEventListener('dragend', function () {
                     card.classList.remove('dragging');
+                    // Some browsers still fire a trailing click on the drag
+                    // source after drop - defer clearing the flag so that
+                    // click listener below can see it first.
+                    setTimeout(function () { dragging = false; }, 0);
                 });
+
+                var titleLink = card.querySelector('.task-card-title-link');
+                if (titleLink) {
+                    titleLink.addEventListener('click', function (e) {
+                        if (dragging) {
+                            e.preventDefault();
+                            e.stopPropagation();
+                        }
+                    }, true);
+                }
             });
 
             board.querySelectorAll('.kanban-column-body').forEach(function (column) {
