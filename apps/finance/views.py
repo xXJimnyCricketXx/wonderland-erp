@@ -1,6 +1,8 @@
 import json
+import re
 from decimal import Decimal
 
+from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.db.models import Q
 from django.shortcuts import render
@@ -16,6 +18,11 @@ from orders.models import Order
 
 from .forms import ExpenseForm, IncomeForm, TaxReportForm
 from .models import AccountMapping, Expense, Income, LedgerEntry, SKR03Account, TaxReport
+
+# Etsy benennt USt-Bericht-Exporte immer gleich - "tax_statement_<jahr>-<monat>",
+# Monat ohne Nullpolsterung (z.B. "tax_statement_2024-8.pdf") - Monatszahl
+# entspricht direkt TaxReport.period's Codes 1-12 (siehe PERIOD_CHOICES).
+TAX_STATEMENT_FILENAME_RE = re.compile(r"tax_statement_(\d{4})-(\d{1,2})", re.IGNORECASE)
 
 TABS = ["einnahmen", "ausgaben", "rohdaten", "ustberichte", "skr03"]
 
@@ -310,4 +317,30 @@ class TaxReportDeleteView(LoginRequiredMixin, SingleObjectMixin, View):
 
     def post(self, request, *args, **kwargs):
         self.get_object().delete()
+        return htmx_redirect(request, reverse("finance:index") + "?tab=ustberichte")
+
+
+class TaxReportBulkImportView(LoginRequiredMixin, View):
+    """Etsy-Export-Dateinamen ("tax_statement_<jahr>-<monat>") liefern Jahr
+    und Monat direkt mit - kein manuelles Ausfuellen je Datei noetig."""
+
+    def get(self, request):
+        return render(request, "finance/_tax_report_bulk_import_modal.html")
+
+    def post(self, request):
+        imported, skipped = [], []
+        for f in request.FILES.getlist("files"):
+            match = TAX_STATEMENT_FILENAME_RE.search(f.name)
+            month = int(match.group(2)) if match else None
+            if not match or not (1 <= month <= 12):
+                skipped.append(f.name)
+                continue
+            year = int(match.group(1))
+            TaxReport.objects.create(year=year, period=month, file=f)
+            imported.append(f.name)
+
+        if imported:
+            messages.success(request, f"{len(imported)} USt-Bericht(e) importiert.")
+        if skipped:
+            messages.warning(request, f"Nicht zuordenbar (Dateiname passt nicht zu „tax_statement_<Jahr>-<Monat>“): {', '.join(skipped)}")
         return htmx_redirect(request, reverse("finance:index") + "?tab=ustberichte")
