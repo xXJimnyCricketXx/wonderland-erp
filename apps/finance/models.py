@@ -7,6 +7,18 @@ from core.models import Archivable
 from orders.models import Order
 
 
+def income_invoice_path(instance, filename):
+    reference_date = instance.invoice_date or instance.date
+    year = reference_date.year if reference_date else "unbekannt"
+    return f"documents/finanzen/ausgangsrechnungen/{year}/{filename}"
+
+
+def expense_invoice_path(instance, filename):
+    reference_date = instance.invoice_date or instance.date
+    year = reference_date.year if reference_date else "unbekannt"
+    return f"documents/finanzen/eingangsrechnungen/{year}/{filename}"
+
+
 class SKR03Account(models.Model):
     number = models.CharField("Kontonummer", max_length=10, unique=True)
     name = models.CharField("Bezeichnung", max_length=255)
@@ -82,7 +94,7 @@ class Income(Archivable):
     invoice_number = models.CharField("Rechnungsnummer", max_length=100)
     invoice_date = models.DateField("Rechnungsdatum", blank=True, null=True)
     invoice_file = models.FileField(
-        "Rechnung (Datei)", upload_to="documents/finanzen/ausgangsrechnungen/", blank=True, null=True
+        "Rechnung (Datei)", upload_to=income_invoice_path, blank=True, null=True
     )
 
     # Free text, options managed via ReferenceOption(category="income_payment_method")
@@ -155,7 +167,7 @@ class Expense(Archivable):
     invoice_number = models.CharField("Rechnungsnummer", max_length=100, blank=True)
     invoice_date = models.DateField("Rechnungsdatum", blank=True, null=True)
     invoice_file = models.FileField(
-        "Rechnung (Datei)", upload_to="documents/finanzen/eingangsrechnungen/", blank=True, null=True
+        "Rechnung (Datei)", upload_to=expense_invoice_path, blank=True, null=True
     )
 
     # --- Betrag & FX ---

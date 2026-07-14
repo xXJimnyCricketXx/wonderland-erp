@@ -6,6 +6,11 @@ from core.models import Archivable
 from knowledge.models import PackagingType
 
 
+def order_receipt_path(instance, filename):
+    year = instance.sale_date.year if instance.sale_date else "unbekannt"
+    return f"documents/bestellungen/{year}/{filename}"
+
+
 class Order(Archivable):
     # Internal, always-present identifier ("B-0001", "B-0002", ... assigned
     # sequentially by oldest sale_date first - see data_import.order_import.
@@ -30,7 +35,7 @@ class Order(Archivable):
         null=True, blank=True, related_name="orders",
     )
     etsy_receipt_file = models.FileField(
-        "Etsy-Bestellbeleg", upload_to="documents/bestellungen/", blank=True, null=True
+        "Etsy-Bestellbeleg", upload_to=order_receipt_path, blank=True, null=True
     )
 
     number_of_items = models.PositiveIntegerField("Anzahl Artikel", default=1)
