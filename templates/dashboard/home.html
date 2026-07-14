@@ -63,11 +63,12 @@
         </div>
     </div>
 
-    <div class="row row-cols-2 row-cols-md-3 row-cols-lg-5 g-3 mb-3">
+    <div class="row row-cols-2 row-cols-md-3 row-cols-lg-6 g-3 mb-3">
         <div class="col">
             <div class="card h-100 text-center">
                 <div class="card-body">
-                    <div class="text-uppercase text-muted small">Einnahmen</div>
+                    <i class="bi bi-graph-up-arrow fs-4 dashboard-accent-number"></i>
+                    <div class="text-uppercase text-muted small mt-1">Einnahmen</div>
                     <div class="fs-3 fw-bold text-success">{{ income_total|floatformat:2 }} €</div>
                 </div>
             </div>
@@ -75,7 +76,8 @@
         <div class="col">
             <div class="card h-100 text-center">
                 <div class="card-body">
-                    <div class="text-uppercase text-muted small">Ausgaben</div>
+                    <i class="bi bi-graph-down-arrow fs-4 dashboard-accent-number"></i>
+                    <div class="text-uppercase text-muted small mt-1">Ausgaben</div>
                     <div class="fs-3 fw-bold text-danger">{{ expense_total|floatformat:2 }} €</div>
                 </div>
             </div>
@@ -83,7 +85,8 @@
         <div class="col">
             <div class="card h-100 text-center">
                 <div class="card-body">
-                    <div class="text-uppercase text-muted small">Gewinn</div>
+                    <i class="bi bi-piggy-bank fs-4 dashboard-accent-number"></i>
+                    <div class="text-uppercase text-muted small mt-1">Gewinn</div>
                     <div class="fs-3 fw-bold {% if profit_total >= 0 %}text-success{% else %}text-danger{% endif %}">{{ profit_total|floatformat:2 }} €</div>
                 </div>
             </div>
@@ -91,7 +94,8 @@
         <div class="col">
             <div class="card h-100 text-center">
                 <div class="card-body">
-                    <div class="text-uppercase text-muted small">Artikel</div>
+                    <i class="bi bi-box-seam fs-4 dashboard-accent-number"></i>
+                    <div class="text-uppercase text-muted small mt-1">Artikel</div>
                     <div class="fs-3 fw-bold dashboard-accent-number">{{ article_count }}</div>
                 </div>
             </div>
@@ -99,8 +103,18 @@
         <div class="col">
             <div class="card h-100 text-center">
                 <div class="card-body">
-                    <div class="text-uppercase text-muted small">Bestellungen</div>
+                    <i class="bi bi-bag-check fs-4 dashboard-accent-number"></i>
+                    <div class="text-uppercase text-muted small mt-1">Bestellungen</div>
                     <div class="fs-3 fw-bold dashboard-accent-number">{{ order_count }}</div>
+                </div>
+            </div>
+        </div>
+        <div class="col">
+            <div class="card h-100 text-center">
+                <div class="card-body">
+                    <i class="bi bi-star-fill fs-4 dashboard-accent-number"></i>
+                    <div class="text-uppercase text-muted small mt-1">Durchschn. Bewertung</div>
+                    <div class="fs-3 fw-bold dashboard-accent-number">{{ avg_rating|floatformat:1|default:"–" }}</div>
                 </div>
             </div>
         </div>

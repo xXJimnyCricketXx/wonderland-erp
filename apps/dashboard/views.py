@@ -3,7 +3,7 @@ from datetime import date
 from decimal import Decimal
 
 from django.contrib.auth.decorators import login_required
-from django.db.models import Count, F, Sum
+from django.db.models import Avg, Count, F, Sum
 from django.shortcuts import render
 from django.utils import timezone
 
@@ -12,7 +12,7 @@ from catalog.models import Article
 from contacts.models import Customer
 from finance.models import Expense, Income
 from finance.views import MONTH_CHOICES
-from orders.models import Order, OrderItem
+from orders.models import Order, OrderItem, Review
 from tasks.models import Task
 
 QUARTER_CHOICES = [
@@ -70,6 +70,7 @@ def home(request):
     income_qs = Income.objects.filter(is_archived=False)
     expense_qs = Expense.objects.filter(is_archived=False)
     order_qs = Order.objects.filter(is_archived=False)
+    review_qs = Review.objects.all()
 
     # Keine Auswahl = Gesamtwert über alle Zeit (Standard). Jahr und Monat
     # sind unabhängige Mehrfachauswahlen (Chips), die sich kreuzen - z.B.
@@ -79,10 +80,14 @@ def home(request):
         income_qs = income_qs.filter(date__year__in=selected_jahre)
         expense_qs = expense_qs.filter(date__year__in=selected_jahre)
         order_qs = order_qs.filter(sale_date__year__in=selected_jahre)
+        review_qs = review_qs.filter(date_reviewed__year__in=selected_jahre)
     if selected_monate:
         income_qs = income_qs.filter(date__month__in=selected_monate)
         expense_qs = expense_qs.filter(date__month__in=selected_monate)
         order_qs = order_qs.filter(sale_date__month__in=selected_monate)
+        review_qs = review_qs.filter(date_reviewed__month__in=selected_monate)
+
+    avg_rating = review_qs.aggregate(avg=Avg("star_rating"))["avg"]
 
     income_total = income_qs.aggregate(total=Sum("amount"))["total"] or Decimal("0")
 
@@ -233,6 +238,7 @@ def home(request):
         "profit_total": income_total - expense_total,
         "article_count": Article.objects.filter(parent_article__isnull=True, is_archived=False).count(),
         "order_count": order_qs.count(),
+        "avg_rating": avg_rating,
         "available_years": available_years,
         "months": MONTH_CHOICES,
         "quarters": QUARTER_CHOICES,
