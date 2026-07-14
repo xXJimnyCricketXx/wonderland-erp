@@ -4,10 +4,20 @@ from .models import Gemstone
 
 
 class GemstoneForm(forms.ModelForm):
+    # Kein Model-Feld (image_data ist ein BinaryField, dafuer gibt es kein
+    # brauchbares Formular-Widget) - das Bild wird in der View manuell aus
+    # cleaned_data gelesen und auf die Blob-Felder geschrieben (siehe
+    # GemstoneModalMixin.form_valid).
+    image = forms.ImageField(label="Neues Bild", required=False, widget=forms.ClearableFileInput(attrs={"class": "form-control"}))
+    remove_image = forms.BooleanField(
+        label="Aktuelles Bild entfernen", required=False,
+        widget=forms.CheckboxInput(attrs={"class": "form-check-input"}),
+    )
+
     class Meta:
         model = Gemstone
         fields = [
-            "name", "image",
+            "name",
             "description", "alternative_names", "origin", "confusable_with", "counterfeits",
             "mineral_class", "chemical_composition", "formation", "crystal_system",
             "mohs_hardness", "density", "cleavage", "fracture",
@@ -17,7 +27,6 @@ class GemstoneForm(forms.ModelForm):
         ]
         widgets = {
             "name": forms.TextInput(attrs={"class": "form-control"}),
-            "image": forms.ClearableFileInput(attrs={"class": "form-control"}),
             "description": forms.Textarea(attrs={"class": "form-control", "rows": 3}),
             "alternative_names": forms.TextInput(attrs={"class": "form-control"}),
             "origin": forms.TextInput(attrs={"class": "form-control"}),

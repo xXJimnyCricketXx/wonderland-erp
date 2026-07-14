@@ -9,7 +9,14 @@ class Gemstone(models.Model):
     name/text (e.g. article title against Gemstone.name), never via FK."""
 
     name = models.CharField("Name", max_length=255)
-    image = models.ImageField("Bild", upload_to="gemstones/", blank=True, null=True)
+
+    # Als Blob in dieser DB statt als Datei im gemeinsamen MEDIA_ROOT - das
+    # Bild reist damit automatisch mit lexikon.sqlite3 mit, wenn diese DB
+    # irgendwann eigenstaendig in ein anderes Projekt uebernommen wird, statt
+    # zusaetzlich einen media/gemstones/-Ordner separat mitkopieren zu muessen.
+    image_data = models.BinaryField("Bilddaten", blank=True, null=True, editable=False)
+    image_content_type = models.CharField("Bild-Content-Type", max_length=100, blank=True, editable=False)
+    image_filename = models.CharField("Bild-Dateiname", max_length=255, blank=True, editable=False)
 
     # Allgemeine Informationen
     description = models.TextField("Beschreibung", blank=True)

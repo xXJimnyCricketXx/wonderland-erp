@@ -17,8 +17,19 @@
                 </div>
                 <div class="col-md-4">
                     <label class="form-label">Bild</label>
+                    {% if object.image_data %}
+                        <div class="mb-2">
+                            <img src="{% url 'lexikon:gemstone_image' object.pk %}" class="img-thumbnail" style="max-height: 80px;" alt="{{ object.name }}">
+                        </div>
+                    {% endif %}
                     {{ form.image }}
                     {% include "components/field_errors.html" with field=form.image %}
+                    {% if object.image_data %}
+                        <div class="form-check mt-1">
+                            {{ form.remove_image }}
+                            <label class="form-check-label small" for="{{ form.remove_image.id_for_label }}">{{ form.remove_image.label }}</label>
+                        </div>
+                    {% endif %}
                 </div>
             </div>
 

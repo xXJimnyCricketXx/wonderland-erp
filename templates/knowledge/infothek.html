@@ -313,20 +313,20 @@
             </button>
         </div>
         {% if gemstones %}
-            <div class="row g-3">
+            <div class="row row-cols-3 row-cols-md-4 row-cols-lg-6 g-3">
                 {% for stone in gemstones %}
-                    <div class="col-md-4 col-lg-3">
+                    <div class="col">
                         <div class="card h-100" role="button" data-bs-toggle="modal" data-bs-target="#gemstoneModal"
                              hx-get="{% url 'lexikon:gemstone_detail' stone.pk %}" hx-target="#gemstoneModalContent">
-                            {% if stone.image %}
-                                <img src="{{ stone.image.url }}" class="card-img-top bg-light" alt="{{ stone.name }}" style="height: 200px; object-fit: contain;">
+                            {% if stone.image_data %}
+                                <img src="{% url 'lexikon:gemstone_image' stone.pk %}" class="card-img-top bg-light" alt="{{ stone.name }}" style="aspect-ratio: 1 / 1; object-fit: cover;">
                             {% else %}
-                                <div class="bg-light d-flex align-items-center justify-content-center" style="height: 200px;">
-                                    <i class="bi bi-gem text-muted fs-1"></i>
+                                <div class="bg-light d-flex align-items-center justify-content-center" style="aspect-ratio: 1 / 1;">
+                                    <i class="bi bi-gem text-muted fs-2"></i>
                                 </div>
                             {% endif %}
-                            <div class="card-body">
-                                <h6 class="card-title mb-0">{{ stone.name }}</h6>
+                            <div class="card-body py-2 text-center">
+                                <h6 class="card-title mb-0 small">{{ stone.name }}</h6>
                             </div>
                         </div>
                     </div>
