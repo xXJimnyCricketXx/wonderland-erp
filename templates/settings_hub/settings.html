@@ -648,7 +648,11 @@
             }
             var modul = params.get('modul');
             if (modul) {
-                var subtarget = document.querySelector('[data-bs-target="#subpill-' + modul + '"]');
+                // Referenzdaten-Unterreiter heissen "refsubpill-<slug>" (eigenes
+                // Praefix, da dieselben slugs wie im Papierkorb vorkommen
+                // koennen), Papierkorb-Unterreiter schlicht "subpill-<slug>".
+                var prefix = tab === 'referenzdaten' ? 'refsubpill-' : 'subpill-';
+                var subtarget = document.querySelector('[data-bs-target="#' + prefix + modul + '"]');
                 if (subtarget) {
                     new bootstrap.Tab(subtarget).show();
                 }
