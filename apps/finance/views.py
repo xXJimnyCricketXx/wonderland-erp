@@ -13,6 +13,7 @@ from django.views.generic.detail import SingleObjectMixin
 from contacts.models import Supplier
 from core.htmx_utils import htmx_redirect
 from core.models import ReferenceOption
+from core.sorting import resolve_sort
 
 from orders.models import Order
 
@@ -40,6 +41,13 @@ class FinanceView(LoginRequiredMixin, View):
     gets its own independent list."""
 
     template_name = "finance/finanzen.html"
+
+    INCOME_SORT_FIELDS = {
+        "invoice_number", "date", "order__order_id", "customer__last_name", "category", "amount", "status",
+    }
+    EXPENSE_SORT_FIELDS = {
+        "expense_id", "date", "supplier__last_name", "category", "variant", "status",
+    }
 
     def get(self, request):
         tab = request.GET.get("tab")
@@ -73,6 +81,8 @@ class FinanceView(LoginRequiredMixin, View):
         status = self.request.GET.get("status")
         if status:
             qs = qs.filter(status=status)
+
+        qs = qs.order_by(resolve_sort(self.request, self.INCOME_SORT_FIELDS, "-date"))
 
         return {
             "incomes": qs,
@@ -115,6 +125,8 @@ class FinanceView(LoginRequiredMixin, View):
         status = self.request.GET.get("status")
         if status:
             qs = qs.filter(status=status)
+
+        qs = qs.order_by(resolve_sort(self.request, self.EXPENSE_SORT_FIELDS, "-date"))
 
         base_qs = Expense.objects.filter(is_archived=False)
         return {
