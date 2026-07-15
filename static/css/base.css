@@ -150,6 +150,21 @@ body {
     --bs-btn-focus-shadow-rgb: 244, 170, 27;
 }
 
+/* Pagination (components/pagination.html, used app-wide) ships hardcoded
+   Bootstrap blue too - same retheme approach as .btn-primary above. */
+.pagination {
+    --bs-pagination-color: var(--brand-green);
+    --bs-pagination-hover-color: var(--brand-green);
+    --bs-pagination-hover-bg: var(--brand-gold);
+    --bs-pagination-hover-border-color: var(--brand-gold);
+    --bs-pagination-focus-color: var(--brand-green);
+    --bs-pagination-focus-bg: var(--brand-white);
+    --bs-pagination-focus-box-shadow: 0 0 0 .25rem rgba(244, 170, 27, .25);
+    --bs-pagination-active-color: var(--brand-white);
+    --bs-pagination-active-bg: var(--brand-green);
+    --bs-pagination-active-border-color: var(--brand-green);
+}
+
 /* .form-select (dropdowns) ships the same hardcoded blue focus ring as
    .form-control but is a separate Bootstrap class, so the override above
    never covered it - every <select class="form-select"> in the app (Artikel
