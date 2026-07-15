@@ -32,10 +32,14 @@
                     {{ form.supplier }}
                     {% include "components/field_errors.html" with field=form.supplier %}
                 </div>
-                <div class="col-md-4 d-flex align-items-end">
+                <div class="col-md-4 d-flex flex-column justify-content-end">
                     <div class="form-check">
                         {{ form.is_active }}
                         <label class="form-check-label" for="{{ form.is_active.id_for_label }}">Aktiv gelistet</label>
+                    </div>
+                    <div class="form-check">
+                        {{ form.is_sold_out }}
+                        <label class="form-check-label" for="{{ form.is_sold_out.id_for_label }}">Ausverkauft</label>
                     </div>
                 </div>
             </div>

@@ -4,6 +4,19 @@ from contacts.models import Supplier
 from core.models import Archivable
 
 
+def next_wd_sku():
+    """Naechste freie fortlaufende WD-XXXX-Nummer - selbe Logik wie das
+    assign_skus-Management-Command, hier aber fuer einen einzelnen neuen
+    Artikel statt fuer einen einmaligen Bulk-Nachtrag."""
+    existing_numbers = [
+        int(sku[3:7])
+        for sku in Article.objects.exclude(sku__isnull=True).exclude(sku="").values_list("sku", flat=True)
+        if sku.startswith("WD-") and sku[3:7].isdigit()
+    ]
+    next_number = max(existing_numbers, default=0) + 1
+    return f"WD-{next_number:04d}"
+
+
 class Article(Archivable):
     # Our own "dumb" identifier going forward (e.g. WD-0001) - Etsy's own
     # BESTANDSEINHEIT field is unreliable historically, see docs/konzept.md.
@@ -29,6 +42,11 @@ class Article(Archivable):
         null=True, blank=True, related_name="articles",
     )
     is_active = models.BooleanField("Aktiv gelistet", default=True)
+    # Unabhaengig von is_active: "Aktiv gelistet"=Nein heisst bewusst vom
+    # Shop genommen (z.B. Bernstein aus rechtlichen Gruenden), "Ausverkauft"
+    # heisst schlicht kein Nachschub geplant (z.B. Einzelstueck) - beides
+    # kann unabhaengig voneinander zutreffen.
+    is_sold_out = models.BooleanField("Ausverkauft", default=False)
 
     thumbnail_url = models.URLField("Vorschaubild-URL", blank=True)
     shop_url = models.URLField("Shop-Link", blank=True)

@@ -23,6 +23,9 @@
                 {% else %}
                     <span class="badge text-bg-secondary">Inaktiv</span>
                 {% endif %}
+                {% if article.is_sold_out %}
+                    <span class="badge text-bg-danger">Ausverkauft</span>
+                {% endif %}
                 {% if article.needs_restock %}
                     <span class="badge text-bg-warning">Nachbestellung nötig</span>
                 {% endif %}

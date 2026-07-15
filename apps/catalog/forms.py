@@ -10,7 +10,7 @@ class ArticleForm(forms.ModelForm):
     class Meta:
         model = Article
         fields = [
-            "title", "sku", "category", "supplier", "is_active",
+            "title", "sku", "category", "supplier", "is_active", "is_sold_out",
             "price", "currency_code", "stock_quantity", "minimum_stock_quantity",
             "description", "thumbnail_url", "shop_url",
             "purchase_price_per_unit", "purchase_price_unit_label", "purchase_price_per_piece",
@@ -19,6 +19,7 @@ class ArticleForm(forms.ModelForm):
             "title": forms.TextInput(attrs={"class": "form-control"}),
             "sku": forms.TextInput(attrs={"class": "form-control"}),
             "is_active": forms.CheckboxInput(attrs={"class": "form-check-input"}),
+            "is_sold_out": forms.CheckboxInput(attrs={"class": "form-check-input"}),
             "price": forms.NumberInput(attrs={"class": "form-control", "step": "0.01"}),
             "currency_code": forms.TextInput(attrs={"class": "form-control"}),
             "stock_quantity": forms.NumberInput(attrs={"class": "form-control"}),
