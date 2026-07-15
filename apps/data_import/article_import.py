@@ -25,6 +25,13 @@ VARIATION_COLUMN_PAIRS = [
     ("VARIATIONSNAME 2", "VARIATIONSWERT 2"),
 ]
 
+# Etsy liefert VARIATIONSNAME als deutsche Uebersetzung ihres eigenen
+# Variations-Typs - fuer diesen Shop kommt dabei "Sortieren" statt "Sorte"
+# raus (Etsys eigener Uebersetzungsfehler, kein Tippfehler unsererseits).
+VARIATION_NAME_CORRECTIONS = {
+    "Sortieren": "Sorte",
+}
+
 
 class ArticleImportResult:
     def __init__(self):
@@ -106,6 +113,7 @@ def import_articles_from_csv(file_obj):
         variant_labels = []
         for name_column, value_column in VARIATION_COLUMN_PAIRS:
             variation_name = _clean(row.get(name_column))
+            variation_name = VARIATION_NAME_CORRECTIONS.get(variation_name, variation_name)
             values_raw = row.get(value_column) or ""
             for value in values_raw.split(","):
                 value = _clean(value)
