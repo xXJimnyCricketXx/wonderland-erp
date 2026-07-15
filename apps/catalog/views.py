@@ -14,7 +14,7 @@ from core.models import ReferenceOption
 from core.sorting import resolve_sort
 
 from .forms import ArticleForm
-from .models import Article, EtsyListingMapping
+from .models import Article, EtsyListingMapping, next_wd_sku
 
 
 class ArticleListView(LoginRequiredMixin, ListView):
@@ -116,7 +116,12 @@ class ArticleModalMixin(BackModalMixin, LoginRequiredMixin):
 
 
 class ArticleCreateView(ArticleModalMixin, CreateView):
-    pass
+    def form_valid(self, form):
+        self.object = form.save(commit=False)
+        if not self.object.sku:
+            self.object.sku = next_wd_sku()
+        self.object.save()
+        return htmx_redirect(self.request, reverse("catalog:list"))
 
 
 class ArticleUpdateView(ArticleModalMixin, UpdateView):
