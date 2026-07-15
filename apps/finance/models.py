@@ -8,9 +8,8 @@ from orders.models import Order
 
 
 def income_invoice_path(instance, filename):
-    reference_date = instance.invoice_date or instance.date
-    year = reference_date.year if reference_date else "unbekannt"
-    return f"documents/finanzen/ausgangsrechnungen/{year}/{filename}"
+    # invoice_date ist bei Income Pflicht (anders als bei Expense unten).
+    return f"documents/finanzen/ausgangsrechnungen/{instance.invoice_date.year}/{filename}"
 
 
 def expense_invoice_path(instance, filename):
@@ -67,6 +66,10 @@ class Income(Archivable):
     Storno-Rechnungen (Gutschriften) werden als eigene Income-Zeile mit
     negativem Rechnungsbetrag erfasst, nicht als Expense."""
 
+    # Nicht mehr im Formular - wird beim Speichern automatisch aus
+    # invoice_date uebernommen (siehe save()), da es im Formular keinen
+    # eigenen Zweck mehr hat und nur noch fuers Filtern (Dashboard/Berichte)
+    # gebraucht wird.
     date = models.DateField("Datum")
 
     # Free text, options managed via ReferenceOption(category="income_category").
@@ -92,7 +95,7 @@ class Income(Archivable):
     )
 
     invoice_number = models.CharField("Rechnungsnummer", max_length=100)
-    invoice_date = models.DateField("Rechnungsdatum", blank=True, null=True)
+    invoice_date = models.DateField("Rechnungsdatum")
     invoice_file = models.FileField(
         "Rechnung (Datei)", upload_to=income_invoice_path, blank=True, null=True
     )
@@ -118,6 +121,10 @@ class Income(Archivable):
 
     def __str__(self):
         return f"{self.invoice_number} ({self.date})"
+
+    def save(self, *args, **kwargs):
+        self.date = self.invoice_date
+        super().save(*args, **kwargs)
 
     @property
     def net_amount(self):

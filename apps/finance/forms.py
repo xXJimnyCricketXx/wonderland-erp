@@ -36,7 +36,7 @@ class IncomeForm(forms.ModelForm):
         model = Income
         fields = [
             "invoice_number", "invoice_date", "invoice_file", "order", "customer",
-            "category", "date", "amount", "vat_rate",
+            "category", "amount", "vat_rate",
             "payment_method", "paid_date", "payment_account", "status", "notes",
         ]
         widgets = {
@@ -45,7 +45,6 @@ class IncomeForm(forms.ModelForm):
             "invoice_file": forms.ClearableFileInput(attrs={"class": "form-control"}),
             "order": forms.Select(attrs={"class": "form-select", "id": "id_order"}),
             "customer": forms.Select(attrs={"class": "form-select"}),
-            "date": forms.DateInput(attrs={"class": "form-control", "type": "date"}, format="%Y-%m-%d"),
             "amount": forms.NumberInput(attrs={"class": "form-control", "step": "0.01"}),
             "vat_rate": forms.Select(attrs={"class": "form-select"}),
             "paid_date": forms.DateInput(attrs={"class": "form-control", "type": "date"}, format="%Y-%m-%d"),
