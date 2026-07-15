@@ -5,14 +5,11 @@
 <div class="modal-body">
     <div class="row mb-3">
         <div class="col-md-5">
-            {% if article.thumbnail_url %}
-                <img src="{{ article.thumbnail_url }}" class="img-fluid rounded" alt="{{ article.title }}"
-                     role="button" style="cursor: zoom-in;" onclick="openLightbox('{{ article.thumbnail_url|escapejs }}')">
-            {% else %}
-                <div class="bg-light rounded d-flex align-items-center justify-content-center" style="aspect-ratio: 1;">
-                    <i class="bi bi-image text-muted fs-1"></i>
-                </div>
-            {% endif %}
+            <img id="detail-image" src="{{ article.thumbnail_url }}" class="img-fluid rounded{% if not article.thumbnail_url %} d-none{% endif %}" alt="{{ article.title }}"
+                 role="button" style="cursor: zoom-in;" onclick="openLightbox(this.src)">
+            <div id="detail-image-placeholder" class="bg-light rounded d-flex align-items-center justify-content-center{% if article.thumbnail_url %} d-none{% endif %}" style="aspect-ratio: 1;">
+                <i class="bi bi-image text-muted fs-1"></i>
+            </div>
         </div>
         <div class="col-md-7">
             <p class="text-muted mb-1">SKU: <span id="detail-sku">{{ article.sku|default:"–" }}</span></p>
@@ -37,6 +34,7 @@
                 <select class="form-select" id="variant-select" onchange="wonderlandUpdateVariant(this)">
                     <option value="{{ article.price }}"
                             data-currency="{{ article.currency_code }}"
+                            data-thumbnail="{{ article.thumbnail_url }}"
                             data-sku="{{ article.sku|default:'–' }}"
                             data-stock="{{ article.stock_quantity }}"
                             data-min-stock="{{ article.minimum_stock_quantity|default:'–' }}"
@@ -50,6 +48,7 @@
                     {% for variant in article.variants.all %}
                         <option value="{{ variant.price }}"
                                 data-currency="{{ variant.currency_code }}"
+                                data-thumbnail="{{ variant.thumbnail_url }}"
                                 data-sku="{{ variant.sku|default:'–' }}"
                                 data-stock="{{ variant.stock_quantity }}"
                                 data-min-stock="{{ variant.minimum_stock_quantity|default:'–' }}"
@@ -169,6 +168,18 @@
     function wonderlandUpdateVariant(select) {
         var opt = select.options[select.selectedIndex];
         document.getElementById('detail-price').textContent = opt.value + ' ' + opt.dataset.currency;
+
+        var img = document.getElementById('detail-image');
+        var placeholder = document.getElementById('detail-image-placeholder');
+        if (opt.dataset.thumbnail) {
+            img.src = opt.dataset.thumbnail;
+            img.classList.remove('d-none');
+            placeholder.classList.add('d-none');
+        } else {
+            img.classList.add('d-none');
+            placeholder.classList.remove('d-none');
+        }
+
         document.getElementById('detail-sku').textContent = opt.dataset.sku;
         document.getElementById('detail-stock').textContent = opt.dataset.stock;
         document.getElementById('detail-min-stock').textContent = opt.dataset.minStock;
