@@ -2,6 +2,11 @@
 
 .dashboard-greeting {
     color: var(--brand-green);
+    /* .mt-5 (Bootstrap-Utility, 3rem) stapelt sich mit dem Padding von
+       <main class="p-4"> zu ca. 4.5rem sichtbarem Abstand nach oben - unten
+       gibt es kein vergleichbares Padding, daher hier direkt etwas mehr als
+       Bootstraps .mb-5 (3rem), um beide Seiten optisch anzugleichen. */
+    margin-bottom: 4.5rem;
 }
 
 .dashboard-accent-number {
