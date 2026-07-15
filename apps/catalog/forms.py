@@ -1,4 +1,5 @@
 from django import forms
+from django.forms import inlineformset_factory
 
 from contacts.models import Supplier
 from core.models import ReferenceOption
@@ -50,3 +51,25 @@ class ArticleForm(forms.ModelForm):
 
         self.fields["supplier"].queryset = Supplier.objects.filter(is_archived=False).order_by("last_name", "first_name")
         self.fields["supplier"].widget.attrs.update({"class": "form-select"})
+
+
+# Varianten sind selbst ganz normale Article-Zeilen (self-FK parent_article),
+# hier aber als Etsy-artige Tabelle im "Variationen"-Pill des Hauptartikels
+# editierbar statt einzeln ueber die Artikel-Liste (die zeigt nur Hauptartikel).
+ArticleVariantFormSet = inlineformset_factory(
+    Article,
+    Article,
+    fk_name="parent_article",
+    fields=["variant_label", "sku", "price", "stock_quantity", "thumbnail_url", "is_active", "is_sold_out"],
+    widgets={
+        "variant_label": forms.TextInput(attrs={"class": "form-control", "placeholder": "z.B. Sorte: Amethyst"}),
+        "sku": forms.TextInput(attrs={"class": "form-control"}),
+        "price": forms.NumberInput(attrs={"class": "form-control", "step": "0.01"}),
+        "stock_quantity": forms.NumberInput(attrs={"class": "form-control"}),
+        "thumbnail_url": forms.URLInput(attrs={"class": "form-control"}),
+        "is_active": forms.CheckboxInput(attrs={"class": "form-check-input"}),
+        "is_sold_out": forms.CheckboxInput(attrs={"class": "form-check-input"}),
+    },
+    extra=0,
+    can_delete=True,
+)

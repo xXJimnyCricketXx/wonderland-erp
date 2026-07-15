@@ -13,7 +13,7 @@ from core.mixins import BackModalMixin
 from core.models import ReferenceOption
 from core.sorting import resolve_sort
 
-from .forms import ArticleForm
+from .forms import ArticleForm, ArticleVariantFormSet
 from .models import Article, EtsyListingMapping, next_wd_sku
 
 
@@ -125,7 +125,26 @@ class ArticleCreateView(ArticleModalMixin, CreateView):
 
 
 class ArticleUpdateView(ArticleModalMixin, UpdateView):
-    pass
+    """Anders als Create: Varianten (self-FK parent_article) werden gleich
+    mit im "Variationen"-Pill bearbeitet, als Etsy-artige Tabelle statt
+    einzeln ueber die Artikel-Liste (die zeigt nur Hauptartikel)."""
+
+    def get(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        form = self.get_form()
+        variant_formset = ArticleVariantFormSet(instance=self.object, prefix="variants")
+        return self.render_to_response(self.get_context_data(form=form, variant_formset=variant_formset))
+
+    def post(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        form = self.get_form()
+        variant_formset = ArticleVariantFormSet(request.POST, instance=self.object, prefix="variants")
+        if form.is_valid() and variant_formset.is_valid():
+            self.object = form.save()
+            variant_formset.instance = self.object
+            variant_formset.save()
+            return htmx_redirect(self.request, reverse("catalog:list"))
+        return self.render_to_response(self.get_context_data(form=form, variant_formset=variant_formset))
 
 
 class ArticleArchiveView(LoginRequiredMixin, SingleObjectMixin, View):

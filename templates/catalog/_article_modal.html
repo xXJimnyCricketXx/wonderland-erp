@@ -21,6 +21,24 @@
                     {% include "components/field_errors.html" with field=form.sku %}
                 </div>
             </div>
+
+            {% if object %}
+                <ul class="nav nav-pills mb-3" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active" data-bs-toggle="pill" data-bs-target="#pill-form-details" type="button" role="tab">
+                            <i class="bi bi-info-circle me-1"></i>Details
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" data-bs-toggle="pill" data-bs-target="#pill-form-variationen" type="button" role="tab">
+                            <i class="bi bi-boxes me-1"></i>Variationen{% if variant_formset.total_form_count %} ({{ variant_formset.total_form_count }}){% endif %}
+                        </button>
+                    </li>
+                </ul>
+            {% endif %}
+
+            <div class="{% if object %}tab-content{% endif %}">
+            <div class="{% if object %}tab-pane fade show active{% endif %}" id="pill-form-details" role="tabpanel">
             <div class="row mb-3">
                 <div class="col-md-4">
                     <label class="form-label">Kategorie</label>
@@ -103,6 +121,78 @@
                     {% include "components/field_errors.html" with field=form.purchase_price_per_piece %}
                 </div>
             </div>
+            </div>
+
+            {% if object %}
+                <div class="tab-pane fade" id="pill-form-variationen" role="tabpanel">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <h6 class="text-muted text-uppercase small mb-0">Variationen</h6>
+                        <button type="button" id="add-variant-row" class="btn btn-sm btn-outline-secondary">
+                            <i class="bi bi-plus-lg me-1"></i>Variante
+                        </button>
+                    </div>
+                    {{ variant_formset.management_form }}
+                    <table class="table table-sm align-middle">
+                        <thead>
+                            <tr>
+                                <th>Sorte</th>
+                                <th>SKU</th>
+                                <th>Preis</th>
+                                <th>Stückzahl</th>
+                                <th>Bild-Link</th>
+                                <th class="text-nowrap">Status</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody id="variant-rows">
+                            {% for vform in variant_formset %}
+                                <tr class="variant-row">
+                                    <td>{{ vform.variant_label }}</td>
+                                    <td>{{ vform.sku }}</td>
+                                    <td>{{ vform.price }}</td>
+                                    <td>{{ vform.stock_quantity }}</td>
+                                    <td>{{ vform.thumbnail_url }}</td>
+                                    <td class="text-nowrap">
+                                        <div class="form-check">
+                                            {{ vform.is_active }}
+                                            <label class="form-check-label small">Aktiv</label>
+                                        </div>
+                                        <div class="form-check">
+                                            {{ vform.is_sold_out }}
+                                            <label class="form-check-label small">Ausverkauft</label>
+                                        </div>
+                                    </td>
+                                    <td class="text-nowrap">
+                                        {% if vform.instance.pk %}{{ vform.DELETE }} <label class="small">Löschen</label>{% endif %}
+                                        {{ vform.id }}
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                <template id="empty-variant-form">
+                    <tr class="variant-row">
+                        <td><input type="text" name="variants-__prefix__-variant_label" class="form-control" placeholder="z.B. Sorte: Amethyst" id="id_variants-__prefix__-variant_label"></td>
+                        <td><input type="text" name="variants-__prefix__-sku" class="form-control" id="id_variants-__prefix__-sku"></td>
+                        <td><input type="number" step="0.01" name="variants-__prefix__-price" class="form-control" id="id_variants-__prefix__-price"></td>
+                        <td><input type="number" name="variants-__prefix__-stock_quantity" class="form-control" id="id_variants-__prefix__-stock_quantity"></td>
+                        <td><input type="url" name="variants-__prefix__-thumbnail_url" class="form-control" id="id_variants-__prefix__-thumbnail_url"></td>
+                        <td class="text-nowrap">
+                            <div class="form-check">
+                                <input type="checkbox" name="variants-__prefix__-is_active" class="form-check-input" id="id_variants-__prefix__-is_active" checked>
+                                <label class="form-check-label small">Aktiv</label>
+                            </div>
+                            <div class="form-check">
+                                <input type="checkbox" name="variants-__prefix__-is_sold_out" class="form-check-input" id="id_variants-__prefix__-is_sold_out">
+                                <label class="form-check-label small">Ausverkauft</label>
+                            </div>
+                        </td>
+                        <td></td>
+                    </tr>
+                </template>
+            {% endif %}
+            </div>
         </div>
     </div>
     <div class="modal-footer">
@@ -116,3 +206,16 @@
         <button type="submit" class="btn btn-primary">Speichern</button>
     </div>
 </form>
+<script>
+    (function () {
+        var addBtn = document.getElementById('add-variant-row');
+        if (!addBtn) return;
+        addBtn.addEventListener('click', function () {
+            var totalForms = document.getElementById('id_variants-TOTAL_FORMS');
+            var idx = parseInt(totalForms.value, 10);
+            var templateHtml = document.getElementById('empty-variant-form').innerHTML.split('__prefix__').join(idx);
+            document.getElementById('variant-rows').insertAdjacentHTML('beforeend', templateHtml);
+            totalForms.value = idx + 1;
+        });
+    })();
+</script>
