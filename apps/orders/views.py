@@ -13,7 +13,7 @@ from core.models import ReferenceOption
 from core.sorting import resolve_sort
 
 from .forms import OrderForm, OrderItemFormSet
-from .models import Order, Review
+from .models import Order, OrderItem, Review
 
 
 class OrderListView(LoginRequiredMixin, ListView):
@@ -108,6 +108,16 @@ class OrderModalView(LoginRequiredMixin, View):
                 order = form.save()
                 formset.instance = order
                 formset.save()
+
+                for item_form in formset.forms:
+                    if not item_form.cleaned_data.get("apply_bulk"):
+                        continue
+                    item = item_form.instance
+                    if item.listing_id:
+                        OrderItem.objects.filter(
+                            listing_id=item.listing_id, variations=item.variations
+                        ).exclude(pk=item.pk).update(article=item.article)
+
             return htmx_redirect(request, reverse("orders:list"))
 
         return self._render(request, form, formset)

@@ -320,6 +320,7 @@
                                     <label class="form-check-label small">Löschen</label>
                                 </div>
                                 {{ item_form.id }}
+                                {{ item_form.apply_bulk }}
                             </div>
                         {% endfor %}
                     </div>
@@ -363,6 +364,30 @@
             var templateHtml = document.getElementById('empty-item-form').innerHTML.split('__prefix__').join(idx);
             document.getElementById('order-items').insertAdjacentHTML('beforeend', templateHtml);
             totalForms.value = idx + 1;
+        });
+    })();
+
+    (function () {
+        // Aendert man den Artikel einer Position, deren Listing-ID+Variante
+        // auch bei anderen Positionen (beliebige Bestellung) vorkommt, fragt
+        // ein einfacher confirm(), ob die Auswahl dort ebenfalls uebernommen
+        // werden soll - praeziser als die Etsy-Zuordnungs-Seite, die nur auf
+        // Listing-ID matcht (siehe OrderItemForm.__init__).
+        document.getElementById('order-items').addEventListener('change', function (evt) {
+            var select = evt.target;
+            if (!select.matches('select[data-match-count]')) return;
+            var matchCount = parseInt(select.dataset.matchCount || '0', 10);
+            var row = select.closest('.order-item-row');
+            var applyBulkInput = row ? row.querySelector('input[name$="-apply_bulk"]') : null;
+            if (!applyBulkInput) return;
+            if (matchCount > 0 && select.value) {
+                applyBulkInput.checked = confirm(
+                    'Diese Zuordnung (Listing-ID + Variante „' + (select.dataset.variations || '–') + '“) auch bei ' +
+                    matchCount + ' anderen Position(en) mit derselben Kombination übernehmen?'
+                );
+            } else {
+                applyBulkInput.checked = false;
+            }
         });
     })();
 </script>

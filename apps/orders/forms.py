@@ -99,6 +99,11 @@ class OrderItemForm(forms.ModelForm):
     sees is the assigned article's own SKU, shown read-only once "article"
     is set - having a second editable SKU box next to it was confusing."""
 
+    # Kein Model-Feld - nur ein Signal aus dem Bestaetigungsdialog (siehe
+    # _order_modal.html), ob dieselbe Listing-ID+Variante-Kombination auch
+    # bei allen anderen Bestellpositionen uebernommen werden soll.
+    apply_bulk = forms.BooleanField(required=False, widget=forms.CheckboxInput(attrs={"class": "d-none"}))
+
     class Meta:
         model = OrderItem
         fields = ["article", "position"]
@@ -111,6 +116,25 @@ class OrderItemForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
         self.fields["article"].queryset = Article.objects.filter(is_archived=False).order_by("title")
         self.fields["article"].required = False
+
+        # Wie viele ANDERE Positionen (beliebige Bestellung) tragen dieselbe
+        # Listing-ID+Variante - Grundlage fuer den "auch dort uebernehmen?"-
+        # Bestaetigungsdialog beim Aendern des Artikels (_order_modal.html).
+        # Praeziser als die Etsy-Zuordnungs-Seite, die nur auf Listing-ID
+        # matcht und damit unterschiedliche Sorten desselben Listings vermischt.
+        item = self.instance
+        match_count = 0
+        if item.pk and item.listing_id:
+            match_count = (
+                OrderItem.objects.filter(listing_id=item.listing_id, variations=item.variations)
+                .exclude(pk=item.pk)
+                .count()
+            )
+        self.fields["article"].widget.attrs.update({
+            "data-listing-id": item.listing_id or "",
+            "data-variations": item.variations or "",
+            "data-match-count": match_count,
+        })
 
 
 OrderItemFormSet = inlineformset_factory(
