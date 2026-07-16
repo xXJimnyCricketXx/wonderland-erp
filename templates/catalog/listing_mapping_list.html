@@ -31,6 +31,7 @@
                 <thead>
                     <tr>
                         <th>Etsy-Artikelname</th>
+                        <th>Variante</th>
                         <th>Listing-ID</th>
                         <th>Bestellpositionen</th>
                         <th>Artikel</th>
@@ -40,12 +41,13 @@
                     {% for mapping in mappings %}
                         <tr>
                             <td>{{ mapping.item_name|default:"–" }}</td>
+                            <td>{{ mapping.variations|default:"–" }}</td>
                             <td>{{ mapping.listing_id }}</td>
                             <td>{{ mapping.order_item_count }}</td>
                             <td>
                                 {% if mapping.suggested_article %}
                                     <div class="small text-muted mb-1">
-                                        Vorschlag ({{ mapping.suggested_score }}%): {{ mapping.suggested_article.sku }} – {{ mapping.suggested_article.title }}
+                                        Vorschlag ({{ mapping.suggested_score }}%): {{ mapping.suggested_article.sku }} – {{ mapping.suggested_article }}
                                         <button type="button" class="btn btn-link btn-sm p-0 ms-1"
                                                 onclick="applySuggestion(this, '{{ mapping.suggested_article.pk }}')">Übernehmen</button>
                                     </div>
@@ -56,7 +58,7 @@
                                         <option value="">---------</option>
                                         {% for article in articles %}
                                             <option value="{{ article.pk }}" {% if mapping.article_id == article.pk %}selected{% endif %}>
-                                                {{ article.sku }} – {{ article.title }}
+                                                {{ article.sku }} – {{ article }}
                                             </option>
                                         {% endfor %}
                                     </select>

@@ -119,13 +119,20 @@ class Article(Archivable):
 
 
 class EtsyListingMapping(models.Model):
-    """One-time mapping "this Etsy listing = this Article", keyed by Etsy's
-    stable Listing ID (from the Sold-Order-Items export - see
-    data_import.order_item_import). Set this once per listing and every
-    past and future OrderItem for that listing_id picks up the article
-    automatically, instead of assigning it order by order."""
+    """One-time mapping "this Etsy listing + variation = this Article", keyed
+    by Etsy's stable Listing ID (from the Sold-Order-Items export - see
+    data_import.order_item_import) PLUS the raw Etsy variation text
+    ("Sorte: Amazonit"). A single listing can bundle several genuinely
+    different products under "Different varieties" - keying on listing_id
+    alone would force every variation onto the same Article. Set this once
+    per (listing, variation) and every matching past/future OrderItem picks
+    up the article automatically, instead of assigning it order by order."""
 
-    listing_id = models.CharField("Etsy-Listing-ID", max_length=50, unique=True)
+    listing_id = models.CharField("Etsy-Listing-ID", max_length=50)
+    # Freitext wie in OrderItem.variations ("Sorte: Amazonit") - leer, wenn
+    # das Listing gar keine Variationen hat (dann greift diese eine Zeile
+    # fuer alle Bestellpositionen dieses Listings).
+    variations = models.CharField("Variante", max_length=255, blank=True)
     # Cached from the last-seen order item, purely for display context when
     # picking the article (Etsy's item name, not necessarily = Article.title).
     item_name = models.CharField("Etsy-Artikelname", max_length=255, blank=True)
@@ -137,7 +144,9 @@ class EtsyListingMapping(models.Model):
     class Meta:
         verbose_name = "Etsy-Listing-Zuordnung"
         verbose_name_plural = "Etsy-Listing-Zuordnungen"
-        ordering = ["item_name"]
+        ordering = ["item_name", "variations"]
+        unique_together = [("listing_id", "variations")]
 
     def __str__(self):
-        return f"{self.item_name} ({self.listing_id})"
+        label = f"{self.item_name} ({self.listing_id})"
+        return f"{label} - {self.variations}" if self.variations else label

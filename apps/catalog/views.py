@@ -142,7 +142,17 @@ class ArticleUpdateView(ArticleModalMixin, UpdateView):
         if form.is_valid() and variant_formset.is_valid():
             self.object = form.save()
             variant_formset.instance = self.object
-            variant_formset.save()
+            # "title" ist bewusst kein Formularfeld (Varianten sollen keinen
+            # eigenen, vom Hauptartikel abweichenden Titel haben - nur
+            # variant_label unterscheidet sie) - deshalb hier manuell vom
+            # Hauptartikel uebernehmen, genau wie der Etsy-Import es tut.
+            # Sonst bleibt title leer ("" (Sorte: X) in Dropdowns/__str__).
+            variants = variant_formset.save(commit=False)
+            for variant in variants:
+                variant.title = self.object.title
+                variant.save()
+            for obj in variant_formset.deleted_objects:
+                obj.delete()
             return htmx_redirect(self.request, reverse("catalog:list"))
         return self.render_to_response(self.get_context_data(form=form, variant_formset=variant_formset))
 
@@ -160,16 +170,17 @@ class ArticleArchiveView(LoginRequiredMixin, SingleObjectMixin, View):
 
 
 class EtsyListingMappingListView(LoginRequiredMixin, ListView):
-    """One-time "this Etsy listing = this Article" mapping, keyed by Etsy's
-    stable Listing ID - see EtsyListingMappingUpdateView for how setting it
-    here retroactively fixes every past order for that listing too."""
+    """One-time "this Etsy listing + variation = this Article" mapping,
+    keyed by Etsy's stable Listing ID plus the raw variation text - see
+    EtsyListingMappingUpdateView for how setting it here retroactively fixes
+    every past order for that exact listing+variation combo too."""
 
     model = EtsyListingMapping
     template_name = "catalog/listing_mapping_list.html"
     context_object_name = "mappings"
 
     def get_queryset(self):
-        return EtsyListingMapping.objects.select_related("article").order_by("item_name")
+        return EtsyListingMapping.objects.select_related("article").order_by("item_name", "variations")
 
     def get_context_data(self, **kwargs):
         from difflib import SequenceMatcher
@@ -177,11 +188,14 @@ class EtsyListingMappingListView(LoginRequiredMixin, ListView):
         from orders.models import OrderItem
 
         context = super().get_context_data(**kwargs)
-        counts = dict(OrderItem.objects.values_list("listing_id").annotate(n=Count("id")))
+        counts = {
+            (row["listing_id"], row["variations"]): row["n"]
+            for row in OrderItem.objects.values("listing_id", "variations").annotate(n=Count("id"))
+        }
         articles = list(Article.objects.filter(is_archived=False, parent_article__isnull=True))
 
         for mapping in context["mappings"]:
-            mapping.order_item_count = counts.get(mapping.listing_id, 0)
+            mapping.order_item_count = counts.get((mapping.listing_id, mapping.variations), 0)
             mapping.suggested_article = None
             mapping.suggested_score = 0
             # Gemstone names/"tumbled stone"-type suffixes are close enough
@@ -220,6 +234,8 @@ class EtsyListingMappingUpdateView(LoginRequiredMixin, View):
         mapping.article_id = article_id
         mapping.save(update_fields=["article"])
 
-        updated = OrderItem.objects.filter(listing_id=mapping.listing_id).update(article=mapping.article)
-        messages.success(request, f"„{mapping.item_name}“: {updated} Bestellposition(en) aktualisiert.")
+        updated = OrderItem.objects.filter(
+            listing_id=mapping.listing_id, variations=mapping.variations
+        ).update(article=mapping.article)
+        messages.success(request, f"„{mapping}“: {updated} Bestellposition(en) aktualisiert.")
         return redirect(reverse("catalog:listing_mappings"))

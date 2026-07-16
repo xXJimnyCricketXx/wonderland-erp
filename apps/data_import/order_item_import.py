@@ -75,11 +75,15 @@ def import_order_items_from_csv(file_obj):
         for position, row in enumerate(rows, start=1):
             listing_id = _clean(row.get("Listing ID"))
             item_name = _clean(row.get("Item Name"))
+            variations = _clean(row.get("Variations"))
 
             article = None
             if listing_id:
+                # Pro Listing+Variante, nicht nur pro Listing - ein Listing
+                # kann mehrere echte Sorten/Groessen buendeln ("Different
+                # varieties"), die sonst alle denselben Artikel bekaemen.
                 mapping, created = EtsyListingMapping.objects.get_or_create(
-                    listing_id=listing_id, defaults={"item_name": item_name}
+                    listing_id=listing_id, variations=variations, defaults={"item_name": item_name}
                 )
                 if not created and item_name and mapping.item_name != item_name:
                     mapping.item_name = item_name
@@ -93,7 +97,7 @@ def import_order_items_from_csv(file_obj):
                 article=article,
                 item_name=item_name,
                 listing_id=listing_id,
-                variations=_clean(row.get("Variations")),
+                variations=variations,
                 quantity=_parse_int(row.get("Quantity")),
                 price=_parse_decimal(row.get("Price")),
                 sku_raw=_clean(row.get("SKU")),
