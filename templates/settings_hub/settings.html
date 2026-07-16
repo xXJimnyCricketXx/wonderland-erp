@@ -167,7 +167,7 @@
                         {% if group.slug == "infothek" %}
                             <div class="card mb-3">
                                 <div class="card-body">
-                                    <div class="d-flex justify-content-between align-items-center mb-3">
+                                    <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
                                         <h6 class="text-uppercase text-muted small mb-0">Materialkategorien</h6>
                                         <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#settingsModal"
                                                 hx-get="{% url 'settings_hub:material_category_create' %}" hx-target="#settingsModalContent">
@@ -215,7 +215,7 @@
 
                             <div class="card mb-3">
                                 <div class="card-body">
-                                    <div class="d-flex justify-content-between align-items-center mb-3">
+                                    <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
                                         <h6 class="text-uppercase text-muted small mb-0">Verpackungsarten</h6>
                                         <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#settingsModal"
                                                 hx-get="{% url 'settings_hub:packaging_type_create' %}" hx-target="#settingsModalContent">
@@ -494,7 +494,7 @@
         <div class="tab-pane fade" id="pill-backups" role="tabpanel">
             <div class="card mb-3">
                 <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-center mb-3">
+                    <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
                         <h6 class="text-uppercase text-muted small mb-0">Backups</h6>
                         <form method="post" action="{% url 'settings_hub:backup_create' %}">
                             {% csrf_token %}
