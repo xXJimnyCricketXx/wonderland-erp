@@ -161,6 +161,27 @@ LOGIN_URL = "login"
 LOGIN_REDIRECT_URL = "dashboard:home"
 LOGOUT_REDIRECT_URL = "login"
 
+# System-Mails der App (aktuell nur "Passwort vergessen", django.contrib.
+# auth.urls, siehe config/urls.py) - statisches Konto in .env, kein
+# Rundmail-/Marketing-Versand (dafuer fehlt die DSGVO-Einwilligung der
+# Etsy-Kunden). Ohne EMAIL_HOST faellt das lokal (DEBUG=True) automatisch auf
+# die Konsole zurueck (Mail landet im Server-Log statt im Postfach), praktisch
+# fuers lokale Testen ohne Mailserver.
+EMAIL_BACKEND = config(
+    "EMAIL_BACKEND",
+    default="django.core.mail.backends.console.EmailBackend" if DEBUG else "django.core.mail.backends.smtp.EmailBackend",
+)
+EMAIL_HOST = config("EMAIL_HOST", default="")
+EMAIL_PORT = config("EMAIL_PORT", default=465, cast=int)
+EMAIL_HOST_USER = config("EMAIL_HOST_USER", default="")
+EMAIL_HOST_PASSWORD = config("EMAIL_HOST_PASSWORD", default="")
+# Port 465 (implizites SSL) und 587 (STARTTLS) schliessen sich in Django
+# gegenseitig aus (EMAIL_USE_SSL vs. EMAIL_USE_TLS) - welcher Weg noetig ist,
+# haengt vom Mail-Hoster ab, siehe EMAIL_USE_SSL/EMAIL_USE_TLS in .env.
+EMAIL_USE_SSL = config("EMAIL_USE_SSL", default=True, cast=bool)
+EMAIL_USE_TLS = config("EMAIL_USE_TLS", default=False, cast=bool)
+DEFAULT_FROM_EMAIL = config("DEFAULT_FROM_EMAIL", default="Wonderland ERP <system@wonderland-diorama.de>")
+
 # Map to Bootstrap's contextual color names (text-bg-*) so message.tags can be
 # used directly as a CSS class in the toast markup.
 from django.contrib.messages import constants as message_constants
