@@ -82,6 +82,18 @@ class FinanceView(LoginRequiredMixin, View):
         if status:
             qs = qs.filter(status=status)
 
+        payment_method = self.request.GET.get("payment_method")
+        if payment_method:
+            qs = qs.filter(payment_method=payment_method)
+
+        payment_account = self.request.GET.get("payment_account")
+        if payment_account:
+            qs = qs.filter(payment_account=payment_account)
+
+        beleg_fehlt = self.request.GET.get("beleg_fehlt")
+        if beleg_fehlt:
+            qs = qs.filter(Q(invoice_file="") | Q(invoice_file__isnull=True))
+
         qs = qs.order_by(resolve_sort(self.request, self.INCOME_SORT_FIELDS, "-date"))
 
         return {
@@ -89,11 +101,17 @@ class FinanceView(LoginRequiredMixin, View):
             "query": query or "",
             "selected_category": category or "",
             "selected_status": status or "",
+            "selected_payment_method": payment_method or "",
+            "selected_payment_account": payment_account or "",
+            "selected_beleg_fehlt": beleg_fehlt or "",
             # Aus Referenzdaten, nicht aus den vorhandenen Einnahmen abgeleitet -
             # sonst fehlen konfigurierte Werte im Filter, solange noch keine
-            # Einnahme diese Kategorie/diesen Status trägt.
+            # Einnahme diese Kategorie/diesen Status/diese Zahlungsart/dieses
+            # Zahlungskonto trägt.
             "income_categories": ReferenceOption.objects.filter(category="income_category").order_by("order", "value"),
             "income_statuses": ReferenceOption.objects.filter(category="income_status").order_by("order", "value"),
+            "income_payment_methods": ReferenceOption.objects.filter(category="income_payment_method").order_by("order", "value"),
+            "income_payment_accounts": ReferenceOption.objects.filter(category="payment_account").order_by("order", "value"),
         }
 
     def _expense_context(self):
@@ -126,6 +144,14 @@ class FinanceView(LoginRequiredMixin, View):
         if status:
             qs = qs.filter(status=status)
 
+        payment_method = self.request.GET.get("payment_method")
+        if payment_method:
+            qs = qs.filter(payment_method=payment_method)
+
+        beleg_fehlt = self.request.GET.get("beleg_fehlt")
+        if beleg_fehlt:
+            qs = qs.filter(Q(invoice_file="") | Q(invoice_file__isnull=True))
+
         qs = qs.order_by(resolve_sort(self.request, self.EXPENSE_SORT_FIELDS, "-date"))
 
         base_qs = Expense.objects.filter(is_archived=False)
@@ -137,6 +163,8 @@ class FinanceView(LoginRequiredMixin, View):
             "selected_supplier": supplier or "",
             "selected_supplier_obj": Supplier.objects.filter(pk=supplier).first() if supplier else None,
             "selected_status": status or "",
+            "selected_payment_method": payment_method or "",
+            "selected_beleg_fehlt": beleg_fehlt or "",
             # Aus Referenzdaten bzw. der Konten-Zuordnung, nicht aus den
             # vorhandenen Ausgaben abgeleitet - sonst fehlen konfigurierte
             # Werte im Filter, solange noch keine Ausgabe sie trägt.
@@ -144,6 +172,7 @@ class FinanceView(LoginRequiredMixin, View):
             "expense_variants": AccountMapping.objects.exclude(variante="").order_by("variante").values_list("variante", flat=True).distinct(),
             "expense_suppliers": Supplier.objects.filter(pk__in=base_qs.exclude(supplier__isnull=True).values_list("supplier_id", flat=True)).order_by("last_name", "first_name", "company_name"),
             "expense_statuses": ReferenceOption.objects.filter(category="expense_status").order_by("order", "value"),
+            "expense_payment_methods": ReferenceOption.objects.filter(category="expense_payment_method").order_by("order", "value"),
         }
 
     def _ledger_context(self):

@@ -67,10 +67,13 @@
             <input type="hidden" name="tab" value="einnahmen">
             <input type="hidden" name="category" value="{{ selected_category }}">
             <input type="hidden" name="status" value="{{ selected_status }}">
+            <input type="hidden" name="payment_method" value="{{ selected_payment_method }}">
+            <input type="hidden" name="payment_account" value="{{ selected_payment_account }}">
+            <input type="hidden" name="beleg_fehlt" value="{{ selected_beleg_fehlt }}">
             <div class="col-md-4">
                 {% include "components/search_box.html" with query=query placeholder="Rechnungsnummer, Bestellung oder Kunde suchen" %}
             </div>
-            <div class="col-md-3">
+            <div class="col-md-2">
                 <label class="form-label small mb-1">Kategorie</label>
                 <div class="dropdown">
                     <button class="btn filter-dropdown-toggle dropdown-toggle w-100 text-start" type="button" data-bs-toggle="dropdown">
@@ -84,7 +87,7 @@
                     </ul>
                 </div>
             </div>
-            <div class="col-md-3">
+            <div class="col-md-2">
                 <label class="form-label small mb-1">Status</label>
                 <div class="dropdown">
                     <button class="btn filter-dropdown-toggle dropdown-toggle w-100 text-start" type="button" data-bs-toggle="dropdown">
@@ -97,6 +100,39 @@
                         {% endfor %}
                     </ul>
                 </div>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label small mb-1">Zahlungsart</label>
+                <div class="dropdown">
+                    <button class="btn filter-dropdown-toggle dropdown-toggle w-100 text-start" type="button" data-bs-toggle="dropdown">
+                        {{ selected_payment_method|default:"Alle" }}
+                    </button>
+                    <ul class="dropdown-menu">
+                        <li><a class="dropdown-item{% if not selected_payment_method %} active{% endif %}" href="{% filter_url 'payment_method' None %}">Alle</a></li>
+                        {% for m in income_payment_methods %}
+                            <li><a class="dropdown-item{% if selected_payment_method == m.value %} active{% endif %}" href="{% filter_url 'payment_method' m.value %}">{{ m.value }}</a></li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label small mb-1">Zahlungskonto</label>
+                <div class="dropdown">
+                    <button class="btn filter-dropdown-toggle dropdown-toggle w-100 text-start" type="button" data-bs-toggle="dropdown">
+                        {{ selected_payment_account|default:"Alle" }}
+                    </button>
+                    <ul class="dropdown-menu">
+                        <li><a class="dropdown-item{% if not selected_payment_account %} active{% endif %}" href="{% filter_url 'payment_account' None %}">Alle</a></li>
+                        {% for a in income_payment_accounts %}
+                            <li><a class="dropdown-item{% if selected_payment_account == a.value %} active{% endif %}" href="{% filter_url 'payment_account' a.value %}">{{ a.value }}</a></li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+            <div class="col-12 d-flex flex-wrap gap-2">
+                <a class="btn btn-sm chip-toggle{% if selected_beleg_fehlt %} active{% endif %}" href="{% toggle_url 'beleg_fehlt' '1' %}">
+                    <i class="bi bi-exclamation-triangle me-1"></i>Rechnung fehlt
+                </a>
             </div>
         </form>
         {% if incomes %}
@@ -156,6 +192,8 @@
             <input type="hidden" name="variant" value="{{ selected_variant }}">
             <input type="hidden" name="supplier" value="{{ selected_supplier }}">
             <input type="hidden" name="status" value="{{ selected_status }}">
+            <input type="hidden" name="payment_method" value="{{ selected_payment_method }}">
+            <input type="hidden" name="beleg_fehlt" value="{{ selected_beleg_fehlt }}">
             <div class="col-md-3">
                 {% include "components/search_box.html" with query=query placeholder="ID, Rechnungsnummer, Beschreibung oder Lieferant suchen" %}
             </div>
@@ -214,6 +252,25 @@
                         {% endfor %}
                     </ul>
                 </div>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label small mb-1">Zahlungsart</label>
+                <div class="dropdown">
+                    <button class="btn filter-dropdown-toggle dropdown-toggle w-100 text-start" type="button" data-bs-toggle="dropdown">
+                        {{ selected_payment_method|default:"Alle" }}
+                    </button>
+                    <ul class="dropdown-menu">
+                        <li><a class="dropdown-item{% if not selected_payment_method %} active{% endif %}" href="{% filter_url 'payment_method' None %}">Alle</a></li>
+                        {% for m in expense_payment_methods %}
+                            <li><a class="dropdown-item{% if selected_payment_method == m.value %} active{% endif %}" href="{% filter_url 'payment_method' m.value %}">{{ m.value }}</a></li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+            <div class="col-12 d-flex flex-wrap gap-2">
+                <a class="btn btn-sm chip-toggle{% if selected_beleg_fehlt %} active{% endif %}" href="{% toggle_url 'beleg_fehlt' '1' %}">
+                    <i class="bi bi-exclamation-triangle me-1"></i>Rechnung fehlt
+                </a>
             </div>
         </form>
         {% if expenses %}

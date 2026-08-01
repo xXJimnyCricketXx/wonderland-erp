@@ -18,6 +18,8 @@
     <form method="get" class="row g-2 mb-3 align-items-end">
         <input type="hidden" name="status" value="{{ selected_status }}">
         <input type="hidden" name="order_type" value="{{ selected_order_type }}">
+        <input type="hidden" name="versand_fehlt" value="{{ selected_versand_fehlt }}">
+        <input type="hidden" name="beleg_fehlt" value="{{ selected_beleg_fehlt }}">
         <div class="col-md-6">
             {% include "components/search_box.html" with query=query placeholder="Bestell-ID, Etsy-Nr., Kunde, Käufername oder Sendungsnummer suchen" %}
         </div>
@@ -48,6 +50,14 @@
                     {% endfor %}
                 </ul>
             </div>
+        </div>
+        <div class="col-12 d-flex flex-wrap gap-2">
+            <a class="btn btn-sm chip-toggle{% if selected_versand_fehlt %} active{% endif %}" href="{% toggle_url 'versand_fehlt' '1' %}">
+                <i class="bi bi-exclamation-triangle me-1"></i>„Versendet als“ fehlt
+            </a>
+            <a class="btn btn-sm chip-toggle{% if selected_beleg_fehlt %} active{% endif %}" href="{% toggle_url 'beleg_fehlt' '1' %}">
+                <i class="bi bi-exclamation-triangle me-1"></i>Etsy-Beleg fehlt
+            </a>
         </div>
     </form>
 

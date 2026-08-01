@@ -120,6 +120,26 @@ body {
     box-shadow: 0 0 0 .25rem rgba(244, 170, 27, .25);
 }
 
+/* An/Aus-Filter-Chip (z.B. "Rechnung fehlt") - ursprünglich nur für die
+   Dashboard-Jahr/Monat-Chips gedacht, jetzt app-weit für Bestellungen/
+   Finanzen genutzt, daher hier statt in dashboard.css. */
+.chip-toggle {
+    border: 1px solid var(--brand-green);
+    background-color: var(--brand-white);
+    color: var(--brand-green);
+}
+
+.chip-toggle:hover {
+    border-color: var(--brand-gold);
+    color: var(--brand-green);
+}
+
+.chip-toggle.active {
+    background-color: var(--brand-green);
+    border-color: var(--brand-green);
+    color: var(--brand-white);
+}
+
 .navbar .nav-link:hover,
 .navbar .nav-link:focus,
 .navbar .nav-link.show {

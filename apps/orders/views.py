@@ -49,6 +49,12 @@ class OrderListView(LoginRequiredMixin, ListView):
         if order_type:
             qs = qs.filter(order_type=order_type)
 
+        if self.request.GET.get("versand_fehlt"):
+            qs = qs.filter(package_type__isnull=True)
+
+        if self.request.GET.get("beleg_fehlt"):
+            qs = qs.filter(Q(etsy_receipt_file="") | Q(etsy_receipt_file__isnull=True))
+
         sort = resolve_sort(self.request, self.ALLOWED_SORT_FIELDS, "-sale_date")
         return qs.order_by(sort)
 
@@ -62,6 +68,8 @@ class OrderListView(LoginRequiredMixin, ListView):
         context["query"] = self.request.GET.get("q", "")
         context["selected_status"] = self.request.GET.get("status", "")
         context["selected_order_type"] = self.request.GET.get("order_type", "")
+        context["selected_versand_fehlt"] = self.request.GET.get("versand_fehlt", "")
+        context["selected_beleg_fehlt"] = self.request.GET.get("beleg_fehlt", "")
         context["trash_count"] = Order.objects.filter(is_archived=True).count()
         return context
 
