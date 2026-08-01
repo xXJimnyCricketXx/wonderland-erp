@@ -41,5 +41,6 @@ class AppointmentForm(forms.ModelForm):
 
         self.fields["customers"].queryset = Customer.objects.filter(is_archived=False).order_by("last_name", "first_name")
         self.fields["customers"].widget.attrs.update({"class": "form-select", "size": "6"})
+        self.fields["customers"].label_from_instance = lambda obj: f"{obj.last_name}, {obj.first_name}".strip(", ")
         self.fields["supplier"].queryset = Supplier.objects.filter(is_archived=False).order_by("last_name", "first_name")
         self.fields["supplier"].widget.attrs.update({"class": "form-select"})

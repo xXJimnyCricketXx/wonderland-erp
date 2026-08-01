@@ -1,5 +1,6 @@
 from django import forms
 
+from contacts.models import Customer
 from core.models import ReferenceOption
 
 from .models import AccountMapping, Expense, Income, TaxReport
@@ -57,6 +58,12 @@ class IncomeForm(forms.ModelForm):
         self.fields["payment_method"] = _build_reference_choicefield("income_payment_method", "Zahlungsart")
         self.fields["payment_account"] = _build_reference_choicefield("payment_account", "Zahlungskonto")
         self.fields["status"] = _build_reference_choicefield("income_status", "Status", required=True)
+        # Gleiche Sortierung/Anzeige wie im Bestellungen-Formular (siehe
+        # orders.forms.OrderForm) - ohne Filter/Sortierung wurden hier auch
+        # archivierte Kunden angezeigt, und "Vorname Nachname" wirkte trotz
+        # korrekter Sortierung nach Nachname wild durcheinander.
+        self.fields["customer"].queryset = Customer.objects.filter(is_archived=False).order_by("last_name", "first_name")
+        self.fields["customer"].label_from_instance = lambda obj: f"{obj.last_name}, {obj.first_name}".strip(", ")
 
 
 class ExpenseForm(forms.ModelForm):
