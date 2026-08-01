@@ -90,6 +90,8 @@ dann vorausgefüllt.
 | `ADMIN_PASSWORD` | nein | Passwort dafür — beide Werte müssen gesetzt sein, sonst wird nichts automatisch angelegt |
 | `DB_PATH` | nein | Pfad zur Haupt-Datenbank (Standard: `/data/db.sqlite3`) |
 | `LEXIKON_DB_PATH` | nein | Pfad zur Heilstein-Lexikon-Datenbank (Standard: `/data/lexikon.sqlite3`) |
+| `ASTRO_DB_PATH` | nein | Pfad zur Astro-Modul-Datenbank (Standard: `/data/astro.sqlite3`) |
+| `GEONAMES_USERNAME` | nein | Account für GeoNames-Geocoding im Astro-Modul (kostenlos unter geonames.org/login) |
 | `MEDIA_ROOT` | nein | Pfad für hochgeladene Dateien (Standard: `/data/media`) |
 
 Datenbanken und Medien-Dateien liegen standardmäßig alle unter `/data` - im Docker-Setup ein

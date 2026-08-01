@@ -10,6 +10,7 @@ from django.urls import reverse
 from django.views.generic import CreateView, DetailView, UpdateView, View
 from django.views.generic.detail import SingleObjectMixin
 
+from astro.models import BirthChart
 from core.htmx_utils import htmx_redirect
 from lexikon.models import Gemstone
 from orders.models import Order
@@ -22,7 +23,7 @@ from .models import (
     PackagingLicenseSubmission, PackagingType, ShippingOption,
 )
 
-TABS = ["verpackungslizenz", "versand", "zoll", "preisrechner", "heilsteine"]
+TABS = ["verpackungslizenz", "versand", "zoll", "preisrechner", "heilsteine", "horoskope"]
 
 
 def _verpackungslizenz_url(request):
@@ -58,6 +59,8 @@ class InfothekView(LoginRequiredMixin, View):
             context.update(self._zoll_context(request))
         elif tab == "heilsteine":
             context.update(self._heilsteine_context(request))
+        elif tab == "horoskope":
+            context.update(self._horoskope_context(request))
 
         return render(request, self.template_name, context)
 
@@ -173,6 +176,9 @@ class InfothekView(LoginRequiredMixin, View):
         if query:
             qs = qs.filter(Q(name__icontains=query) | Q(application__icontains=query))
         return {"gemstones": qs, "query": query}
+
+    def _horoskope_context(self, request):
+        return {"birth_charts": BirthChart.objects.select_related("sun_sign", "moon_sign", "ascendant_sign")}
 
 
 class ShippingOptionModalMixin(LoginRequiredMixin):

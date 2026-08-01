@@ -1,0 +1,150 @@
+<div class="modal-header bg-brand text-white">
+    <h5 class="modal-title">{% if object %}Horoskop bearbeiten{% else %}Neues Geburtshoroskop{% endif %}</h5>
+    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Schließen"></button>
+</div>
+<form hx-post="{{ request.path }}" hx-target="#astroModalContent">
+    {% csrf_token %}
+    <div class="modal-body">
+        {% if form.non_field_errors %}
+            <div class="alert alert-danger">{{ form.non_field_errors }}</div>
+        {% endif %}
+        <div class="container-fluid">
+            <h6 class="text-uppercase text-muted small">Dateneingabe</h6>
+            <hr class="mt-0 mb-3">
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <label class="form-label">Bezeichnung</label>
+                    {{ form.label }}
+                    {% include "components/field_errors.html" with field=form.label %}
+                </div>
+                <div class="col-md-6 position-relative">
+                    <label class="form-label">Geburtsort</label>
+                    {{ form.birth_place }}
+                    {{ form.birth_lat }}
+                    {{ form.birth_lon }}
+                    {{ form.geonameid }}
+                    <div id="astro-place-suggestions" class="list-group position-absolute w-100 d-none" style="z-index: 1080; top: 100%;"></div>
+                    {% include "components/field_errors.html" with field=form.birth_place %}
+                </div>
+            </div>
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <label class="form-label">Geburtsdatum</label>
+                    {{ form.birth_date }}
+                    {% include "components/field_errors.html" with field=form.birth_date %}
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Geburtszeit</label>
+                    {{ form.birth_time }}
+                    <div class="form-text">{{ form.birth_time.help_text }}</div>
+                    {% include "components/field_errors.html" with field=form.birth_time %}
+                </div>
+            </div>
+
+            <h6 class="text-uppercase text-muted small mt-4">Erweiterte Einstellungen</h6>
+            <hr class="mt-0 mb-3">
+            <div class="row mb-3 align-items-end">
+                <div class="col-md-6">
+                    <label class="form-label">Häusersystem</label>
+                    {{ form.house_system }}
+                    {% include "components/field_errors.html" with field=form.house_system %}
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label d-block">Zusatzpunkte</label>
+                    <div class="form-check form-check-inline">
+                        {{ form.include_chiron }}
+                        <label class="form-check-label" for="{{ form.include_chiron.id_for_label }}">{{ form.include_chiron.label }}</label>
+                    </div>
+                    <div class="form-check form-check-inline">
+                        {{ form.include_pholus }}
+                        <label class="form-check-label" for="{{ form.include_pholus.id_for_label }}">{{ form.include_pholus.label }}</label>
+                    </div>
+                    <div class="form-check form-check-inline">
+                        {{ form.include_lilith }}
+                        <label class="form-check-label" for="{{ form.include_lilith.id_for_label }}">{{ form.include_lilith.label }}</label>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal-footer">
+        {% if object %}
+            <button type="button" class="btn btn-outline-danger me-auto"
+                    hx-post="{% url 'astro:birth_chart_delete' object.pk %}" hx-target="#astroModalContent"
+                    hx-confirm="„{{ object.label|default:'Dieses Horoskop' }}“ wirklich löschen?">
+                <i class="bi bi-trash me-1"></i>Löschen
+            </button>
+        {% endif %}
+        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Abbrechen</button>
+        <button type="submit" class="btn btn-primary">{% if object %}Neu berechnen{% else %}Horoskop berechnen{% endif %}</button>
+    </div>
+</form>
+
+<script>
+    (function () {
+        var placeInput = document.getElementById('id_birth_place');
+        var latInput = document.getElementById('id_birth_lat');
+        var lonInput = document.getElementById('id_birth_lon');
+        var geonameidInput = document.getElementById('id_geonameid');
+        var suggestionsBox = document.getElementById('astro-place-suggestions');
+        if (!placeInput || !suggestionsBox) return;
+
+        var debounceTimer = null;
+
+        function hideSuggestions() {
+            suggestionsBox.classList.add('d-none');
+            suggestionsBox.innerHTML = '';
+        }
+
+        function clearCoords() {
+            latInput.value = '';
+            lonInput.value = '';
+            geonameidInput.value = '';
+        }
+
+        placeInput.addEventListener('input', function () {
+            clearCoords();
+            var query = placeInput.value;
+            clearTimeout(debounceTimer);
+            if (query.length < 2) {
+                hideSuggestions();
+                return;
+            }
+            debounceTimer = setTimeout(function () {
+                fetch('{% url "astro:birth_chart_geocode_suggest" %}?q=' + encodeURIComponent(query))
+                    .then(function (resp) { return resp.json(); })
+                    .then(function (data) {
+                        var results = data.results || [];
+                        if (!results.length) {
+                            hideSuggestions();
+                            return;
+                        }
+                        suggestionsBox.innerHTML = '';
+                        results.forEach(function (place) {
+                            var item = document.createElement('button');
+                            item.type = 'button';
+                            item.className = 'list-group-item list-group-item-action';
+                            var label = [place.name, place.admin, place.country].filter(Boolean).join(', ');
+                            item.textContent = label;
+                            item.addEventListener('click', function () {
+                                placeInput.value = label;
+                                latInput.value = place.lat;
+                                lonInput.value = place.lon;
+                                geonameidInput.value = place.geonameid;
+                                hideSuggestions();
+                            });
+                            suggestionsBox.appendChild(item);
+                        });
+                        suggestionsBox.classList.remove('d-none');
+                    })
+                    .catch(hideSuggestions);
+            }, 300);
+        });
+
+        document.addEventListener('click', function (evt) {
+            if (evt.target !== placeInput && !suggestionsBox.contains(evt.target)) {
+                hideSuggestions();
+            }
+        });
+    })();
+</script>

@@ -1,0 +1,117 @@
+<div class="modal-header bg-brand text-white">
+    <h5 class="modal-title">{{ chart.label|default:"Geburtshoroskop" }}</h5>
+    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Schließen"></button>
+</div>
+<div class="modal-body">
+    <p class="text-muted mb-3">
+        {{ chart.birth_date|date:"d.m.Y" }}{% if chart.birth_time %}, {{ chart.birth_time|time:"H:i" }} Uhr{% endif %}
+        – {{ chart.birth_place_raw }}
+    </p>
+
+    <div class="row">
+        <div class="col-md-6">
+            <h6 class="text-uppercase text-muted small">Positionen</h6>
+            <hr class="mt-0 mb-2">
+            <table class="table table-sm">
+                <thead>
+                    <tr><th>Punkt</th><th>Grad</th><th>Zeichen</th><th>Haus</th></tr>
+                </thead>
+                <tbody>
+                    {% for p in positions %}
+                        <tr>
+                            <td>{{ p.label }}{% if p.retrograde %} <small class="text-muted">R</small>{% endif %}</td>
+                            <td>{{ p.degree }}</td>
+                            <td>{{ p.sign }}</td>
+                            <td>{{ p.house|default:"–" }}</td>
+                        </tr>
+                    {% endfor %}
+                    {% if chart.ascendant_sign %}
+                        <tr class="fw-bold">
+                            <td>Aszendent</td><td>{{ ascendant_degree }}</td><td>{{ chart.ascendant_sign.name_de }}</td><td></td>
+                        </tr>
+                    {% endif %}
+                    {% if chart.mc_sign %}
+                        <tr class="fw-bold">
+                            <td>MC</td><td>{{ mc_degree }}</td><td>{{ chart.mc_sign.name_de }}</td><td></td>
+                        </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+        <div class="col-md-6">
+            <div class="d-flex justify-content-between align-items-center">
+                <h6 class="text-uppercase text-muted small mb-0">Horoskoprad</h6>
+                {% if chart_svg %}
+                    <button type="button" class="btn btn-sm btn-outline-secondary" onclick="astroOpenChartZoom()" title="Vergrößern">
+                        <i class="bi bi-arrows-fullscreen"></i>
+                    </button>
+                {% endif %}
+            </div>
+            <hr class="mt-1 mb-2">
+            {% if chart_svg %}
+                <div id="astro-chart-holder" style="max-width: 480px; margin: 0 auto;">{{ chart_svg|safe }}</div>
+            {% else %}
+                {% include "components/empty_state.html" with message="Ohne Geburtszeit ist kein Häuser-/Aszendent-basiertes Rad möglich." %}
+            {% endif %}
+        </div>
+    </div>
+</div>
+<div class="modal-footer">
+    <button type="button" class="btn btn-outline-danger me-auto"
+            hx-post="{% url 'astro:birth_chart_delete' chart.pk %}" hx-target="#astroModalContent"
+            hx-confirm="„{{ chart.label|default:'Dieses Horoskop' }}“ wirklich löschen?">
+        <i class="bi bi-trash me-1"></i>Löschen
+    </button>
+    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Schließen</button>
+    <button type="button" class="btn btn-primary"
+            hx-get="{% url 'astro:birth_chart_update' chart.pk %}" hx-target="#astroModalContent">
+        <i class="bi bi-pencil me-1"></i>Bearbeiten
+    </button>
+</div>
+
+{% if chart_svg %}
+    <div id="astro-chart-zoom-overlay" class="d-none" onclick="astroCloseChartZoom()">
+        <div id="astro-chart-zoom-target"></div>
+    </div>
+    <style>
+        #astro-chart-zoom-overlay {
+            position: fixed;
+            inset: 0;
+            z-index: 1090;
+            background: rgba(0, 0, 0, .9);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+            cursor: zoom-out;
+        }
+        #astro-chart-zoom-target {
+            width: 90vw;
+            height: 90vh;
+            max-width: 1100px;
+        }
+        #astro-chart-zoom-target svg {
+            width: 100%;
+            height: 100%;
+        }
+    </style>
+    <script>
+        function astroOpenChartZoom() {
+            var holder = document.getElementById('astro-chart-holder');
+            var overlay = document.getElementById('astro-chart-zoom-overlay');
+            var target = document.getElementById('astro-chart-zoom-target');
+            if (!holder || !overlay || !target || !holder.firstElementChild) return;
+            target.appendChild(holder.firstElementChild);
+            overlay.classList.remove('d-none');
+        }
+        function astroCloseChartZoom() {
+            var holder = document.getElementById('astro-chart-holder');
+            var overlay = document.getElementById('astro-chart-zoom-overlay');
+            var target = document.getElementById('astro-chart-zoom-target');
+            if (target && holder && target.firstElementChild) {
+                holder.appendChild(target.firstElementChild);
+            }
+            if (overlay) overlay.classList.add('d-none');
+        }
+    </script>
+{% endif %}

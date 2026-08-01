@@ -10,6 +10,7 @@
         <li class="nav-item"><a class="nav-link{% if active_tab == "zoll" %} active{% endif %}" href="?tab=zoll"><i class="bi bi-globe me-1"></i>Zolltarifnummern</a></li>
         <li class="nav-item"><a class="nav-link{% if active_tab == "preisrechner" %} active{% endif %}" href="?tab=preisrechner"><i class="bi bi-calculator me-1"></i>Preisrechner</a></li>
         <li class="nav-item"><a class="nav-link{% if active_tab == "heilsteine" %} active{% endif %}" href="?tab=heilsteine"><i class="bi bi-gem me-1"></i>Heilstein-Lexikon</a></li>
+        <li class="nav-item"><a class="nav-link{% if active_tab == "horoskope" %} active{% endif %}" href="?tab=horoskope"><i class="bi bi-stars me-1"></i>Horoskope</a></li>
     </ul>
 
     {% if active_tab == "verpackungslizenz" %}
@@ -335,7 +336,76 @@
         {% else %}
             {% include "components/empty_state.html" %}
         {% endif %}
+
+    {% elif active_tab == "horoskope" %}
+        <div class="d-flex justify-content-end mb-3">
+            <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#astroModal"
+                    hx-get="{% url 'astro:birth_chart_create' %}" hx-target="#astroModalContent">
+                <i class="bi bi-plus-lg me-1"></i>Neu
+            </button>
+        </div>
+        {% if birth_charts %}
+            <div class="table-responsive">
+                <table class="table table-striped table-hover align-middle table-brand-header">
+                    <thead>
+                        <tr>
+                            <th>Bezeichnung</th>
+                            <th>Geburtsdatum</th>
+                            <th>Geburtsort</th>
+                            <th>Sonne</th>
+                            <th>Mond</th>
+                            <th>Aszendent</th>
+                            <th>Erstellt am</th>
+                            <th class="text-nowrap">Aktionen</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for chart in birth_charts %}
+                            <tr>
+                                <td>{{ chart.label|default:"–" }}</td>
+                                <td>{{ chart.birth_date|date:"d.m.Y" }}</td>
+                                <td>{{ chart.birth_place_raw }}</td>
+                                <td>{{ chart.sun_sign.name_de|default:"–" }}</td>
+                                <td>{{ chart.moon_sign.name_de|default:"–" }}</td>
+                                <td>{{ chart.ascendant_sign.name_de|default:"–" }}</td>
+                                <td>{{ chart.computed_at|date:"d.m.Y H:i" }}</td>
+                                <td class="text-nowrap">
+                                    <div class="btn-group">
+                                        <a href="{% url 'astro:birth_chart_report' chart.pk %}" target="_blank" class="btn btn-sm btn-outline-secondary" title="Bericht (PDF)">
+                                            <i class="bi bi-file-earmark-text"></i>
+                                        </a>
+                                        <button type="button" class="btn btn-sm btn-outline-secondary" title="Horoskoprad ansehen" data-bs-toggle="modal" data-bs-target="#astroModal"
+                                                hx-get="{% url 'astro:birth_chart_detail' chart.pk %}" hx-target="#astroModalContent">
+                                            <i class="bi bi-pie-chart"></i>
+                                        </button>
+                                        <button type="button" class="btn btn-sm btn-outline-secondary" title="Bearbeiten" data-bs-toggle="modal" data-bs-target="#astroModal"
+                                                hx-get="{% url 'astro:birth_chart_update' chart.pk %}" hx-target="#astroModalContent">
+                                            <i class="bi bi-pencil"></i>
+                                        </button>
+                                        <button type="button" class="btn btn-sm btn-outline-danger" title="Löschen"
+                                                hx-post="{% url 'astro:birth_chart_delete' chart.pk %}"
+                                                hx-confirm="„{{ chart.label|default:'Dieses Horoskop' }}“ wirklich löschen?">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            {% include "components/empty_state.html" with message="Noch keine Horoskope berechnet." %}
+        {% endif %}
     {% endif %}
+
+    <div class="modal fade" id="astroModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
+        <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-lg">
+            <div class="modal-content" id="astroModalContent">
+                <!-- HTMX swaps create/detail content in here -->
+            </div>
+        </div>
+    </div>
 
     <div class="modal fade" id="infothekModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
         <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-xl">

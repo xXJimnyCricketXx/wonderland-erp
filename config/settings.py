@@ -23,6 +23,11 @@ ALLOWED_HOSTS = config("ALLOWED_HOSTS", default="localhost,127.0.0.1", cast=Csv(
 # server on 127.0.0.1 doesn't need it); must be set explicitly in production.
 CSRF_TRUSTED_ORIGINS = config("CSRF_TRUSTED_ORIGINS", default="", cast=Csv())
 
+# Astro-Modul: GeoNames-Account fuer Orts-Geocoding + Zeitzonen-Aufloesung
+# (kostenlos, siehe https://www.geonames.org/login - Account muss dort fuer
+# die Web-Services freigeschaltet werden).
+GEONAMES_USERNAME = config("GEONAMES_USERNAME", default="")
+
 INSTALLED_APPS = [
     "django.contrib.admin",
     "django.contrib.auth",
@@ -52,6 +57,7 @@ INSTALLED_APPS = [
     "documents",
     "reports",
     "messaging",
+    "astro",
 ]
 
 MIDDLEWARE = [
@@ -107,9 +113,23 @@ DATABASES = {
             "init_command": "PRAGMA journal_mode=WAL;",
         },
     },
+    # Astro-Modul (Auswertungstexte/Referenzdaten) - eigene DB aus denselben
+    # Gruenden wie lexikon oben: eigenstaendiger, redaktionell gepflegter
+    # Datensatz, keine echten FKs zur Haupt-ERP-DB.
+    "astro": {
+        "ENGINE": "django.db.backends.sqlite3",
+        "NAME": config("ASTRO_DB_PATH", default=str(BASE_DIR / "data" / "astro.sqlite3")),
+        "OPTIONS": {
+            "init_command": "PRAGMA journal_mode=WAL;",
+        },
+    },
 }
 
-DATABASE_ROUTERS = ["lexikon.router.LexikonRouter"]
+# AstroRouter muss vor LexikonRouter stehen: LexikonRouter.allow_migrate gibt
+# fuer jeden Nicht-Lexikon-app_label bereits ein definitives True/False
+# zurueck (nie None) und wuerde sonst als erster Router in der Kette
+# entscheiden, bevor AstroRouter ueberhaupt gefragt wird.
+DATABASE_ROUTERS = ["astro.routers.AstroRouter", "lexikon.router.LexikonRouter"]
 
 AUTH_PASSWORD_VALIDATORS = [
     {"NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator"},

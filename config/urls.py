@@ -22,6 +22,7 @@ urlpatterns = [
     path("aufgaben/", include("tasks.urls")),
     path("infothek/", include("knowledge.urls")),
     path("infothek/heilsteine/", include("lexikon.urls")),
+    path("infothek/horoskope/", include("astro.urls")),
     path("wunschliste/", include("wishlist.urls")),
     path("dokumente/", include("documents.urls")),
     path("einstellungen/", include("settings_hub.urls")),

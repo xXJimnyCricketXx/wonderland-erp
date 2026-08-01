@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<style>
+    @font-face {
+        font-family: 'Sunday';
+        src: url('data:font/woff;base64,{{ sunday_font_base64 }}') format('woff');
+    }
+    @font-face {
+        font-family: 'Inter';
+        src: url('data:font/ttf;base64,{{ inter_font_base64 }}') format('truetype');
+    }
+    @font-face {
+        font-family: 'Canva Sans';
+        src: url('data:font/woff;base64,{{ canva_sans_font_base64 }}') format('woff');
+        font-weight: normal;
+    }
+    @font-face {
+        font-family: 'Canva Sans';
+        src: url('data:font/woff;base64,{{ canva_sans_bold_font_base64 }}') format('woff');
+        font-weight: bold;
+    }
+    @page { size: A4; margin: 0; }
+    body { margin: 0; }
+
+    .cover-page {
+        position: relative;
+        width: 210mm;
+        height: 297mm;
+        page-break-after: always;
+    }
+    .cover-bg {
+        position: absolute;
+        top: 0; left: 0;
+        width: 210mm;
+        height: 297mm;
+        object-fit: cover;
+    }
+    /* Positionen 1:1 aus Canva uebernommen (Canvas-Hoehe 0-29.7cm):
+       Unterkante Titel 6.6cm, Unterkante Name 24cm, Unterkante Daten 27.1cm -
+       jeweils als "bottom" von der Seitenunterkante (29.7cm - Wert) gesetzt,
+       damit die Unterkante des Textblocks (nicht die Oberkante) exakt trifft. */
+    .cover-title {
+        position: absolute;
+        bottom: 231mm; left: 0;   /* 297mm - 66mm */
+        width: 100%;
+        text-align: center;
+        font-family: 'Sunday', sans-serif;
+        font-size: 53.1pt;
+        color: #f3e3c2;
+        margin: 0;
+        line-height: 1;
+    }
+    .cover-name {
+        position: absolute;
+        bottom: 57mm; left: 0;   /* 297mm - 240mm */
+        width: 100%;
+        text-align: center;
+        font-family: 'Sunday', sans-serif;
+        font-size: 35.2pt;
+        color: #f3e3c2;
+        margin: 0;
+        line-height: 1;
+    }
+    .cover-meta-block {
+        position: absolute;
+        bottom: 26mm; left: 0;   /* 297mm - 271mm */
+        width: 100%;
+        text-align: center;
+    }
+    .cover-meta {
+        font-family: 'Inter', sans-serif;
+        font-size: 14.4pt;
+        color: #f3e3c2;
+        line-height: 1.5;
+        margin: 0;
+    }
+
+    /* Content-Seiten: eigene @page-Regel mit Rand oben/unten passend zu den
+       vorgegebenen Massen (Text 3.0cm-27.6cm) - nur Seiten mit page:content-page
+       (also NUR echte Inhaltsseiten, nicht Cover/ToC/Kapitel-Cover/Horoskoprad)
+       bekommen dadurch automatisch Kopfzeile + Seitenzahl, siehe @top-center/
+       @bottom-center unten. Kapitel-Kopfzeile lauft als CSS "running element"
+       mit (position:running), damit sie auf JEDER Seite erscheint, auch wenn
+       ein Kapitel ueber mehrere PDF-Seiten flieszt. */
+    @page content-page {
+        size: A4;
+        margin-top: 3.0cm;
+        margin-bottom: 2.1cm;   /* 29.7cm - 27.6cm */
+        margin-left: 21mm;   /* 2.1cm, entspricht der Canva-Vorlage */
+        margin-right: 21mm;
+        @top-center {
+            content: element(kapitel-header);
+            vertical-align: bottom;
+            padding-bottom: 1.2cm;   /* 3.0cm - 1.8cm: Unterkante Titel bei 1.8cm */
+        }
+        @bottom-center {
+            content: counter(page);
+            vertical-align: top;
+            padding-top: 0.4cm;   /* 28.0cm - 27.6cm: Oberkante Seitenzahl bei 28.0cm */
+            font-family: 'Canva Sans', sans-serif;
+            font-size: 20pt;
+            color: #1A213D;
+        }
+    }
+    .kapitel-header {
+        position: running(kapitel-header);
+        font-family: 'Inter', sans-serif;
+        font-size: 24pt;
+        text-align: center;
+        color: #706f6f;
+    }
+    .content-page {
+        page: content-page;
+        font-family: 'Canva Sans', sans-serif;
+        font-size: 12pt;
+        color: #706f6f;
+    }
+    /* Oberkante 7.3cm / Unterkante 14.6cm im Referenz-PDF -> 7.3cm hoch;
+       liegt inline im Fliesstext, daher ohne feste Position, nur Groesse. */
+    .zeichen-symbol-inline {
+        height: 73mm;
+        width: auto;
+        display: block;
+        margin: 6mm auto;
+    }
+    /* Erscheint automatisch am Ende des "beziehung"/"kindheit"-Abschnitts,
+       siehe report_builder.py:TEXT_TYPE_THEMENBILD_TOPIC - bleibt auf
+       derselben Seite wie der Abschnitttext (kein eigener Seitenumbruch
+       davor), direkt danach folgt automatisch ein Seitenumbruch (siehe
+       .pagebreak-marker), damit der naechste Abschnitt frisch beginnt. */
+    .themenbild-inline {
+        width: 130mm;
+        height: auto;
+        display: block;
+        margin: 6mm auto;
+    }
+    /* Marker [pagebreak] im Redaktionstext -> gezielter Seitenumbruch,
+       siehe text_render.py:render_body(). */
+    .pagebreak-marker {
+        break-after: page;
+    }
+    /* Marker [center]...[/center] im Redaktionstext -> zentrierter
+       Abschnitt (z.B. das einleitende Zitat einer Kurzbeschreibung),
+       siehe text_render.py:_render_segment(). */
+    .zentriert-text {
+        text-align: center;
+    }
+    .kombi-heading {
+        text-align: center;
+    }
+    .kombi-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 6mm;
+        font-size: 8pt;   /* kleiner als der Fliesstext (12pt), damit die Tabelle auf eine Seite passt */
+        table-layout: fixed;   /* erzwingt gleich breite Spalten, unabhaengig vom Inhalt */
+    }
+    /* box-sizing:border-box ist hier Pflicht, nicht kosmetisch: ohne das
+       zaehlen Padding+Rahmen bei width:50% NICHT mit rein, sondern kommen
+       oben drauf - die Tabelle wird dadurch insgesamt breiter als 100% der
+       Inhaltsbreite und laeuft rechts in den Seitenrand hinein (gemessen:
+       ca. 12mm zu breit, rechter Rand schrumpfte von 20mm auf 7.6mm). */
+    .kombi-table, .kombi-table th, .kombi-table td {
+        box-sizing: border-box;
+    }
+    .kombi-table th, .kombi-table td {
+        border: 1px solid #ccc;
+        padding: 3mm;
+        text-align: left;
+        vertical-align: top;
+        width: 50%;
+    }
+    .kombi-table thead th {
+        background: #1A213D;
+        color: #fff;
+        text-align: center;
+    }
+    .kombi-table .kombi-row-label td {
+        background: #e3e3e3;
+        font-weight: bold;
+        text-align: center;
+        padding: 1.2mm 3mm;   /* schmaler als die Inhaltszellen - reine Trennzeile, keine Inhaltszeile */
+    }
+    .kombi-table .kombi-ruler-row td {
+        font-style: italic;
+        font-size: 7pt;
+        color: #999;
+    }
+    /* Haelt Zeilenlabel + zugehoerigen Inhalt (je ein <tbody> pro Block,
+       siehe text_render.py) zusammen auf einer Seite - ohne das koennte
+       die Ueberschrift ("Liebe") am Seitenende stehen und der Inhalt erst
+       auf der naechsten Seite folgen. */
+    .kombi-table tbody.kombi-group {
+        break-inside: avoid;
+    }
+
+    .toc-page {
+        page-break-after: always;
+        break-before: right;
+        display: flex;
+        flex-direction: column;
+        height: 297mm;
+    }
+    .toc-header {
+        background: #1A213D;
+        padding: 50px 40px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    .toc-header h1 {
+        font-family: 'Sunday', serif;
+        color: #F3E3C2;
+        font-size: 46pt;
+        letter-spacing: 2px;
+        margin: 0;
+        text-align: center;
+    }
+    .toc-timeline {
+        list-style: none;
+        margin: 0;
+        padding: 50px 40px 50px 70px;
+        position: relative;
+        flex: 1;   /* fuellt die restliche Seitenhoehe, damit die Linie bis ans Seitenende reicht */
+    }
+    .toc-timeline::before {
+        content: "";
+        position: absolute;
+        left: 60px;   /* Mitte des 60px-Kreises: 70px Padding - 40px Margin + 30px halbe Kreisbreite */
+        top: 0;
+        bottom: 0;
+        width: 1px;
+        background: #1A213D;
+    }
+    .toc-entry {
+        position: relative;
+        display: flex;
+        align-items: center;
+        min-height: 95px;
+    }
+    .toc-badge {
+        position: relative;
+        z-index: 1;
+        flex: 0 0 60px;
+        height: 60px;
+        width: 60px;
+        border-radius: 50%;
+        background: #1A213D;
+        color: #fff;
+        font-weight: 800;
+        font-size: 20pt;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-right: 28px;
+        margin-left: -40px;
+    }
+    .toc-link {
+        flex: 1;
+        display: flex;
+        text-decoration: none;
+        color: #32384C;
+        font-weight: 700;
+        font-size: 15pt;
+        white-space: nowrap;
+    }
+    .toc-link::after {
+        content: leader(" _") target-counter(attr(href), page);
+        flex: 1;
+        font-weight: 400;
+        margin-left: 8px;
+        color: #32384C;
+    }
+
+    /* Kapitel-Cover: gleicher dunkler Hintergrund wie Cover/ToC, Titel oben
+       zentriert, Zeichen-Illustration mittig - startet immer auf einer
+       rechten/ungeraden Seite (break-before:right fuegt bei Bedarf
+       automatisch eine Leerseite links davor ein). */
+    .kapitel-cover {
+        position: relative;
+        width: 210mm;
+        height: 297mm;
+        background: #1A213D;
+        page-break-after: always;
+        break-before: right;
+    }
+    .kapitel-cover-title {
+        position: absolute;
+        bottom: 219mm; left: 0;   /* 297mm - 78mm: Unterkante Titel bei 7.8cm */
+        width: 210mm;
+        box-sizing: border-box;
+        text-align: center;
+        font-family: 'Sunday', sans-serif;
+        font-size: 41.4pt;
+        color: #F3E3C2;
+        margin: 0;
+        line-height: 1;
+        padding: 0 20mm;
+    }
+    .kapitel-cover-image {
+        position: absolute;
+        top: 50%; left: 50%;
+        transform: translate(-50%, -50%);
+        width: 90mm;
+        max-height: 120mm;
+    }
+
+    /* Um 90 Grad gedreht (nach links, quer), damit das querformatige Rad
+       die Hochformat-Seite voll ausfuellt: der innere Wrapper bekommt die
+       "liegenden" Zielmasse, wird zentriert und erst DANACH gedreht - so
+       landet die gedrehte Bounding-Box exakt auf den Seitenrandern.
+       Wrapper-Seitenverhaeltnis = SVG-viewBox (890x580, 1.534), NICHT
+       297x210 (1.414) - sonst nicht-proportionale Stauchung, siehe
+       Testrecherche. Die fruehere Text/Rad-Kollision lag NICHT an dieser
+       Skalierung, sondern an einer fehlenden font-family im SVG (siehe
+       chart_image.py) - jetzt behoben, daher hier wieder die volle,
+       gedrehte Seitenausfuellung. */
+    .horoskoprad-page {
+        page-break-after: always;
+        break-before: right;
+        width: 210mm;
+        height: 297mm;
+        position: relative;
+        overflow: hidden;
+        background: #1A213D;
+    }
+    .horoskoprad-inner {
+        position: absolute;
+        width: 297mm;
+        height: 193.5mm;   /* 297mm * 580/890 (SVG-viewBox-Verhaeltnis) */
+        top: 50%; left: 50%;
+        transform: translate(-50%, -50%) rotate(-90deg);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-sizing: border-box;
+    }
+    .horoskoprad-inner svg {
+        width: 100%;
+        height: 100%;
+        min-width: 0;
+        min-height: 0;
+    }
+</style>
+</head>
+<body>
+    <div class="cover-page">
+        {% if cover_bg_base64 %}
+            <img class="cover-bg" src="data:{{ cover_bg_content_type }};base64,{{ cover_bg_base64 }}">
+        {% endif %}
+        <p class="cover-title">Geburtshoroskop</p>
+        <p class="cover-name">{{ chart.label|default:birth_place_short }}</p>
+        <div class="cover-meta-block">
+            <p class="cover-meta">{{ chart.birth_date|date:"j. F Y" }}</p>
+            {% if chart.birth_time %}<p class="cover-meta">{{ chart.birth_time|time:"H:i" }} Uhr</p>{% endif %}
+            <p class="cover-meta">{{ birth_place_short }}</p>
+        </div>
+    </div>
+
+    {% if chapters %}
+        <div class="toc-page">
+            <div class="toc-header">
+                <h1>Inhaltsverzeichnis</h1>
+            </div>
+            <ol class="toc-timeline">
+                {% for chapter in chapters %}
+                    <li class="toc-entry">
+                        <span class="toc-badge">{{ forloop.counter|stringformat:"02d" }}</span>
+                        <a class="toc-link" href="#{{ chapter.anchor_id }}">{{ chapter.heading }}</a>
+                    </li>
+                {% endfor %}
+            </ol>
+        </div>
+    {% endif %}
+
+    {% for chapter in chapters %}
+        <div class="kapitel-cover">
+            <p class="kapitel-cover-title">{{ chapter.heading }}</p>
+            {% if chapter.cover_image_base64 %}
+                <img class="kapitel-cover-image" src="data:{{ chapter.cover_image_content_type }};base64,{{ chapter.cover_image_base64 }}">
+            {% endif %}
+        </div>
+        <div class="content-page">
+            <span id="{{ chapter.anchor_id }}"></span>
+            <div class="kapitel-header">{{ chapter.heading }}</div>
+            {{ chapter.content_html|safe }}
+        </div>
+    {% endfor %}
+
+    {% if chart_wheel_svg %}
+        <div class="horoskoprad-page">
+            <div class="horoskoprad-inner">
+                {{ chart_wheel_svg|safe }}
+            </div>
+        </div>
+    {% endif %}
+</body>
+</html>

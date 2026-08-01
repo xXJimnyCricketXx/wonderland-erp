@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<style>
+    @font-face {
+        font-family: 'Inter';
+        src: url('data:font/ttf;base64,{{ inter_font_base64 }}') format('truetype');
+    }
+    @font-face {
+        font-family: 'Canva Sans';
+        src: url('data:font/woff;base64,{{ canva_sans_font_base64 }}') format('woff');
+        font-weight: normal;
+    }
+    @font-face {
+        font-family: 'Canva Sans';
+        src: url('data:font/woff;base64,{{ canva_sans_bold_font_base64 }}') format('woff');
+        font-weight: bold;
+    }
+    @page { size: A4; margin: 0; }
+    body { margin: 0; }
+
+    /* 1:1 identisch zur @page content-page Regel in report.html - das ist
+       der ganze Sinn dieser Vorschau: dieselbe Engine, dieselben Masse,
+       damit Seitenumbrueche exakt so fallen wie im echten Report. */
+    @page content-page {
+        size: A4;
+        margin-top: 3.0cm;
+        margin-bottom: 2.1cm;
+        margin-left: 21mm;
+        margin-right: 21mm;
+        @top-center {
+            content: element(kapitel-header);
+            vertical-align: bottom;
+            padding-bottom: 1.2cm;
+        }
+        @bottom-center {
+            content: counter(page);
+            vertical-align: top;
+            padding-top: 0.4cm;
+            font-family: 'Canva Sans', sans-serif;
+            font-size: 20pt;
+            color: #1A213D;
+        }
+    }
+    .kapitel-header {
+        position: running(kapitel-header);
+        font-family: 'Inter', sans-serif;
+        font-size: 24pt;
+        text-align: center;
+        color: #706f6f;
+    }
+    .content-page {
+        page: content-page;
+        font-family: 'Canva Sans', sans-serif;
+        font-size: 12pt;
+        color: #706f6f;
+    }
+    .zeichen-symbol-inline { height: 73mm; width: auto; display: block; margin: 6mm auto; }
+    .themenbild-inline { width: 130mm; height: auto; display: block; margin: 6mm auto; }
+    .zentriert-text { text-align: center; }
+    .pagebreak-marker { break-after: page; }
+    .kombi-heading { text-align: center; }
+    .kombi-table { width: 100%; border-collapse: collapse; margin-top: 6mm; font-size: 8pt; table-layout: fixed; }
+    .kombi-table, .kombi-table th, .kombi-table td { box-sizing: border-box; }
+    .kombi-table th, .kombi-table td { border: 1px solid #ccc; padding: 3mm; text-align: left; vertical-align: top; width: 50%; }
+    .kombi-table thead th { background: #1A213D; color: #fff; text-align: center; }
+    .kombi-table .kombi-row-label td { background: #e3e3e3; font-weight: bold; text-align: center; padding: 1.2mm 3mm; }
+    .kombi-table .kombi-ruler-row td { font-style: italic; font-size: 7pt; color: #999; }
+    .kombi-table tbody.kombi-group { break-inside: avoid; }
+</style>
+</head>
+<body>
+    <div class="content-page">
+        <div class="kapitel-header">{{ heading }}</div>
+        {{ content_html|safe }}
+    </div>
+</body>
+</html>
