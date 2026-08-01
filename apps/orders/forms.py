@@ -25,7 +25,7 @@ class OrderForm(forms.ModelForm):
             "etsy_receipt_file",
         ]
         widgets = {
-            "order_id": forms.TextInput(attrs={"class": "form-control", "placeholder": "z.B. B-0001"}),
+            "order_id": forms.TextInput(attrs={"class": "form-control", "placeholder": "leer lassen für automatische Vergabe"}),
             "etsy_order_number": forms.TextInput(attrs={"class": "form-control"}),
             # HTML5 <input type="date"> requires the value attribute in ISO
             # format - Django's default DateInput renders it in the active

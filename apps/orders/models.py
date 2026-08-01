@@ -11,13 +11,29 @@ def order_receipt_path(instance, filename):
     return f"documents/bestellungen/{year}/{filename}"
 
 
+def next_order_id():
+    """Naechste freie 'B-XXXX'-Bestell-ID fuer manuell angelegte Bestellungen
+    (Order.save() unten) - dasselbe Nummernschema wie data_import.
+    order_import.assign_order_ids fuer importierte Bestellungen, damit beide
+    Wege in dieselbe fortlaufende Sequenz einzahlen."""
+    existing_max = 0
+    for order_id in Order.objects.filter(order_id__startswith="B-").values_list("order_id", flat=True):
+        suffix = order_id[2:]
+        if suffix.isdigit():
+            existing_max = max(existing_max, int(suffix))
+    return f"B-{existing_max + 1:04d}"
+
+
 class Order(Archivable):
     # Internal, always-present identifier ("B-0001", "B-0002", ... assigned
     # sequentially by oldest sale_date first - see data_import.order_import.
-    # assign_order_ids) - covers Etsy orders and cash sales alike.
+    # assign_order_ids) - covers Etsy orders and cash sales alike. Bleibt sie
+    # beim manuellen Anlegen leer, vergibt Order.save() unten automatisch die
+    # naechste freie Nummer (next_order_id oben) - blank=True ist noetig,
+    # damit das Formularfeld ueberhaupt leer bleiben darf.
     # etsy_order_number below is Etsy's own order number and only ever set
     # for orders that actually came through Etsy.
-    order_id = models.CharField("Bestell-ID", max_length=50, unique=True)
+    order_id = models.CharField("Bestell-ID", max_length=50, unique=True, blank=True)
     etsy_order_number = models.CharField("Etsy-Bestellnummer", max_length=50, blank=True)
     customer = models.ForeignKey(
         Customer, verbose_name="Kunde", on_delete=models.PROTECT, related_name="orders"
@@ -100,6 +116,8 @@ class Order(Archivable):
         return f"Bestellung #{self.order_id}"
 
     def save(self, *args, **kwargs):
+        if not self.order_id:
+            self.order_id = next_order_id()
         super().save(*args, **kwargs)
         # Auto-flag Stammkunde once a customer has more than one order - a
         # one-way ratchet (never unset here), so archiving/deleting a later
