@@ -68,6 +68,11 @@ class OrderForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
         self.fields["customer"].queryset = Customer.objects.filter(is_archived=False).order_by("last_name", "first_name")
         self.fields["customer"].widget.attrs.update({"class": "form-select"})
+        # "Nachname, Vorname" statt Customer.__str__'s "Vorname Nachname" -
+        # passt zur Sortierung oben (nach Nachname) und macht sie im Dropdown
+        # auch sichtbar/nachvollziehbar, statt gleich sortierter aber anders
+        # formatierter Namen wild wirken zu lassen.
+        self.fields["customer"].label_from_instance = lambda obj: f"{obj.last_name}, {obj.first_name}".strip(", ")
         self.fields["package_type"].queryset = PackagingType.objects.all().order_by("name")
         self.fields["package_type"].widget.attrs.update({"class": "form-select"})
 
