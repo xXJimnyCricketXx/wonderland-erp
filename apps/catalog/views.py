@@ -44,6 +44,9 @@ class ArticleListView(LoginRequiredMixin, ListView):
         if is_active in ("1", "0"):
             qs = qs.filter(is_active=bool(int(is_active)))
 
+        if self.request.GET.get("is_sold_out"):
+            qs = qs.filter(is_sold_out=True)
+
         supplier_id = self.request.GET.get("supplier")
         if supplier_id:
             qs = qs.filter(supplier_id=supplier_id)
@@ -63,6 +66,7 @@ class ArticleListView(LoginRequiredMixin, ListView):
         ).order_by("order", "value")
         context["query"] = self.request.GET.get("q", "")
         context["selected_is_active"] = self.request.GET.get("is_active", "")
+        context["selected_is_sold_out"] = self.request.GET.get("is_sold_out", "")
         context["selected_supplier"] = self.request.GET.get("supplier", "")
         context["selected_supplier_obj"] = (
             Supplier.objects.filter(pk=context["selected_supplier"]).first() if context["selected_supplier"] else None

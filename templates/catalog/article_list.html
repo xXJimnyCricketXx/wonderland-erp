@@ -23,6 +23,7 @@
 
     <form method="get" class="row g-2 mb-3 align-items-end">
         <input type="hidden" name="is_active" value="{{ selected_is_active }}">
+        <input type="hidden" name="is_sold_out" value="{{ selected_is_sold_out }}">
         <input type="hidden" name="supplier" value="{{ selected_supplier }}">
         <input type="hidden" name="category" value="{{ selected_category }}">
         <div class="col-md-4">
@@ -68,6 +69,11 @@
                     {% endfor %}
                 </ul>
             </div>
+        </div>
+        <div class="col-12 d-flex flex-wrap gap-2">
+            <a class="btn btn-sm chip-toggle{% if selected_is_sold_out %} active{% endif %}" href="{% toggle_url 'is_sold_out' '1' %}">
+                <i class="bi bi-exclamation-triangle me-1"></i>Ausverkauft
+            </a>
         </div>
     </form>
 
