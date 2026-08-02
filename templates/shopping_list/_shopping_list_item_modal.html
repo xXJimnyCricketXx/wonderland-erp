@@ -25,6 +25,7 @@
                 <div class="col-12">
                     <label class="form-label">Beschreibung</label>
                     {{ form.description }}
+                    <div class="form-text">Markdown wird unterstützt: **fett**, *kursiv*, - Liste, [Text](https://…)</div>
                     {% include "components/field_errors.html" with field=form.description %}
                 </div>
             </div>
