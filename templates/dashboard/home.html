@@ -168,51 +168,51 @@
 
     <div class="row g-3 mt-1">
         <div class="col-12 col-lg-4">
-            <div class="card h-100">
+            <div class="card h-100 chart-zoomable" role="button" data-bs-toggle="modal" data-bs-target="#chartZoomModal" data-chart-zoom="chart-income" data-chart-title="Einnahmen (Zeitverlauf)">
                 <div class="card-body">
-                    <div class="text-uppercase text-muted small mb-2">Einnahmen (Zeitverlauf)</div>
+                    <div class="text-uppercase text-muted small mb-2">Einnahmen (Zeitverlauf) <i class="bi bi-arrows-fullscreen small text-muted float-end"></i></div>
                     <div style="height: 220px;"><canvas id="chart-income"></canvas></div>
                 </div>
             </div>
         </div>
         <div class="col-12 col-lg-4">
-            <div class="card h-100">
+            <div class="card h-100 chart-zoomable" role="button" data-bs-toggle="modal" data-bs-target="#chartZoomModal" data-chart-zoom="chart-expense" data-chart-title="Ausgaben (Zeitverlauf)">
                 <div class="card-body">
-                    <div class="text-uppercase text-muted small mb-2">Ausgaben (Zeitverlauf)</div>
+                    <div class="text-uppercase text-muted small mb-2">Ausgaben (Zeitverlauf) <i class="bi bi-arrows-fullscreen small text-muted float-end"></i></div>
                     <div style="height: 220px;"><canvas id="chart-expense"></canvas></div>
                 </div>
             </div>
         </div>
         <div class="col-12 col-lg-4">
-            <div class="card h-100">
+            <div class="card h-100 chart-zoomable" role="button" data-bs-toggle="modal" data-bs-target="#chartZoomModal" data-chart-zoom="chart-skr03" data-chart-title="Ausgaben nach SKR03-Konto">
                 <div class="card-body">
-                    <div class="text-uppercase text-muted small mb-2">Ausgaben nach SKR03-Konto</div>
+                    <div class="text-uppercase text-muted small mb-2">Ausgaben nach SKR03-Konto <i class="bi bi-arrows-fullscreen small text-muted float-end"></i></div>
                     <div style="height: 220px;"><canvas id="chart-skr03"></canvas></div>
                 </div>
             </div>
         </div>
         <div class="col-12 col-lg-4">
-            <div class="card h-100">
+            <div class="card h-100 chart-zoomable" role="button" data-bs-toggle="modal" data-bs-target="#chartZoomModal" data-chart-zoom="chart-income-expense-bar" data-chart-title="Einnahmen / Ausgaben pro Monat">
                 <div class="card-body">
-                    <div class="text-uppercase text-muted small mb-0">Einnahmen / Ausgaben pro Monat</div>
+                    <div class="text-uppercase text-muted small mb-0">Einnahmen / Ausgaben pro Monat <i class="bi bi-arrows-fullscreen small text-muted float-end"></i></div>
                     {% if chart_years_caption %}<div class="small text-muted mb-2">{{ chart_years_caption }}</div>{% endif %}
                     <div style="height: 220px;"><canvas id="chart-income-expense-bar"></canvas></div>
                 </div>
             </div>
         </div>
         <div class="col-12 col-lg-4">
-            <div class="card h-100">
+            <div class="card h-100 chart-zoomable" role="button" data-bs-toggle="modal" data-bs-target="#chartZoomModal" data-chart-zoom="chart-orders" data-chart-title="Bestellungen pro Monat">
                 <div class="card-body">
-                    <div class="text-uppercase text-muted small mb-0">Bestellungen pro Monat</div>
+                    <div class="text-uppercase text-muted small mb-0">Bestellungen pro Monat <i class="bi bi-arrows-fullscreen small text-muted float-end"></i></div>
                     {% if chart_years_caption %}<div class="small text-muted mb-2">{{ chart_years_caption }}</div>{% endif %}
                     <div style="height: 220px;"><canvas id="chart-orders"></canvas></div>
                 </div>
             </div>
         </div>
         <div class="col-12 col-lg-4">
-            <div class="card h-100">
+            <div class="card h-100 chart-zoomable" role="button" data-bs-toggle="modal" data-bs-target="#chartZoomModal" data-chart-zoom="chart-profit-comparison" data-chart-title="Gewinn im Vorjahresvergleich">
                 <div class="card-body">
-                    <div class="text-uppercase text-muted small mb-2">Gewinn im Vorjahresvergleich</div>
+                    <div class="text-uppercase text-muted small mb-2">Gewinn im Vorjahresvergleich <i class="bi bi-arrows-fullscreen small text-muted float-end"></i></div>
                     <div style="height: 220px;"><canvas id="chart-profit-comparison"></canvas></div>
                 </div>
             </div>
@@ -221,15 +221,15 @@
 
     <div class="row g-3 mt-1">
         <div class="col-12 col-lg-4">
-            <div class="card mb-3">
+            <div class="card mb-3 chart-zoomable" role="button" data-bs-toggle="modal" data-bs-target="#chartZoomModal" data-chart-zoom="chart-top5-units" data-chart-title="Top 5 Artikel (verkaufte Einheiten)">
                 <div class="card-body">
-                    <div class="text-uppercase text-muted small mb-2">Top 5 Artikel (verkaufte Einheiten)</div>
+                    <div class="text-uppercase text-muted small mb-2">Top 5 Artikel (verkaufte Einheiten) <i class="bi bi-arrows-fullscreen small text-muted float-end"></i></div>
                     <div style="height: 220px;"><canvas id="chart-top5-units"></canvas></div>
                 </div>
             </div>
-            <div class="card">
+            <div class="card chart-zoomable" role="button" data-bs-toggle="modal" data-bs-target="#chartZoomModal" data-chart-zoom="chart-top5-revenue" data-chart-title="Top 5 Artikel (Einnahmen)">
                 <div class="card-body">
-                    <div class="text-uppercase text-muted small mb-2">Top 5 Artikel (Einnahmen)</div>
+                    <div class="text-uppercase text-muted small mb-2">Top 5 Artikel (Einnahmen) <i class="bi bi-arrows-fullscreen small text-muted float-end"></i></div>
                     <div style="height: 220px;"><canvas id="chart-top5-revenue"></canvas></div>
                 </div>
             </div>
@@ -260,6 +260,20 @@
         </div>
     </div>
 
+    <div class="modal fade" id="chartZoomModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-xl">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="chartZoomModalTitle"></h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Schließen"></button>
+                </div>
+                <div class="modal-body" style="height: 70vh;">
+                    <canvas id="chart-zoom-canvas"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
     <script>
         (function () {
@@ -271,6 +285,19 @@
             var palette = [green, gold, rust, '#3B6EA5', '#7B5EA7', '#2E8B7A'];
 
             Chart.defaults.font.family = getComputedStyle(document.body).fontFamily;
+
+            // Merkt sich die Konfiguration jedes kleinen Dashboard-Charts
+            // (nicht die Chart-Instanz selbst), damit ein Klick auf die Karte
+            // per chartConfigs[id] dieselben Daten/Optionen im Zoom-Modal neu
+            // rendern kann - eine zweite Chart-Instanz auf demselben Config-
+            // Objekt wuerde sich sonst mit der Original-Instanz "in die Quere
+            // kommen" (Chart.js haengt intern Zustand an die Objekte), daher
+            // per JSON ein sauberer, unabhaengiger Klon.
+            var chartConfigs = {};
+            function makeChart(id, config) {
+                chartConfigs[id] = config;
+                return new Chart(document.getElementById(id), config);
+            }
 
             function yearLineDatasets(seriesByYear) {
                 var years = Object.keys(seriesByYear).sort();
@@ -285,19 +312,19 @@
                 });
             }
 
-            new Chart(document.getElementById('chart-income'), {
+            makeChart('chart-income', {
                 type: 'line',
                 data: { labels: data.monthAxisLabels, datasets: yearLineDatasets(data.incomeSeriesByYear) },
                 options: { plugins: { legend: { display: true, position: 'bottom' } }, maintainAspectRatio: false },
             });
 
-            new Chart(document.getElementById('chart-expense'), {
+            makeChart('chart-expense', {
                 type: 'line',
                 data: { labels: data.monthAxisLabels, datasets: yearLineDatasets(data.expenseSeriesByYear) },
                 options: { plugins: { legend: { display: true, position: 'bottom' } }, maintainAspectRatio: false },
             });
 
-            new Chart(document.getElementById('chart-skr03'), {
+            makeChart('chart-skr03', {
                 type: 'doughnut',
                 data: {
                     labels: data.skr03Labels,
@@ -306,7 +333,7 @@
                 options: { plugins: { legend: { display: true, position: 'bottom', labels: { boxWidth: 12 } } }, maintainAspectRatio: false },
             });
 
-            new Chart(document.getElementById('chart-income-expense-bar'), {
+            makeChart('chart-income-expense-bar', {
                 type: 'bar',
                 data: {
                     labels: data.monthAxisLabels,
@@ -318,7 +345,7 @@
                 options: { plugins: { legend: { display: true, position: 'bottom' } }, maintainAspectRatio: false },
             });
 
-            new Chart(document.getElementById('chart-orders'), {
+            makeChart('chart-orders', {
                 type: 'bar',
                 data: {
                     labels: data.monthAxisLabels,
@@ -327,7 +354,7 @@
                 options: { plugins: { legend: { display: false } }, maintainAspectRatio: false },
             });
 
-            new Chart(document.getElementById('chart-profit-comparison'), {
+            makeChart('chart-profit-comparison', {
                 type: 'line',
                 data: {
                     labels: data.monthAxisLabels,
@@ -336,7 +363,7 @@
                 options: { plugins: { legend: { display: true, position: 'bottom' } }, maintainAspectRatio: false },
             });
 
-            new Chart(document.getElementById('chart-top5-units'), {
+            makeChart('chart-top5-units', {
                 type: 'bar',
                 data: {
                     labels: data.top5UnitsLabels,
@@ -345,13 +372,39 @@
                 options: { indexAxis: 'y', plugins: { legend: { display: false } }, maintainAspectRatio: false },
             });
 
-            new Chart(document.getElementById('chart-top5-revenue'), {
+            makeChart('chart-top5-revenue', {
                 type: 'bar',
                 data: {
                     labels: data.top5RevenueLabels,
                     datasets: [{ label: 'Einnahmen', data: data.top5RevenueValues, backgroundColor: gold }],
                 },
                 options: { indexAxis: 'y', plugins: { legend: { display: false } }, maintainAspectRatio: false },
+            });
+
+            // Klick auf eine Chart-Karte -> dieselbe Konfiguration gross im
+            // Modal neu rendern (Chart.js kennt kein "Widget umziehen", daher
+            // eine frische Instanz auf dem Modal-Canvas statt dem Original).
+            // Oeffnen laeuft rein ueber Bootstraps data-bs-toggle/-target
+            // (wie jede andere Modal in der App) statt "new bootstrap.Modal(...)"
+            // hier direkt aufzurufen - dieses Script laeuft im content-Block,
+            // also VOR dem bootstrap.bundle.min.js-<script> am Seitenende
+            // (siehe base.html), ein direkter bootstrap.*-Aufruf haette an
+            // dieser Stelle noch gar kein bootstrap-Objekt zur Verfuegung und
+            // wuerde mit einem Fehler den Rest des Scripts abbrechen.
+            var zoomChart = null;
+            var zoomModalEl = document.getElementById('chartZoomModal');
+            zoomModalEl.addEventListener('show.bs.modal', function (event) {
+                var card = event.relatedTarget;
+                var config = chartConfigs[card.getAttribute('data-chart-zoom')];
+                if (!config) return;
+                document.getElementById('chartZoomModalTitle').textContent = card.getAttribute('data-chart-title') || '';
+                var clone = JSON.parse(JSON.stringify({ type: config.type, data: config.data, options: config.options }));
+                clone.options.maintainAspectRatio = false;
+                if (zoomChart) zoomChart.destroy();
+                zoomChart = new Chart(document.getElementById('chart-zoom-canvas'), clone);
+            });
+            zoomModalEl.addEventListener('hidden.bs.modal', function () {
+                if (zoomChart) { zoomChart.destroy(); zoomChart = null; }
             });
         })();
     </script>

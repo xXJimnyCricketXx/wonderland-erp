@@ -18,6 +18,16 @@
     color: var(--brand-green);
 }
 
+/* Klickbare Chart-Karten (siehe home.html data-chart-zoom) - dezenter Hover
+   als Klick-Hinweis, ohne die Karten wie normale Buttons wirken zu lassen. */
+.chart-zoomable {
+    transition: box-shadow .15s ease-in-out;
+}
+
+.chart-zoomable:hover {
+    box-shadow: 0 .25rem .75rem rgba(0, 0, 0, .1);
+}
+
 /* jsvectormap ships a hardcoded blue (#5c5cff) tooltip background. */
 .jvm-tooltip {
     background-color: var(--brand-green);

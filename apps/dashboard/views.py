@@ -149,12 +149,39 @@ def home(request):
     expense_series_by_year = {
         str(y): [float(expense_by_year_month[y].get(m, Decimal("0"))) for m in months_to_show] for y in years_to_show
     }
+
+    # "Gewinn im Vorjahresvergleich" braucht - anders als die beiden Charts
+    # oben - IMMER auch das Vorjahr jedes gewaehlten Jahres, sonst ist der
+    # Vergleich bei einer Jahresauswahl (z.B. nur 2023) sinnlos: income_qs/
+    # expense_qs oben sind bereits auf selected_jahre gefiltert und enthalten
+    # das Vorjahr dann gar nicht erst. Ohne Jahresauswahl ("Alle") bleibt es
+    # wie gehabt bei einer Linie je verfuegbarem Jahr.
+    if selected_jahre:
+        profit_years_to_show = sorted({*selected_jahre, *(y - 1 for y in selected_jahre)})
+    else:
+        profit_years_to_show = years_to_show
+
+    profit_income_qs = Income.objects.filter(is_archived=False, date__year__in=profit_years_to_show)
+    profit_expense_qs = Expense.objects.filter(is_archived=False, date__year__in=profit_years_to_show)
+    if selected_monate:
+        profit_income_qs = profit_income_qs.filter(date__month__in=selected_monate)
+        profit_expense_qs = profit_expense_qs.filter(date__month__in=selected_monate)
+
+    profit_income_by_year_month = defaultdict(lambda: defaultdict(Decimal))
+    for row in profit_income_qs.values("date__year", "date__month").annotate(total=Sum("amount")):
+        profit_income_by_year_month[row["date__year"]][row["date__month"]] += row["total"] or Decimal("0")
+
+    profit_expense_by_year_month = defaultdict(lambda: defaultdict(Decimal))
+    for e in profit_expense_qs:
+        if e.date:
+            profit_expense_by_year_month[e.date.year][e.date.month] += e.account_debit_display or Decimal("0")
+
     profit_series_by_year = {
         str(y): [
-            float(income_by_year_month[y].get(m, Decimal("0")) - expense_by_year_month[y].get(m, Decimal("0")))
+            float(profit_income_by_year_month[y].get(m, Decimal("0")) - profit_expense_by_year_month[y].get(m, Decimal("0")))
             for m in months_to_show
         ]
-        for y in years_to_show
+        for y in profit_years_to_show
     }
 
     # Balkendiagramme (Einnahmen/Ausgaben, Bestellungen) je Monat: über alle
