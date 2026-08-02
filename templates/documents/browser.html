@@ -14,44 +14,63 @@
                 </h2>
                 <div id="folder-{{ forloop.counter }}" class="accordion-collapse collapse{% if forloop.first %} show{% endif %}" data-bs-parent="#documentsAccordion">
                     <div class="accordion-body">
-                        {% if folder.entries %}
-                            <div class="table-responsive">
-                                <table class="table table-striped table-hover align-middle table-brand-header">
-                                    <thead>
-                                        <tr><th>Datei</th><th>Zugehörigkeit</th><th>Datum</th></tr>
-                                    </thead>
-                                    <tbody>
-                                        {% for entry in folder.entries %}
-                                            <tr>
-                                                <td><a href="{{ entry.file.url }}" target="_blank" rel="noopener"><i class="bi bi-file-earmark-text me-1"></i>{{ entry.file.name|slice:"-40:" }}</a></td>
-                                                <td>{{ entry.label }}</td>
-                                                <td>{{ entry.date|date:"d.m.Y" }}</td>
-                                            </tr>
-                                        {% endfor %}
-                                    </tbody>
-                                </table>
+                        {% if folder.year_groups %}
+                            {% comment %}
+                                Jahres-Unterordner direkt auf Ordner-Ebene (Bestellungen) -
+                                gleiches Muster wie bei den Unterordnern unten, nur eine
+                                Verschachtelungsebene weniger.
+                            {% endcomment %}
+                            <div class="accordion mb-2" id="year-accordion-{{ forloop.counter }}">
+                                {% for group in folder.year_groups %}
+                                    <div class="accordion-item">
+                                        <h2 class="accordion-header">
+                                            <button class="accordion-button py-2{% if not forloop.first %} collapsed{% endif %}" type="button"
+                                                    data-bs-toggle="collapse" data-bs-target="#year-{{ forloop.parentloop.counter }}-{{ forloop.counter }}">
+                                                {{ group.year }}
+                                                <span class="badge text-bg-secondary ms-2">{{ group.entries|length }}</span>
+                                            </button>
+                                        </h2>
+                                        <div id="year-{{ forloop.parentloop.counter }}-{{ forloop.counter }}" class="accordion-collapse collapse{% if forloop.first %} show{% endif %}">
+                                            <div class="accordion-body p-0">
+                                                {% include "components/document_file_table.html" with entries=group.entries %}
+                                            </div>
+                                        </div>
+                                    </div>
+                                {% endfor %}
                             </div>
+                        {% elif folder.entries %}
+                            {% include "components/document_file_table.html" with entries=folder.entries %}
                         {% endif %}
 
                         {% for sub in folder.subfolders %}
                             <h6 class="text-uppercase text-muted small mt-3">{{ sub.name }}</h6>
-                            {% if sub.entries %}
-                                <div class="table-responsive">
-                                    <table class="table table-striped table-hover align-middle table-brand-header">
-                                        <thead>
-                                            <tr><th>Datei</th><th>Zugehörigkeit</th><th>Datum</th></tr>
-                                        </thead>
-                                        <tbody>
-                                            {% for entry in sub.entries %}
-                                                <tr>
-                                                    <td><a href="{{ entry.file.url }}" target="_blank" rel="noopener"><i class="bi bi-file-earmark-text me-1"></i>{{ entry.file.name|slice:"-40:" }}</a></td>
-                                                    <td>{{ entry.label }}</td>
-                                                    <td>{{ entry.date|date:"d.m.Y" }}</td>
-                                                </tr>
-                                            {% endfor %}
-                                        </tbody>
-                                    </table>
+                            {% if sub.year_groups %}
+                                {% comment %}
+                                    Jahres-Unterordner (Ausgangsrechnungen/USt-Berichte) - eigene,
+                                    von der aeusseren Akkordeon unabhaengige IDs (kein
+                                    data-bs-parent), damit sich mehrere Jahre gleichzeitig
+                                    offen halten lassen; nur das neueste startet aufgeklappt.
+                                {% endcomment %}
+                                <div class="accordion mb-2" id="year-accordion-{{ forloop.parentloop.counter }}-{{ forloop.counter }}">
+                                    {% for group in sub.year_groups %}
+                                        <div class="accordion-item">
+                                            <h2 class="accordion-header">
+                                                <button class="accordion-button py-2{% if not forloop.first %} collapsed{% endif %}" type="button"
+                                                        data-bs-toggle="collapse" data-bs-target="#year-{{ forloop.parentloop.parentloop.counter }}-{{ forloop.parentloop.counter }}-{{ forloop.counter }}">
+                                                    {{ group.year }}
+                                                    <span class="badge text-bg-secondary ms-2">{{ group.entries|length }}</span>
+                                                </button>
+                                            </h2>
+                                            <div id="year-{{ forloop.parentloop.parentloop.counter }}-{{ forloop.parentloop.counter }}-{{ forloop.counter }}" class="accordion-collapse collapse{% if forloop.first %} show{% endif %}">
+                                                <div class="accordion-body p-0">
+                                                    {% include "components/document_file_table.html" with entries=group.entries %}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    {% endfor %}
                                 </div>
+                            {% elif sub.entries %}
+                                {% include "components/document_file_table.html" with entries=sub.entries %}
                             {% else %}
                                 {% include "components/empty_state.html" with message="Noch keine Dateien." %}
                             {% endif %}
