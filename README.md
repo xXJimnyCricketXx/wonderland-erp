@@ -36,17 +36,24 @@ geschlossene App auf dem eigenen Server, ohne dass Daten das Haus verlassen.
 - **Dashboard** — Kennzahlen, Diagramme (Einnahmen/Ausgaben, SKR03-Aufschlüsselung,
   Vorjahresvergleich, Top-5-Artikel), Kunden-Weltkarte, Aufgaben-/Termin-Übersicht,
   filterbar nach Jahr/Quartal/Monat (Mehrfachauswahl)
-- **Artikel & Wunschliste** — Katalog inkl. Varianten, Lagerbestand, Etsy-Listing-Zuordnung
+- **Artikel** — Katalog inkl. Varianten, Lagerbestand, Etsy-Listing-Zuordnung,
+  Bulk-Zuweisung von Kategorie/Lieferant für mehrere Artikel auf einmal
+- **Einkaufsliste** — Merkliste für nachzukaufende Artikel bei Händlern (bis zu 5 Bilder,
+  Lieferanten-Zuordnung), nach Händler filter- und druckbar
+- **Wunschliste (Inspirationboard)** — Pinnwand für Inspiration/Angebote
 - **Bestellungen** — inkl. Etsy-Import (Sold Orders/Order Items), Bewertungen
 - **Kontakte** — Kunden und Lieferanten getrennt verwaltet
 - **Finanzen** — Einnahmen/Ausgaben mit SKR03-Kontenzuordnung, Etsy-Rohdaten/Statement-Import,
   USt-Berichte, SKR03-Übersicht
 - **Aufgaben & Termine** — Kanban-Board mit Drag & Drop, Kalender (Monat/Woche/Liste)
 - **Infothek** — Materialkategorien, Verpackungsarten, Verpackungslizenz (LUCID),
-  Heilstein-Lexikon
-- **Dokumente** — zentrale Ablage für Rechnungen, USt-Berichte und mehr
+  Heilstein-Lexikon, Astro-Modul (Geburtshoroskop-Berechnung mit PDF-Bericht)
+- **Dokumente** — zentrale Ablage für Rechnungen, USt-Berichte und mehr, in klappbaren
+  Jahres-Unterordnern
 - **Nachrichten** — Echtzeit-artiger Chat zwischen registrierten Nutzern
 - **Referenzdaten** — die meisten Dropdown-Werte im ganzen System frei konfigurierbar
+- **Einstellungen** — Backups erstellen/herunterladen/wiederherstellen, Papierkorb je Modul
+- **Passwort vergessen** — Selfservice-Reset per E-Mail
 - **Single-Container** — läuft komplett in einem Docker-Container, alle Daten liegen in
   einem `/data`-Volume
 
@@ -93,6 +100,11 @@ dann vorausgefüllt.
 | `ASTRO_DB_PATH` | nein | Pfad zur Astro-Modul-Datenbank (Standard: `/data/astro.sqlite3`) |
 | `GEONAMES_USERNAME` | nein | Account für GeoNames-Geocoding im Astro-Modul (kostenlos unter geonames.org/login) |
 | `MEDIA_ROOT` | nein | Pfad für hochgeladene Dateien (Standard: `/data/media`) |
+| `EMAIL_HOST` | nein | SMTP-Server für System-Mails ("Passwort vergessen"). Ohne gesetzten Host landen Mails nur im Server-Log statt zugestellt zu werden |
+| `EMAIL_PORT` | nein | SMTP-Port (Standard: `465`, für SSL) |
+| `EMAIL_HOST_USER` / `EMAIL_HOST_PASSWORD` | nein | Zugangsdaten des versendenden Postfachs |
+| `EMAIL_USE_SSL` / `EMAIL_USE_TLS` | nein | Genau eines von beiden auf `True` - `EMAIL_USE_SSL` für Port 465, `EMAIL_USE_TLS` für Port 587 (STARTTLS) |
+| `DEFAULT_FROM_EMAIL` | nein | Absenderadresse für System-Mails |
 
 Datenbanken und Medien-Dateien liegen standardmäßig alle unter `/data` - im Docker-Setup ein
 einziges gemountetes Volume, ein einfaches Backup des Ordners reicht also.
@@ -105,6 +117,8 @@ einziges gemountetes Volume, ein einfaches Backup des Ordners reicht also.
 | Datenbank | SQLite (WAL-Modus) |
 | Frontend | Server-seitige Templates, Bootstrap 5, HTMX |
 | Diagramme | Chart.js, jsvectormap |
+| PDF-Berichte | weasyprint |
+| Astro-Berechnung | kerykeion / pyswisseph (Swiss Ephemeris) |
 | Auth | Django-eigene Session-Authentifizierung |
 
 ## Entwicklung
@@ -116,6 +130,7 @@ pip install -r requirements.txt
 cp .env.example .env
 python manage.py migrate
 python manage.py migrate --database=lexikon
+python manage.py migrate --database=astro
 python manage.py createsuperuser
 python manage.py runserver
 ```
