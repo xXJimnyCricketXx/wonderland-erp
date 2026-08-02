@@ -24,6 +24,7 @@ from .trash_registry import TRASH_REGISTRY, TRASH_REGISTRY_BY_SLUG
 RESET_CONFIRM_PHRASE = "ZURÜCKSETZEN"
 ORDER_RESET_CONFIRM_PHRASE = "BESTELLUNGEN LÖSCHEN"
 ARTICLE_RESET_CONFIRM_PHRASE = "ARTIKEL LÖSCHEN"
+BACKUP_RESTORE_CONFIRM_PHRASE = "WIEDERHERSTELLEN"
 
 
 class SettingsView(LoginRequiredMixin, View):
@@ -83,6 +84,7 @@ class SettingsView(LoginRequiredMixin, View):
                 "reset_confirm_phrase": RESET_CONFIRM_PHRASE,
                 "order_reset_confirm_phrase": ORDER_RESET_CONFIRM_PHRASE,
                 "article_reset_confirm_phrase": ARTICLE_RESET_CONFIRM_PHRASE,
+                "backup_restore_confirm_phrase": BACKUP_RESTORE_CONFIRM_PHRASE,
                 "packaging_types": PackagingType.objects.all().order_by("name"),
                 "material_categories": MaterialCategory.objects.all().order_by("name"),
                 "skr03_accounts": SKR03Account.objects.all().order_by("number"),
@@ -168,6 +170,40 @@ class BackupDeleteView(LoginRequiredMixin, View):
         path = backup_utils.get_backup_path(filename)
         if path is not None:
             path.unlink()
+        return redirect(reverse("settings_hub:index") + "?tab=backups")
+
+
+class BackupRestoreView(UserPassesTestMixin, View):
+    """Danger Zone: ueberschreibt die Ziel-Datenbank (siehe backup_utils.
+    restore_backup) komplett mit dem Stand einer Backup-Datei - inkl.
+    Benutzerkonten, falls es die Haupt-DB betrifft. Automatisches
+    Sicherheits-Backup des aktuellen Stands davor, damit ein Fehlgriff nicht
+    endgueltig ist."""
+
+    def test_func(self):
+        return self.request.user.is_superuser
+
+    def handle_no_permission(self):
+        messages.error(self.request, "Nur Administratoren können ein Backup wiederherstellen.")
+        return redirect(reverse("settings_hub:index") + "?tab=backups")
+
+    def post(self, request, filename):
+        if request.POST.get("confirm_text", "") != BACKUP_RESTORE_CONFIRM_PHRASE:
+            messages.error(request, "Bestätigungstext stimmte nicht überein - nichts wurde wiederhergestellt.")
+            return redirect(reverse("settings_hub:index") + "?tab=backups")
+
+        if backup_utils.get_backup_path(filename) is None:
+            raise Http404
+
+        backup_utils.create_backup()
+        backup_utils.restore_backup(filename)
+
+        messages.success(
+            request,
+            f"„{filename}“ wurde wiederhergestellt. Ein Sicherungs-Backup des vorherigen Stands wurde direkt "
+            "davor automatisch erstellt. Bitte den Server/Container jetzt neu starten, damit alle Prozesse "
+            "den wiederhergestellten Stand konsistent laden.",
+        )
         return redirect(reverse("settings_hub:index") + "?tab=backups")
 
 

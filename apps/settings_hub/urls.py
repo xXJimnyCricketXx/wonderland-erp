@@ -15,6 +15,7 @@ urlpatterns = [
     path("backups/einstellungen/", views.BackupSettingsUpdateView.as_view(), name="backup_settings"),
     path("backups/<str:filename>/herunterladen/", views.BackupDownloadView.as_view(), name="backup_download"),
     path("backups/<str:filename>/loeschen/", views.BackupDeleteView.as_view(), name="backup_delete"),
+    path("backups/<str:filename>/wiederherstellen/", views.BackupRestoreView.as_view(), name="backup_restore"),
     path("danger-zone/datenbank-zuruecksetzen/", views.DatabaseResetView.as_view(), name="database_reset"),
     path("danger-zone/bestellungen-loeschen/", views.OrderResetView.as_view(), name="order_reset"),
     path("danger-zone/artikel-loeschen/", views.ArticleResetView.as_view(), name="article_reset"),

@@ -526,6 +526,16 @@
                                                     <a href="{% url 'settings_hub:backup_download' backup.name %}" class="btn btn-sm btn-outline-secondary" title="Herunterladen">
                                                         <i class="bi bi-download"></i>
                                                     </a>
+                                                    {% if user.is_superuser %}
+                                                        <form method="post" action="{% url 'settings_hub:backup_restore' backup.name %}" class="d-inline"
+                                                              onsubmit="var val = prompt('ACHTUNG: Überschreibt ALLE aktuellen Daten (ggf. inkl. Benutzerkonten) mit dem Stand von {{ backup.created_at|date:'d.m.Y H:i' }}. Ein Sicherungs-Backup des jetzigen Stands wird vorher automatisch erstellt.\n\nZum Bestätigen \'{{ backup_restore_confirm_phrase }}\' eingeben:'); if (val !== '{{ backup_restore_confirm_phrase }}') { return false; } this.querySelector('[name=confirm_text]').value = val;">
+                                                            {% csrf_token %}
+                                                            <input type="hidden" name="confirm_text">
+                                                            <button type="submit" class="btn btn-sm btn-outline-warning" title="Wiederherstellen">
+                                                                <i class="bi bi-arrow-counterclockwise"></i>
+                                                            </button>
+                                                        </form>
+                                                    {% endif %}
                                                     <form method="post" action="{% url 'settings_hub:backup_delete' backup.name %}" onsubmit="return confirm('Backup löschen?');">
                                                         {% csrf_token %}
                                                         <button type="submit" class="btn btn-sm btn-outline-danger" title="Löschen">

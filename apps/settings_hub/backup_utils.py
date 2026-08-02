@@ -87,3 +87,40 @@ def get_backup_path(filename):
     if path.parent != BACKUP_DIR.resolve():
         return None
     return path if path.exists() else None
+
+
+def _db_alias_for_backup(filename):
+    """Leitet die Ziel-Datenbank aus dem Datei-Praefix ab - "backup_" ist das
+    alte Einzeldatei-Schema von vor der Lexikon/Astro-Aufteilung und meint
+    damit immer die Haupt-DB."""
+    if filename.startswith("lexikon_"):
+        return "lexikon"
+    if filename.startswith("astro_"):
+        return "astro"
+    return "default"
+
+
+def restore_backup(filename):
+    """Ueberschreibt die per Datei-Praefix ermittelte Ziel-Datenbank mit dem
+    Inhalt der Backup-Datei - per sqlite3-Backup-API (sichere Richtung wie
+    _backup_database, nur umgekehrt), nicht per rohem Datei-Copy. Schliesst
+    danach alle Django-DB-Verbindungen dieses Prozesses, damit der aktuelle
+    Worker sofort den neuen Stand sieht - andere Gunicorn-Worker (siehe
+    Dockerfile/entrypoint) halten ihre eigenen Verbindungen weiter offen und
+    brauchen dafuer einen Neustart, siehe Hinweis in der aufrufenden View."""
+    path = get_backup_path(filename)
+    if path is None:
+        raise FileNotFoundError(filename)
+
+    db_alias = _db_alias_for_backup(filename)
+    dest_path = settings.DATABASES[db_alias]["NAME"]
+
+    source = sqlite3.connect(str(path))
+    dest = sqlite3.connect(str(dest_path))
+    with dest:
+        source.backup(dest)
+    source.close()
+    dest.close()
+
+    from django.db import connections
+    connections.close_all()
