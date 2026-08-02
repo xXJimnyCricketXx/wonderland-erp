@@ -173,6 +173,37 @@ class ArticleArchiveView(LoginRequiredMixin, SingleObjectMixin, View):
         return htmx_redirect(request, reverse("catalog:list"))
 
 
+class ArticleBulkUpdateView(LoginRequiredMixin, View):
+    """Setzt Kategorie und/oder Lieferant fuer mehrere ausgewaehlte Artikel
+    auf einmal - z.B. nach einem Etsy-Import, der beides nicht mitliefert und
+    sonst Artikel fuer Artikel einzeln nachgepflegt werden muesste. Beide
+    Felder sind unabhaengig optional: nur die tatsaechlich ausgewaehlten
+    werden angewendet. Normaler (nicht-HTMX) Formular-POST, da hier eine
+    echte Seitennavigation mit Redirect zurueck zur vorherigen Filter-/
+    Seitenansicht reicht."""
+
+    def post(self, request):
+        category = request.POST.get("category", "").strip()
+        supplier_id = request.POST.get("supplier", "").strip()
+        article_ids = request.POST.getlist("article_ids")
+
+        updates = {}
+        labels = []
+        if category:
+            updates["category"] = category
+            labels.append("Kategorie")
+        if supplier_id:
+            updates["supplier_id"] = supplier_id
+            labels.append("Lieferant")
+
+        if updates and article_ids:
+            count = Article.objects.filter(pk__in=article_ids).update(**updates)
+            messages.success(request, f"{' und '.join(labels)} für {count} Artikel gesetzt.")
+        else:
+            messages.warning(request, "Keine Artikel ausgewählt oder keine Änderung gewählt.")
+        return redirect(request.META.get("HTTP_REFERER") or reverse("catalog:list"))
+
+
 class EtsyListingMappingListView(LoginRequiredMixin, ListView):
     """One-time "this Etsy listing + variation = this Article" mapping,
     keyed by Etsy's stable Listing ID plus the raw variation text - see

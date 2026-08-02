@@ -8,6 +8,9 @@
     <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
         <h1 class="mb-0">Artikel</h1>
         <div class="d-flex gap-2">
+            <a href="{% url 'shopping_list:list' %}" class="btn btn-outline-secondary">
+                <i class="bi bi-cart-plus me-1"></i>Einkaufsliste
+            </a>
             <a href="{% url 'catalog:listing_mappings' %}" class="btn btn-outline-secondary">
                 <i class="bi bi-link-45deg me-1"></i>Etsy-Zuordnung
             </a>
@@ -78,73 +81,96 @@
     </form>
 
     {% if articles %}
-        <div class="table-responsive">
-            <table class="table table-striped table-hover align-middle table-brand-header">
-                <thead>
-                    <tr>
-                        <th></th>
-                        <th><a href="{% sort_url 'sku' %}" class="text-white text-decoration-none">SKU <i class="bi {% sort_icon 'sku' %} small"></i></a></th>
-                        <th><a href="{% sort_url 'title' %}" class="text-white text-decoration-none">Titel <i class="bi {% sort_icon 'title' %} small"></i></a></th>
-                        <th><a href="{% sort_url 'category' %}" class="text-white text-decoration-none">Kategorie <i class="bi {% sort_icon 'category' %} small"></i></a></th>
-                        <th><a href="{% sort_url 'price' %}" class="text-white text-decoration-none">Preis <i class="bi {% sort_icon 'price' %} small"></i></a></th>
-                        <th><a href="{% sort_url 'stock_quantity' %}" class="text-white text-decoration-none">Bestand <i class="bi {% sort_icon 'stock_quantity' %} small"></i></a></th>
-                        <th><a href="{% sort_url 'supplier__last_name' %}" class="text-white text-decoration-none">Lieferant <i class="bi {% sort_icon 'supplier__last_name' %} small"></i></a></th>
-                        <th><a href="{% sort_url 'is_active' %}" class="text-white text-decoration-none">Status <i class="bi {% sort_icon 'is_active' %} small"></i></a></th>
-                        <th class="text-nowrap">Aktionen</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for article in articles %}
-                        <tr>
-                            <td>
-                                {% if article.thumbnail_url %}
-                                    <img src="{{ article.thumbnail_url }}" alt="" width="40" height="40" class="rounded" style="object-fit: cover; cursor: zoom-in;"
-                                         role="button" onclick="openLightbox('{{ article.thumbnail_url|escapejs }}')">
-                                {% endif %}
-                            </td>
-                            <td>{{ article.sku|default:"–" }}</td>
-                            <td class="text-truncate" style="max-width: 260px;" title="{{ article.title }}">{{ article.title }}</td>
-                            <td>{{ article.category|default:"–" }}</td>
-                            <td>{{ article.price }} {{ article.currency_code }}</td>
-                            <td>
-                                {{ article.stock_quantity }}
-                                {% if article.needs_restock %}
-                                    <i class="bi bi-exclamation-triangle-fill text-warning ms-1" title="Nachbestellung nötig"></i>
-                                {% endif %}
-                            </td>
-                            <td>{{ article.supplier.full_name|default:"–" }}</td>
-                            <td>
-                                {% if article.is_active %}
-                                    <span class="badge text-bg-success">Aktiv</span>
-                                {% else %}
-                                    <span class="badge text-bg-secondary">Inaktiv</span>
-                                {% endif %}
-                                {% if article.is_sold_out %}
-                                    <span class="badge text-bg-danger">Ausverkauft</span>
-                                {% endif %}
-                            </td>
-                            <td class="text-nowrap">
-                                <div class="btn-group">
-                                    <button type="button" class="btn btn-sm btn-outline-secondary" title="Ansehen" data-bs-toggle="modal" data-bs-target="#articleModal"
-                                            hx-get="{% url 'catalog:detail' article.pk %}" hx-target="#articleModalContent">
-                                        <i class="bi bi-eye"></i>
-                                    </button>
-                                    <button type="button" class="btn btn-sm btn-outline-secondary" title="Bearbeiten" data-bs-toggle="modal" data-bs-target="#articleModal"
-                                            hx-get="{% url 'catalog:update' article.pk %}" hx-target="#articleModalContent">
-                                        <i class="bi bi-pencil"></i>
-                                    </button>
-                                    <button type="button" class="btn btn-sm btn-outline-danger" title="Löschen"
-                                            hx-post="{% url 'catalog:archive' article.pk %}"
-                                            hx-confirm="„{{ article.title }}“ wirklich löschen?">
-                                        <i class="bi bi-trash"></i>
-                                    </button>
-                                </div>
-                            </td>
-                        </tr>
+        <form method="post" action="{% url 'catalog:bulk_update' %}" id="bulk-update-form"
+              onsubmit="return confirm('Änderung für ' + document.querySelectorAll('.article-bulk-checkbox:checked').length + ' ausgewählte Artikel anwenden?');">
+            {% csrf_token %}
+            <div class="d-none align-items-center gap-2 mb-3 flex-wrap" id="bulk-action-bar">
+                <span class="small text-muted"><span id="bulk-selected-count">0</span> ausgewählt</span>
+                <select name="category" class="form-select form-select-sm" style="max-width: 250px;">
+                    <option value="">Kategorie wählen…</option>
+                    {% for cat in categories %}
+                        <option value="{{ cat.value }}">{{ cat.value }}</option>
                     {% endfor %}
-                </tbody>
-            </table>
-        </div>
+                </select>
+                <select name="supplier" class="form-select form-select-sm" style="max-width: 250px;">
+                    <option value="">Lieferant wählen…</option>
+                    {% for supplier in suppliers %}
+                        <option value="{{ supplier.pk }}">{{ supplier.full_name }}</option>
+                    {% endfor %}
+                </select>
+                <button type="submit" class="btn btn-sm btn-primary">Anwenden</button>
+            </div>
+
+            <div class="table-responsive">
+                <table class="table table-striped table-hover align-middle table-brand-header">
+                    <thead>
+                        <tr>
+                            <th><input type="checkbox" class="form-check-input" id="bulk-select-all"></th>
+                            <th></th>
+                            <th><a href="{% sort_url 'sku' %}" class="text-white text-decoration-none">SKU <i class="bi {% sort_icon 'sku' %} small"></i></a></th>
+                            <th><a href="{% sort_url 'title' %}" class="text-white text-decoration-none">Titel <i class="bi {% sort_icon 'title' %} small"></i></a></th>
+                            <th><a href="{% sort_url 'category' %}" class="text-white text-decoration-none">Kategorie <i class="bi {% sort_icon 'category' %} small"></i></a></th>
+                            <th><a href="{% sort_url 'price' %}" class="text-white text-decoration-none">Preis <i class="bi {% sort_icon 'price' %} small"></i></a></th>
+                            <th><a href="{% sort_url 'stock_quantity' %}" class="text-white text-decoration-none">Bestand <i class="bi {% sort_icon 'stock_quantity' %} small"></i></a></th>
+                            <th><a href="{% sort_url 'supplier__last_name' %}" class="text-white text-decoration-none">Lieferant <i class="bi {% sort_icon 'supplier__last_name' %} small"></i></a></th>
+                            <th><a href="{% sort_url 'is_active' %}" class="text-white text-decoration-none">Status <i class="bi {% sort_icon 'is_active' %} small"></i></a></th>
+                            <th class="text-nowrap">Aktionen</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for article in articles %}
+                            <tr>
+                                <td><input type="checkbox" class="form-check-input article-bulk-checkbox" name="article_ids" value="{{ article.pk }}"></td>
+                                <td>
+                                    {% if article.thumbnail_url %}
+                                        <img src="{{ article.thumbnail_url }}" alt="" width="40" height="40" class="rounded" style="object-fit: cover; cursor: zoom-in;"
+                                             role="button" onclick="openLightbox('{{ article.thumbnail_url|escapejs }}')">
+                                    {% endif %}
+                                </td>
+                                <td>{{ article.sku|default:"–" }}</td>
+                                <td class="text-truncate" style="max-width: 260px;" title="{{ article.title }}">{{ article.title }}</td>
+                                <td>{{ article.category|default:"–" }}</td>
+                                <td>{{ article.price }} {{ article.currency_code }}</td>
+                                <td>
+                                    {{ article.stock_quantity }}
+                                    {% if article.needs_restock %}
+                                        <i class="bi bi-exclamation-triangle-fill text-warning ms-1" title="Nachbestellung nötig"></i>
+                                    {% endif %}
+                                </td>
+                                <td>{{ article.supplier.full_name|default:"–" }}</td>
+                                <td>
+                                    {% if article.is_active %}
+                                        <span class="badge text-bg-success">Aktiv</span>
+                                    {% else %}
+                                        <span class="badge text-bg-secondary">Inaktiv</span>
+                                    {% endif %}
+                                    {% if article.is_sold_out %}
+                                        <span class="badge text-bg-danger">Ausverkauft</span>
+                                    {% endif %}
+                                </td>
+                                <td class="text-nowrap">
+                                    <div class="btn-group">
+                                        <button type="button" class="btn btn-sm btn-outline-secondary" title="Ansehen" data-bs-toggle="modal" data-bs-target="#articleModal"
+                                                hx-get="{% url 'catalog:detail' article.pk %}" hx-target="#articleModalContent">
+                                            <i class="bi bi-eye"></i>
+                                        </button>
+                                        <button type="button" class="btn btn-sm btn-outline-secondary" title="Bearbeiten" data-bs-toggle="modal" data-bs-target="#articleModal"
+                                                hx-get="{% url 'catalog:update' article.pk %}" hx-target="#articleModalContent">
+                                            <i class="bi bi-pencil"></i>
+                                        </button>
+                                        <button type="button" class="btn btn-sm btn-outline-danger" title="Löschen"
+                                                hx-post="{% url 'catalog:archive' article.pk %}"
+                                                hx-confirm="„{{ article.title }}“ wirklich löschen?">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </form>
         {% include "components/pagination.html" %}
     {% else %}
         {% include "components/empty_state.html" %}
@@ -157,4 +183,29 @@
             </div>
         </div>
     </div>
+
+    <script>
+        (function () {
+            var selectAll = document.getElementById('bulk-select-all');
+            var checkboxes = document.querySelectorAll('.article-bulk-checkbox');
+            var bar = document.getElementById('bulk-action-bar');
+            var countEl = document.getElementById('bulk-selected-count');
+            if (!selectAll || !bar) return;
+
+            function updateBar() {
+                var checked = document.querySelectorAll('.article-bulk-checkbox:checked').length;
+                countEl.textContent = checked;
+                bar.classList.toggle('d-none', checked === 0);
+                bar.classList.toggle('d-flex', checked > 0);
+                selectAll.checked = checked === checkboxes.length;
+                selectAll.indeterminate = checked > 0 && checked < checkboxes.length;
+            }
+
+            selectAll.addEventListener('change', function () {
+                checkboxes.forEach(function (cb) { cb.checked = selectAll.checked; });
+                updateBar();
+            });
+            checkboxes.forEach(function (cb) { cb.addEventListener('change', updateBar); });
+        })();
+    </script>
 {% endblock %}

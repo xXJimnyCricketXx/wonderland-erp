@@ -10,6 +10,7 @@ urlpatterns = [
     path("<int:pk>/", views.ArticleUpdateView.as_view(), name="update"),
     path("<int:pk>/ansehen/", views.ArticleDetailModalView.as_view(), name="detail"),
     path("<int:pk>/archivieren/", views.ArticleArchiveView.as_view(), name="archive"),
+    path("bulk-bearbeiten/", views.ArticleBulkUpdateView.as_view(), name="bulk_update"),
     path("etsy-zuordnung/", views.EtsyListingMappingListView.as_view(), name="listing_mappings"),
     path("etsy-zuordnung/<int:pk>/", views.EtsyListingMappingUpdateView.as_view(), name="listing_mapping_update"),
 ]
