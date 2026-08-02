@@ -27,19 +27,19 @@
             <label class="form-label small mb-1">Händler</label>
             <div class="dropdown">
                 <button class="btn filter-dropdown-toggle dropdown-toggle w-100 text-start" type="button" data-bs-toggle="dropdown">
-                    {{ selected_supplier|default:"Alle" }}
+                    {{ selected_supplier_obj.full_name|default:"Alle" }}
                 </button>
                 <ul class="dropdown-menu">
                     <li><a class="dropdown-item{% if not selected_supplier %} active{% endif %}" href="{% filter_url 'haendler' None %}">Alle</a></li>
                     {% for supplier in suppliers %}
-                        <li><a class="dropdown-item{% if selected_supplier == supplier %} active{% endif %}" href="{% filter_url 'haendler' supplier %}">{{ supplier }}</a></li>
+                        <li><a class="dropdown-item{% if selected_supplier == supplier.pk|stringformat:"s" %} active{% endif %}" href="{% filter_url 'haendler' supplier.pk %}">{{ supplier.full_name }}</a></li>
                     {% endfor %}
                 </ul>
             </div>
         </div>
     </form>
 
-    <h2 class="h5">Einkaufsliste{% if selected_supplier %} – {{ selected_supplier }}{% endif %}</h2>
+    <h2 class="h5">Einkaufsliste{% if selected_supplier_obj %} – {{ selected_supplier_obj.full_name }}{% endif %}</h2>
 
     {% if items %}
         <div class="table-responsive">
@@ -58,39 +58,39 @@
                 </thead>
                 <tbody>
                     {% for item in items %}
-                        <tr>
-                            <td>
-                                {% if item.image_url %}
-                                    <img src="{{ item.image_url }}" alt="" width="40" height="40" class="rounded" style="object-fit: cover; cursor: zoom-in;"
-                                         role="button" onclick="openLightbox('{{ item.image_url|escapejs }}')">
-                                {% endif %}
-                            </td>
-                            <td>{{ item.article_number|default:"–" }}</td>
-                            <td>
-                                {% if item.shop_url %}
-                                    <a href="{{ item.shop_url }}" target="_blank" rel="noopener">{{ item.title|default:"–" }} <i class="bi bi-box-arrow-up-right small"></i></a>
-                                {% else %}
-                                    {{ item.title|default:"–" }}
-                                {% endif %}
-                            </td>
-                            <td>{{ item.quantity }}</td>
-                            <td>{% if item.price_each is not None %}{{ item.price_each }} €{% else %}–{% endif %}</td>
-                            <td>{% if item.price_total is not None %}{{ item.price_total }} €{% else %}–{% endif %}</td>
-                            <td>{{ item.supplier_name|default:"–" }}</td>
-                            <td class="text-nowrap no-print">
-                                <div class="btn-group">
-                                    <button type="button" class="btn btn-sm btn-outline-secondary" title="Bearbeiten" data-bs-toggle="modal" data-bs-target="#shoppingListModal"
-                                            hx-get="{% url 'shopping_list:update' item.pk %}" hx-target="#shoppingListModalContent">
-                                        <i class="bi bi-pencil"></i>
-                                    </button>
-                                    <button type="button" class="btn btn-sm btn-outline-danger" title="Löschen"
-                                            hx-post="{% url 'shopping_list:delete' item.pk %}"
-                                            hx-confirm="„{{ item.title|default:item.article_number|default:'Diesen Eintrag' }}“ wirklich löschen?">
-                                        <i class="bi bi-trash"></i>
-                                    </button>
-                                </div>
-                            </td>
-                        </tr>
+                        {% with cover=item.images.first %}
+                            <tr>
+                                <td>
+                                    {% if cover %}
+                                        <img src="{{ cover.image_url }}" alt="" width="40" height="40" class="rounded" style="object-fit: cover; cursor: zoom-in;"
+                                             role="button" onclick="openLightbox('{{ cover.image_url|escapejs }}')">
+                                    {% endif %}
+                                </td>
+                                <td>{{ item.article_number|default:"–" }}</td>
+                                <td>{{ item.title|default:"–" }}</td>
+                                <td>{{ item.quantity }}</td>
+                                <td>{% if item.price_each is not None %}{{ item.price_each }} €{% else %}–{% endif %}</td>
+                                <td>{% if item.price_total is not None %}{{ item.price_total }} €{% else %}–{% endif %}</td>
+                                <td>{{ item.supplier.full_name|default:"–" }}</td>
+                                <td class="text-nowrap no-print">
+                                    <div class="btn-group">
+                                        <button type="button" class="btn btn-sm btn-outline-secondary" title="Ansehen" data-bs-toggle="modal" data-bs-target="#shoppingListModal"
+                                                hx-get="{% url 'shopping_list:detail' item.pk %}" hx-target="#shoppingListModalContent">
+                                            <i class="bi bi-eye"></i>
+                                        </button>
+                                        <button type="button" class="btn btn-sm btn-outline-secondary" title="Bearbeiten" data-bs-toggle="modal" data-bs-target="#shoppingListModal"
+                                                hx-get="{% url 'shopping_list:update' item.pk %}" hx-target="#shoppingListModalContent">
+                                            <i class="bi bi-pencil"></i>
+                                        </button>
+                                        <button type="button" class="btn btn-sm btn-outline-danger" title="Löschen"
+                                                hx-post="{% url 'shopping_list:delete' item.pk %}"
+                                                hx-confirm="„{{ item.title|default:item.article_number|default:'Diesen Eintrag' }}“ wirklich löschen?">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        {% endwith %}
                     {% endfor %}
                 </tbody>
                 <tfoot>
@@ -107,9 +107,9 @@
     {% endif %}
 
     <div class="modal fade" id="shoppingListModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
-        <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-lg">
             <div class="modal-content" id="shoppingListModalContent">
-                <!-- HTMX swaps create/edit/import content in here -->
+                <!-- HTMX swaps create/edit/detail content in here -->
             </div>
         </div>
     </div>

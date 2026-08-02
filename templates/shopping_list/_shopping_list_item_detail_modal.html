@@ -1,0 +1,52 @@
+<div class="modal-header bg-brand text-white">
+    <h5 class="modal-title">{{ item.title|default:item.article_number|default:"Einkaufslisten-Eintrag" }}</h5>
+    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Schließen"></button>
+</div>
+<div class="modal-body">
+    {% with images=item.images.all %}
+        {% if images %}
+            <div class="row g-2 mb-3">
+                {% for img in images %}
+                    <div class="col-4">
+                        <img src="{{ img.image_url }}" class="img-fluid rounded" alt="{{ item.title }}"
+                             role="button" style="cursor: zoom-in;" onclick="openLightbox('{{ img.image_url|escapejs }}')">
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="bg-light rounded d-flex align-items-center justify-content-center mb-3" style="height: 160px;">
+                <i class="bi bi-cart-plus text-muted fs-1"></i>
+            </div>
+        {% endif %}
+    {% endwith %}
+
+    <dl class="row mb-0 small">
+        <dt class="col-4">Artikel-Nr.</dt>
+        <dd class="col-8">{{ item.article_number|default:"–" }}</dd>
+        <dt class="col-4">Anzahl</dt>
+        <dd class="col-8">{{ item.quantity }}</dd>
+        <dt class="col-4">Preis (einzeln)</dt>
+        <dd class="col-8">{% if item.price_each is not None %}{{ item.price_each }} €{% else %}–{% endif %}</dd>
+        <dt class="col-4">Preis (gesamt)</dt>
+        <dd class="col-8">{% if item.price_total is not None %}{{ item.price_total }} €{% else %}–{% endif %}</dd>
+        <dt class="col-4">Händler</dt>
+        <dd class="col-8">{{ item.supplier.full_name|default:"–" }}</dd>
+        <dt class="col-4">Shopseite</dt>
+        <dd class="col-8">
+            {% if item.shop_url %}<a href="{{ item.shop_url }}" target="_blank" rel="noopener">{{ item.shop_url }} <i class="bi bi-box-arrow-up-right small"></i></a>{% else %}–{% endif %}
+        </dd>
+    </dl>
+</div>
+<div class="modal-footer">
+    {% if back_modal_id %}
+        <button type="button" class="btn btn-outline-secondary me-auto"
+                data-bs-toggle="modal" data-bs-target="#{{ back_modal_id }}" data-bs-dismiss="modal">
+            <i class="bi bi-arrow-left me-1"></i>Zurück
+        </button>
+    {% endif %}
+    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Schließen</button>
+    <button type="button" class="btn btn-primary"
+            hx-get="{% url 'shopping_list:update' item.pk %}{% if back_modal_id %}?zurueck_zu={{ back_modal_id }}{% endif %}" hx-target="#shoppingListModalContent">
+        <i class="bi bi-pencil me-1"></i>Bearbeiten
+    </button>
+</div>

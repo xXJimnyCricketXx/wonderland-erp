@@ -48,7 +48,7 @@ TRASH_REGISTRY = [
         "slug": "einkaufsliste",
         "label": "Einkaufsliste",
         "model": ShoppingListItem,
-        "fields": [("Artikel", "title"), ("Händler", "supplier_name")],
+        "fields": [("Artikel", "title"), ("Händler", "supplier")],
         "base_filter": {},
     },
 ]

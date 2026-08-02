@@ -41,8 +41,8 @@
             <div class="row mb-3">
                 <div class="col-md-6">
                     <label class="form-label">Händler</label>
-                    {{ form.supplier_name }}
-                    {% include "components/field_errors.html" with field=form.supplier_name %}
+                    {{ form.supplier }}
+                    {% include "components/field_errors.html" with field=form.supplier %}
                 </div>
                 <div class="col-md-6">
                     <label class="form-label">Shopseite</label>
@@ -50,40 +50,76 @@
                     {% include "components/field_errors.html" with field=form.shop_url %}
                 </div>
             </div>
-            <div class="row mb-3">
-                <div class="col-12">
-                    <label class="form-label">Bild (Link)</label>
-                    {{ form.image_url }}
-                    {% include "components/field_errors.html" with field=form.image_url %}
-                </div>
+
+            <div class="d-flex justify-content-between align-items-center mb-2">
+                <h6 class="text-muted text-uppercase small mb-0">Bilder (max. 5, erstes = Vorschaubild)</h6>
+                <button type="button" id="add-image-row" class="btn btn-sm btn-outline-secondary">
+                    <i class="bi bi-plus-lg me-1"></i>Bild
+                </button>
             </div>
+            {{ formset.management_form }}
+            <div id="shopping-list-images">
+                {% for image_form in formset %}
+                    <div class="row mb-2 shopping-list-image-row">
+                        <div class="col-md-8">
+                            <label class="form-label small">Bild-Link</label>
+                            {{ image_form.image_url }}
+                            {% include "components/field_errors.html" with field=image_form.image_url %}
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label small">Reihenfolge</label>
+                            {{ image_form.position }}
+                        </div>
+                        <div class="col-md-2 d-flex align-items-end">
+                            {% if image_form.instance.pk %}
+                                <div class="form-check mb-2">
+                                    {{ image_form.DELETE }}
+                                    <label class="form-check-label small">Löschen</label>
+                                </div>
+                            {% endif %}
+                        </div>
+                        {{ image_form.id }}
+                    </div>
+                {% endfor %}
+            </div>
+            <template id="empty-image-form">
+                <div class="row mb-2 shopping-list-image-row">
+                    <div class="col-md-8">
+                        <label class="form-label small">Bild-Link</label>
+                        <input type="url" name="images-__prefix__-image_url" class="form-control" id="id_images-__prefix__-image_url" placeholder="https://…">
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label small">Reihenfolge</label>
+                        <input type="number" name="images-__prefix__-position" class="form-control" id="id_images-__prefix__-position" value="1">
+                    </div>
+                    <div class="col-md-2"></div>
+                </div>
+            </template>
         </div>
     </div>
     <div class="modal-footer">
+        {% if object %}
+            <button type="button" class="btn btn-outline-danger me-auto"
+                    hx-post="{% url 'shopping_list:delete' object.pk %}" hx-target="#shoppingListModalContent"
+                    hx-confirm="„{{ object.title|default:object.article_number|default:'Diesen Eintrag' }}“ wirklich löschen?">
+                <i class="bi bi-trash me-1"></i>Löschen
+            </button>
+        {% endif %}
         <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Abbrechen</button>
         <button type="submit" class="btn btn-primary">Speichern</button>
     </div>
 </form>
 <script>
     (function () {
-        // Preis (gesamt) automatisch aus Anzahl * Preis (einzeln) vorschlagen,
-        // aber ueberschreibbar - sobald der Nutzer das Feld selbst anfasst,
-        // nicht mehr automatisch nachrechnen (z.B. bei Mengenrabatt).
-        var quantityEl = document.getElementById('id_quantity');
-        var eachEl = document.getElementById('id_price_each');
-        var totalEl = document.getElementById('id_price_total');
-        if (!quantityEl || !eachEl || !totalEl) return;
-        var totalTouched = !!totalEl.value;
-        totalEl.addEventListener('input', function () { totalTouched = true; });
-        function recalc() {
-            if (totalTouched) return;
-            var qty = parseFloat(quantityEl.value);
-            var each = parseFloat(eachEl.value);
-            if (!isNaN(qty) && !isNaN(each)) {
-                totalEl.value = (qty * each).toFixed(2);
-            }
-        }
-        quantityEl.addEventListener('input', recalc);
-        eachEl.addEventListener('input', recalc);
+        var addBtn = document.getElementById('add-image-row');
+        if (!addBtn) return;
+        addBtn.addEventListener('click', function () {
+            var totalForms = document.getElementById('id_images-TOTAL_FORMS');
+            var idx = parseInt(totalForms.value, 10);
+            if (idx >= 5) return;
+            var templateHtml = document.getElementById('empty-image-form').innerHTML.split('__prefix__').join(idx);
+            document.getElementById('shopping-list-images').insertAdjacentHTML('beforeend', templateHtml);
+            totalForms.value = idx + 1;
+        });
     })();
 </script>
