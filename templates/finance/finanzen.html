@@ -158,7 +158,7 @@
                                 <td>{{ income.order.order_id|default:"–" }}</td>
                                 <td>{{ income.customer.full_name|default:"–" }}</td>
                                 <td>{{ income.category }}</td>
-                                <td>{{ income.amount }} €</td>
+                                <td{% if income.amount < 0 %} class="text-danger"{% endif %}>{{ income.amount }} €</td>
                                 <td>{{ income.status|default:"–" }}</td>
                                 <td class="text-nowrap">
                                     <div class="btn-group">
