@@ -1,0 +1,89 @@
+<div class="modal-header bg-brand text-white">
+    <h5 class="modal-title">{% if object %}Eintrag bearbeiten{% else %}Neuer Eintrag{% endif %}</h5>
+    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Schließen"></button>
+</div>
+<form hx-post="{{ request.path }}" hx-target="#shoppingListModalContent">
+    {% csrf_token %}
+    <div class="modal-body">
+        {% if form.non_field_errors %}
+            <div class="alert alert-danger">{{ form.non_field_errors }}</div>
+        {% endif %}
+        <div class="container-fluid">
+            <div class="row mb-3">
+                <div class="col-md-4">
+                    <label class="form-label">Artikel-Nr.</label>
+                    {{ form.article_number }}
+                    {% include "components/field_errors.html" with field=form.article_number %}
+                </div>
+                <div class="col-md-8">
+                    <label class="form-label">Artikel</label>
+                    {{ form.title }}
+                    {% include "components/field_errors.html" with field=form.title %}
+                </div>
+            </div>
+            <div class="row mb-3">
+                <div class="col-md-3">
+                    <label class="form-label">Anzahl</label>
+                    {{ form.quantity }}
+                    {% include "components/field_errors.html" with field=form.quantity %}
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Preis (einzeln)</label>
+                    {{ form.price_each }}
+                    {% include "components/field_errors.html" with field=form.price_each %}
+                </div>
+                <div class="col-md-5">
+                    <label class="form-label">Preis (gesamt)</label>
+                    {{ form.price_total }}
+                    {% include "components/field_errors.html" with field=form.price_total %}
+                </div>
+            </div>
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <label class="form-label">Händler</label>
+                    {{ form.supplier_name }}
+                    {% include "components/field_errors.html" with field=form.supplier_name %}
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Shopseite</label>
+                    {{ form.shop_url }}
+                    {% include "components/field_errors.html" with field=form.shop_url %}
+                </div>
+            </div>
+            <div class="row mb-3">
+                <div class="col-12">
+                    <label class="form-label">Bild (Link)</label>
+                    {{ form.image_url }}
+                    {% include "components/field_errors.html" with field=form.image_url %}
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal-footer">
+        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Abbrechen</button>
+        <button type="submit" class="btn btn-primary">Speichern</button>
+    </div>
+</form>
+<script>
+    (function () {
+        // Preis (gesamt) automatisch aus Anzahl * Preis (einzeln) vorschlagen,
+        // aber ueberschreibbar - sobald der Nutzer das Feld selbst anfasst,
+        // nicht mehr automatisch nachrechnen (z.B. bei Mengenrabatt).
+        var quantityEl = document.getElementById('id_quantity');
+        var eachEl = document.getElementById('id_price_each');
+        var totalEl = document.getElementById('id_price_total');
+        if (!quantityEl || !eachEl || !totalEl) return;
+        var totalTouched = !!totalEl.value;
+        totalEl.addEventListener('input', function () { totalTouched = true; });
+        function recalc() {
+            if (totalTouched) return;
+            var qty = parseFloat(quantityEl.value);
+            var each = parseFloat(eachEl.value);
+            if (!isNaN(qty) && !isNaN(each)) {
+                totalEl.value = (qty * each).toFixed(2);
+            }
+        }
+        quantityEl.addEventListener('input', recalc);
+        eachEl.addEventListener('input', recalc);
+    })();
+</script>

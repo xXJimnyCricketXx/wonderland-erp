@@ -1,0 +1,116 @@
+{% extends "base.html" %}
+{% load filters %}
+{% block title %}Einkaufsliste{% endblock %}
+{% block content %}
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3 no-print">
+        <h1 class="mb-0">Einkaufsliste</h1>
+        <div class="d-flex flex-wrap gap-2">
+            <a href="{% url 'catalog:list' %}" class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-left me-1"></i>Zurück zu Artikel
+            </a>
+            <a href="{% url 'settings_hub:index' %}?tab=papierkorb&modul=einkaufsliste" class="btn btn-outline-danger">
+                <i class="bi bi-trash me-1"></i>Papierkorb{% if trash_count %} ({{ trash_count }}){% endif %}
+            </a>
+            <button type="button" class="btn btn-outline-secondary" onclick="window.print()">
+                <i class="bi bi-printer me-1"></i>Drucken
+            </button>
+            <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#shoppingListModal"
+                    hx-get="{% url 'shopping_list:create' %}" hx-target="#shoppingListModalContent">
+                <i class="bi bi-plus-lg me-1"></i>Neu
+            </button>
+        </div>
+    </div>
+
+    <form method="get" class="row g-2 mb-3 align-items-end no-print">
+        <input type="hidden" name="haendler" value="{{ selected_supplier }}">
+        <div class="col-md-3">
+            <label class="form-label small mb-1">Händler</label>
+            <div class="dropdown">
+                <button class="btn filter-dropdown-toggle dropdown-toggle w-100 text-start" type="button" data-bs-toggle="dropdown">
+                    {{ selected_supplier|default:"Alle" }}
+                </button>
+                <ul class="dropdown-menu">
+                    <li><a class="dropdown-item{% if not selected_supplier %} active{% endif %}" href="{% filter_url 'haendler' None %}">Alle</a></li>
+                    {% for supplier in suppliers %}
+                        <li><a class="dropdown-item{% if selected_supplier == supplier %} active{% endif %}" href="{% filter_url 'haendler' supplier %}">{{ supplier }}</a></li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+    </form>
+
+    <h2 class="h5">Einkaufsliste{% if selected_supplier %} – {{ selected_supplier }}{% endif %}</h2>
+
+    {% if items %}
+        <div class="table-responsive">
+            <table class="table table-striped table-hover align-middle table-brand-header">
+                <thead>
+                    <tr>
+                        <th></th>
+                        <th>Artikel-Nr.</th>
+                        <th>Artikel</th>
+                        <th>Anzahl</th>
+                        <th>Preis (einzeln)</th>
+                        <th>Preis (gesamt)</th>
+                        <th>Händler</th>
+                        <th class="no-print">Aktionen</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in items %}
+                        <tr>
+                            <td>
+                                {% if item.image_url %}
+                                    <img src="{{ item.image_url }}" alt="" width="40" height="40" class="rounded" style="object-fit: cover; cursor: zoom-in;"
+                                         role="button" onclick="openLightbox('{{ item.image_url|escapejs }}')">
+                                {% endif %}
+                            </td>
+                            <td>{{ item.article_number|default:"–" }}</td>
+                            <td>
+                                {% if item.shop_url %}
+                                    <a href="{{ item.shop_url }}" target="_blank" rel="noopener">{{ item.title|default:"–" }} <i class="bi bi-box-arrow-up-right small"></i></a>
+                                {% else %}
+                                    {{ item.title|default:"–" }}
+                                {% endif %}
+                            </td>
+                            <td>{{ item.quantity }}</td>
+                            <td>{% if item.price_each is not None %}{{ item.price_each }} €{% else %}–{% endif %}</td>
+                            <td>{% if item.price_total is not None %}{{ item.price_total }} €{% else %}–{% endif %}</td>
+                            <td>{{ item.supplier_name|default:"–" }}</td>
+                            <td class="text-nowrap no-print">
+                                <div class="btn-group">
+                                    <button type="button" class="btn btn-sm btn-outline-secondary" title="Bearbeiten" data-bs-toggle="modal" data-bs-target="#shoppingListModal"
+                                            hx-get="{% url 'shopping_list:update' item.pk %}" hx-target="#shoppingListModalContent">
+                                        <i class="bi bi-pencil"></i>
+                                    </button>
+                                    <button type="button" class="btn btn-sm btn-outline-danger" title="Löschen"
+                                            hx-post="{% url 'shopping_list:delete' item.pk %}"
+                                            hx-confirm="„{{ item.title|default:item.article_number|default:'Diesen Eintrag' }}“ wirklich löschen?">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+                <tfoot>
+                    <tr>
+                        <th colspan="5" class="text-end">Summe</th>
+                        <th>{{ price_total_sum }} €</th>
+                        <th class="no-print"></th>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+    {% else %}
+        {% include "components/empty_state.html" with message="Noch keine Einträge auf der Einkaufsliste." %}
+    {% endif %}
+
+    <div class="modal fade" id="shoppingListModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content" id="shoppingListModalContent">
+                <!-- HTMX swaps create/edit/import content in here -->
+            </div>
+        </div>
+    </div>
+{% endblock %}

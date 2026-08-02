@@ -5,6 +5,7 @@ template can all stay generic instead of duplicating per-model code."""
 from catalog.models import Article
 from contacts.models import Customer, Supplier
 from orders.models import Order
+from shopping_list.models import ShoppingListItem
 from tasks.models import Task
 
 TRASH_REGISTRY = [
@@ -41,6 +42,13 @@ TRASH_REGISTRY = [
         "label": "Aufgaben",
         "model": Task,
         "fields": [("Titel", "title"), ("Fällig am", "due_date")],
+        "base_filter": {},
+    },
+    {
+        "slug": "einkaufsliste",
+        "label": "Einkaufsliste",
+        "model": ShoppingListItem,
+        "fields": [("Artikel", "title"), ("Händler", "supplier_name")],
         "base_filter": {},
     },
 ]

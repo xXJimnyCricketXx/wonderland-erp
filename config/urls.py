@@ -12,6 +12,7 @@ urlpatterns = [
     path("accounts/", include("django.contrib.auth.urls")),
     path("profil/", include("accounts.urls")),
     path("artikel/", include("catalog.urls")),
+    path("artikel/einkaufsliste/", include("shopping_list.urls")),
     path("bestellungen/", include("orders.urls")),
     path("bewertungen/", ReviewListView.as_view(), name="review_list"),
     path("kontakte/", include("contacts.urls")),
