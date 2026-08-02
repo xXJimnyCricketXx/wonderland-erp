@@ -22,6 +22,13 @@
                 </div>
             </div>
             <div class="row mb-3">
+                <div class="col-12">
+                    <label class="form-label">Beschreibung</label>
+                    {{ form.description }}
+                    {% include "components/field_errors.html" with field=form.description %}
+                </div>
+            </div>
+            <div class="row mb-3">
                 <div class="col-md-3">
                     <label class="form-label">Anzahl</label>
                     {{ form.quantity }}
@@ -112,14 +119,39 @@
 <script>
     (function () {
         var addBtn = document.getElementById('add-image-row');
-        if (!addBtn) return;
-        addBtn.addEventListener('click', function () {
-            var totalForms = document.getElementById('id_images-TOTAL_FORMS');
-            var idx = parseInt(totalForms.value, 10);
-            if (idx >= 5) return;
-            var templateHtml = document.getElementById('empty-image-form').innerHTML.split('__prefix__').join(idx);
-            document.getElementById('shopping-list-images').insertAdjacentHTML('beforeend', templateHtml);
-            totalForms.value = idx + 1;
-        });
+        if (addBtn) {
+            addBtn.addEventListener('click', function () {
+                var totalForms = document.getElementById('id_images-TOTAL_FORMS');
+                var idx = parseInt(totalForms.value, 10);
+                if (idx >= 5) return;
+                var templateHtml = document.getElementById('empty-image-form').innerHTML.split('__prefix__').join(idx);
+                document.getElementById('shopping-list-images').insertAdjacentHTML('beforeend', templateHtml);
+                totalForms.value = idx + 1;
+            });
+        }
+
+        // Preis (gesamt) automatisch aus Anzahl * Preis (einzeln) vorschlagen,
+        // aber ueberschreibbar - totalTouched startet bewusst IMMER bei false,
+        // auch wenn Preis (gesamt) beim Bearbeiten eines bestehenden Eintrags
+        // schon einen Wert hat: sonst wuerde dieser alte, gespeicherte Wert
+        // faelschlich als "vom Nutzer in dieser Sitzung manuell angepasst"
+        // gewertet und eine Aenderung von Anzahl/Einzelpreis wuerde ihn nie
+        // mehr automatisch nachrechnen.
+        var quantityEl = document.getElementById('id_quantity');
+        var eachEl = document.getElementById('id_price_each');
+        var totalEl = document.getElementById('id_price_total');
+        if (!quantityEl || !eachEl || !totalEl) return;
+        var totalTouched = false;
+        totalEl.addEventListener('input', function () { totalTouched = true; });
+        function recalc() {
+            if (totalTouched) return;
+            var qty = parseFloat(quantityEl.value);
+            var each = parseFloat(eachEl.value);
+            if (!isNaN(qty) && !isNaN(each)) {
+                totalEl.value = (qty * each).toFixed(2);
+            }
+        }
+        quantityEl.addEventListener('input', recalc);
+        eachEl.addEventListener('input', recalc);
     })();
 </script>

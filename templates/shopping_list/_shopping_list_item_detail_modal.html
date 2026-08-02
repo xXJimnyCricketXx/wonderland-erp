@@ -3,39 +3,49 @@
     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Schließen"></button>
 </div>
 <div class="modal-body">
-    {% with images=item.images.all %}
-        {% if images %}
-            <div class="row g-2 mb-3">
-                {% for img in images %}
-                    <div class="col-4">
-                        <img src="{{ img.image_url }}" class="img-fluid rounded" alt="{{ item.title }}"
-                             role="button" style="cursor: zoom-in;" onclick="openLightbox('{{ img.image_url|escapejs }}')">
+    <div class="row mb-3">
+        <div class="col-md-5">
+            {% with cover=item.images.first %}
+                {% if cover %}
+                    <img src="{{ cover.image_url }}" class="img-fluid rounded" alt="{{ item.title }}"
+                         role="button" style="cursor: zoom-in;" onclick="openLightbox('{{ cover.image_url|escapejs }}')">
+                {% else %}
+                    <div class="bg-light rounded d-flex align-items-center justify-content-center" style="aspect-ratio: 1;">
+                        <i class="bi bi-cart-plus text-muted fs-1"></i>
                     </div>
-                {% endfor %}
+                {% endif %}
+            {% endwith %}
+            {% if item.images.count > 1 %}
+                <div class="d-flex gap-2 mt-2 flex-wrap">
+                    {% for img in item.images.all|slice:"1:" %}
+                        <img src="{{ img.image_url }}" width="56" height="56" class="rounded" style="object-fit: cover; cursor: zoom-in;" alt=""
+                             role="button" onclick="openLightbox('{{ img.image_url|escapejs }}')">
+                    {% endfor %}
+                </div>
+            {% endif %}
+        </div>
+        <div class="col-md-7">
+            <p class="text-muted mb-1">Artikel-Nr.: {{ item.article_number|default:"–" }}</p>
+            <div class="d-flex flex-wrap gap-2 mb-3">
+                <span class="badge text-bg-light border">Anzahl: {{ item.quantity }}</span>
+                {% if item.supplier %}<span class="badge text-bg-light border">{{ item.supplier.full_name }}</span>{% endif %}
             </div>
-        {% else %}
-            <div class="bg-light rounded d-flex align-items-center justify-content-center mb-3" style="height: 160px;">
-                <i class="bi bi-cart-plus text-muted fs-1"></i>
-            </div>
-        {% endif %}
-    {% endwith %}
+            <h2 class="mb-1">{% if item.price_total is not None %}{{ item.price_total }} €{% else %}–{% endif %}</h2>
+            {% if item.price_each is not None %}
+                <p class="text-muted small mb-3">{{ item.price_each }} € / Stück</p>
+            {% endif %}
+            {% if item.shop_url %}
+                <a href="{{ item.shop_url }}" target="_blank" rel="noopener" class="btn btn-sm btn-outline-secondary">
+                    <i class="bi bi-box-arrow-up-right me-1"></i>Im Shop ansehen
+                </a>
+            {% endif %}
+        </div>
+    </div>
 
-    <dl class="row mb-0 small">
-        <dt class="col-4">Artikel-Nr.</dt>
-        <dd class="col-8">{{ item.article_number|default:"–" }}</dd>
-        <dt class="col-4">Anzahl</dt>
-        <dd class="col-8">{{ item.quantity }}</dd>
-        <dt class="col-4">Preis (einzeln)</dt>
-        <dd class="col-8">{% if item.price_each is not None %}{{ item.price_each }} €{% else %}–{% endif %}</dd>
-        <dt class="col-4">Preis (gesamt)</dt>
-        <dd class="col-8">{% if item.price_total is not None %}{{ item.price_total }} €{% else %}–{% endif %}</dd>
-        <dt class="col-4">Händler</dt>
-        <dd class="col-8">{{ item.supplier.full_name|default:"–" }}</dd>
-        <dt class="col-4">Shopseite</dt>
-        <dd class="col-8">
-            {% if item.shop_url %}<a href="{{ item.shop_url }}" target="_blank" rel="noopener">{{ item.shop_url }} <i class="bi bi-box-arrow-up-right small"></i></a>{% else %}–{% endif %}
-        </dd>
-    </dl>
+    {% if item.description %}
+        <h6 class="text-muted text-uppercase small">Beschreibung</h6>
+        <p class="mb-0">{{ item.description|linebreaks }}</p>
+    {% endif %}
 </div>
 <div class="modal-footer">
     {% if back_modal_id %}

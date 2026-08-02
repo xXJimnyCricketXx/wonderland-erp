@@ -13,6 +13,7 @@ class ShoppingListItem(Archivable):
 
     article_number = models.CharField("Artikel-Nr.", max_length=100, blank=True)
     title = models.CharField("Artikel", max_length=255, blank=True)
+    description = models.TextField("Beschreibung", blank=True)
     quantity = models.PositiveIntegerField("Anzahl", default=1)
     price_each = models.DecimalField("Preis (einzeln)", max_digits=10, decimal_places=2, blank=True, null=True)
     # Nicht aus quantity*price_each abgeleitet, sondern ein eigenes Feld -
