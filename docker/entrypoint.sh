@@ -3,6 +3,7 @@ set -e
 
 python manage.py migrate --noinput
 python manage.py migrate --database=lexikon --noinput
+python manage.py migrate --database=astro --noinput
 python manage.py collectstatic --noinput
 python manage.py create_admin
 
